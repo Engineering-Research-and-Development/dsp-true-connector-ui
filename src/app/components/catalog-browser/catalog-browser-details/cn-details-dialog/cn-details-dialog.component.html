@@ -1,0 +1,98 @@
+<div *ngIf="type === 'distribution'" class="dialog">
+  <br />
+  <div>
+    <div class="headtitle">
+      <div class="back">
+        <h1>Distribution Details</h1>
+      </div>
+    </div>
+
+    <div>
+      <h2>{{ data.item.title }}</h2>
+
+      <!-- <p>
+        <strong>Assignee:</strong>
+        {{ data.item.assignee }}
+      </p>
+  
+      <p>
+        <strong>Assigner:</strong>
+        {{ data.item.assigner }}
+      </p> -->
+    </div>
+    <!-- <mat-expansion-panel
+      class="expansion-panel"
+      *ngIf="data.item.permission && data.item.permission.length > 0"
+    >
+      <mat-expansion-panel-header>
+        <mat-panel-title>Access Services</mat-panel-title>
+      </mat-expansion-panel-header>
+      <div
+        *ngFor="let service of data.item.accessService"
+        class="resource-section"
+      >
+        <div>
+          <p><strong>Action:</strong>{{ permission.action }}</p>
+          <p><strong>Assignee:</strong>{{ permission.assignee }}</p>
+          <p><strong>Assigner:</strong>{{ permission.assigner }}</p>
+          <p><strong>Constraints:</strong></p>
+          <div *ngFor="let constraint of permission.constraint">
+            <p><strong>Left operand:</strong>{{ constraint.leftOperand }}</p>
+            <p><strong>Operator:</strong>{{ constraint.operator }}</p>
+            <p><strong>Right operand:</strong>{{ constraint.rightOperand }}</p>
+          </div>
+        </div>
+        <hr />
+      </div>
+    </mat-expansion-panel> -->
+  </div>
+</div>
+<div class="dialog">
+  <br />
+  <div *ngIf="type === 'offer'">
+    <div class="headtitle">
+      <div class="back">
+        <h1>Offer Details</h1>
+      </div>
+    </div>
+
+    <div>
+      <h2>{{ data.item["@id"] }}</h2>
+
+      <p>
+        <strong>Assignee:</strong>
+        {{ data.item.assignee }}
+      </p>
+
+      <p>
+        <strong>Assigner:</strong>
+        {{ data.item.assigner }}
+      </p>
+    </div>
+    <mat-expansion-panel
+      class="expansion-panel"
+      *ngIf="data.item.permission && data.item.permission.length > 0"
+    >
+      <mat-expansion-panel-header>
+        <mat-panel-title>Permissions</mat-panel-title>
+      </mat-expansion-panel-header>
+      <div
+        *ngFor="let permission of data.item.permission"
+        class="resource-section"
+      >
+        <div>
+          <p><strong>Action:</strong>{{ permission.action }}</p>
+          <p><strong>Assignee:</strong>{{ permission.assignee }}</p>
+          <p><strong>Assigner:</strong>{{ permission.assigner }}</p>
+          <p><strong>Constraints:</strong></p>
+          <div *ngFor="let constraint of permission.constraint">
+            <p><strong>Left operand:</strong>{{ constraint.leftOperand }}</p>
+            <p><strong>Operator:</strong>{{ constraint.operator }}</p>
+            <p><strong>Right operand:</strong>{{ constraint.rightOperand }}</p>
+          </div>
+        </div>
+        <hr />
+      </div>
+    </mat-expansion-panel>
+  </div>
+</div>

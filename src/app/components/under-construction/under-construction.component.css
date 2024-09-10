@@ -1,0 +1,23 @@
+.under-construction-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  text-align: center;
+  color: #333;
+}
+
+.astronaut {
+  width: 60%;
+  margin: 0 auto;
+  position: absolute;
+  top: 2%;
+}
+.text {
+  position: absolute;
+  top: 30%;
+  left: 30%;
+  text-align: left;
+  width: 50%;
+}

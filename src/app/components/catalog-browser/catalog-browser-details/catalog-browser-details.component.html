@@ -1,0 +1,269 @@
+<div *ngIf="loading" class="item">
+  <mat-card class="catalog-card">
+    <ngx-skeleton-loader
+      count="15"
+      appearance="line"
+      animation="pulse"
+    ></ngx-skeleton-loader>
+  </mat-card>
+</div>
+<div *ngIf="!loading && catalogData != undefined">
+  <mat-card class="catalog-card">
+    <mat-card-title class="catalog-title"></mat-card-title>
+    <mat-card-content>
+      <div class="headtitle">
+        <div class="back">
+          <h1>Catalog details</h1>
+        </div>
+      </div>
+
+      <div>
+        <mat-tab-group>
+          <mat-tab label="Basic info">
+            <div class="bc-blue">
+              <br />
+              <h2>{{ catalogData.title }}</h2>
+              <div class="table-info">
+                <strong>Identifier</strong
+                ><span>{{ catalogData.identifier }}</span>
+                <strong>Conforms to</strong>
+                <span>{{ catalogData.conformsTo }}</span>
+
+                <strong>Keyword</strong>
+                <span>{{ catalogData.keyword.join(", ") }}</span>
+
+                <strong>Theme</strong>
+                <span>{{ catalogData.theme.join(", ") }}</span>
+
+                <strong>Participant ID</strong>
+                <span> {{ catalogData.participantId }}</span>
+
+                <strong>Homepage</strong>
+                <span>{{ catalogData.homepage }}</span>
+                <strong>Creator</strong>
+                <span>{{ catalogData.creator }} </span>
+
+                <strong>Issued</strong>
+                <span>
+                  {{ catalogData.issued | date : "d MMMM y, HH:mm:ss" }}
+                </span>
+
+                <strong>Modified</strong>
+                <span>
+                  {{ catalogData.modified | date : "d MMMM y, HH:mm:ss" }}
+                </span>
+              </div>
+            </div>
+          </mat-tab>
+          <mat-tab label="Description">
+            <div class="desc">
+              <br />
+              <mat-form-field appearance="outline">
+                <mat-label>Select Language</mat-label>
+                <mat-select
+                  [(value)]="selectedLanguage"
+                  (selectionChange)="onLanguageSelected()"
+                  outline
+                >
+                  <mat-option
+                    *ngFor="let language of languages"
+                    [value]="language.toUpperCase()"
+                    >{{ language | uppercase }}</mat-option
+                  >
+                </mat-select>
+              </mat-form-field>
+
+              <p *ngIf="descriptionValue">{{ descriptionValue }}</p>
+            </div>
+          </mat-tab>
+          <mat-tab label="Datasets">
+            <div>
+              <br />
+              <div class="page-wrraper">
+                <div class="bc-grey">
+                  <div class="table-info">
+                    <div class="space-card">
+                      <div *ngFor="let dataset of catalogData.dataset">
+                        <div class="card">
+                          <div class="title">
+                            {{ dataset.title }}
+                          </div>
+
+                          <div class="content">
+                            <p>
+                              <strong>Identifier:</strong>
+                              {{ dataset.identifier }}
+                            </p>
+                            <p>
+                              <strong>Creator:</strong>
+                              {{ dataset.creator }}
+                            </p>
+                            <p>
+                              <strong>Theme:</strong>
+                              {{ dataset.theme.join(", ") }}
+                            </p>
+                            <p>
+                              <strong>Keywords:</strong>
+                              {{ dataset.keyword.join(", ") }}
+                            </p>
+                            <p>
+                              <strong>Issued:</strong>
+                              {{ dataset.issued | date : "d MMMM y, HH:mm:ss" }}
+                            </p>
+                            <p>
+                              <strong>Modified:</strong>
+                              {{
+                                dataset.modified | date : "d MMMM y, HH:mm:ss"
+                              }}
+                            </p>
+                          </div>
+                          <div class="sdd">
+                            <mat-expansion-panel
+                              class="expansion-panel"
+                              *ngIf="dataset.hasPolicy.length > 0"
+                            >
+                              <mat-expansion-panel-header>
+                                <mat-panel-title>Offers</mat-panel-title>
+                              </mat-expansion-panel-header>
+                              <div
+                                *ngFor="let offer of dataset.hasPolicy"
+                                class="resource-section"
+                              >
+                                <div>
+                                  <mat-checkbox
+                                    [checked]="isSelectedOffer(offer)"
+                                    (change)="onOfferSelected(offer)"
+                                  >
+                                    <p>{{ offer["@id"] }}</p>
+                                  </mat-checkbox>
+                                </div>
+                                <button
+                                  class="view-btn"
+                                  mat-button
+                                  matTooltip="View details"
+                                  (click)="showMoreDetails(offer, 'offer')"
+                                >
+                                  <mat-icon>visibility</mat-icon>
+                                </button>
+                                <hr />
+                              </div>
+                            </mat-expansion-panel>
+
+                            <mat-expansion-panel
+                              class="expansion-panel"
+                              *ngIf="dataset.distribution.length > 0"
+                            >
+                              <mat-expansion-panel-header>
+                                <mat-panel-title>Distributions</mat-panel-title>
+                              </mat-expansion-panel-header>
+                              <div
+                                *ngFor="
+                                  let distribution of dataset.distribution
+                                "
+                                class="resource-section"
+                              >
+                                <div>
+                                  <mat-checkbox
+                                    [checked]="
+                                      isSelectedDistribution(distribution)
+                                    "
+                                    (change)="
+                                      onDistributionSelected(distribution)
+                                    "
+                                  >
+                                    <p>{{ distribution.title }}</p>
+                                  </mat-checkbox>
+                                </div>
+                                <hr />
+                              </div>
+                            </mat-expansion-panel>
+                          </div>
+
+                          <div class="btn-action">
+                            <button
+                              mat-button
+                              matTooltip="View details"
+                              (click)="startContractNegotiation()"
+                            >
+                              <mat-icon>gavel</mat-icon>
+                              Start negotiation
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div></mat-tab
+          >
+        </mat-tab-group>
+      </div>
+
+      <!-- <div class="sdd">
+        <mat-expansion-panel
+          class="expansion-panel"
+          *ngIf="catalogData.service.length > 0"
+        >
+          <mat-expansion-panel-header>
+            <mat-panel-title>Services</mat-panel-title>
+          </mat-expansion-panel-header>
+          <div
+            *ngFor="let service of catalogData.service"
+            class="resource-section"
+          >
+            <div>
+              <p>{{ service.title }}</p>
+              <button mat-button matTooltip="View details">
+                <mat-icon>visibility</mat-icon>
+              </button>
+            </div>
+            <hr />
+          </div>
+        </mat-expansion-panel>
+
+        <mat-expansion-panel
+          class="expansion-panel"
+          *ngIf="catalogData.dataset.length > 0"
+        >
+          <mat-expansion-panel-header>
+            <mat-panel-title>Datasets</mat-panel-title>
+          </mat-expansion-panel-header>
+          <div
+            *ngFor="let dataset of catalogData.dataset"
+            class="resource-section"
+          >
+            <div>
+              <p>{{ dataset.title }}</p>
+              <button mat-button matTooltip="View details">
+                <mat-icon>visibility</mat-icon>
+              </button>
+            </div>
+            <hr />
+          </div>
+        </mat-expansion-panel>
+
+        <mat-expansion-panel
+          class="expansion-panel"
+          *ngIf="catalogData.distribution.length > 0"
+        >
+          <mat-expansion-panel-header>
+            <mat-panel-title>Distributions</mat-panel-title>
+          </mat-expansion-panel-header>
+          <div
+            *ngFor="let distribution of catalogData.distribution"
+            class="resource-section"
+          >
+            <div>
+              <p>{{ distribution.title }}</p>
+              <button mat-button matTooltip="View details">
+                <mat-icon>visibility</mat-icon>
+              </button>
+            </div>
+            <hr />
+          </div>
+        </mat-expansion-panel>
+      </div> -->
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -1,0 +1,172 @@
+.resource-card-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.resource-card {
+  flex: 1 1 calc(33% - 20px);
+  box-sizing: border-box;
+}
+
+mat-divider {
+  margin: 15px 0;
+  background-color: transparent;
+  height: 0;
+}
+
+.service-card {
+  margin: 20px;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 15px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.service-title h2 {
+  margin: 0;
+  color: #6200ea;
+  font-weight: 700;
+  font-size: 1.5em;
+}
+
+.service-content {
+  margin: 15px 0;
+}
+
+.catalog-section,
+.resource-section {
+  margin-top: 15px;
+}
+.resource-section div {
+  display: flex;
+  justify-content: space-between;
+}
+.expansion-panel {
+  margin-top: 15px;
+  background-color: #fafafa;
+  border-radius: 10px;
+  transition: box-shadow 0.3s;
+}
+
+.expansion-panel:hover {
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.mat-expansion-panel-header {
+  background-color: #eeeeee;
+  border-radius: 10px;
+  padding: 0 15px;
+}
+
+.mat-panel-title {
+  color: #6200ea;
+  font-weight: 600;
+  font-size: 1.2em;
+}
+
+p {
+  margin: 10px 0;
+  color: #333333;
+}
+
+p strong {
+  color: #383838;
+}
+
+mat-list-item {
+  color: #333333;
+  padding: 10px;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+mat-list-item:hover {
+  background-color: #f0f0f0;
+}
+
+.mat-expansion-panel-body {
+  padding: 15px;
+}
+
+button[mat-button] {
+  background-color: #f0f0f0;
+  padding: 10px 15px;
+
+  font-size: 1em;
+  font-weight: 300;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s, box-shadow 0.3s;
+  display: flex;
+  align-items: center;
+  color: #383838;
+  border-radius: 5px;
+}
+
+button[mat-button]:hover {
+  background-color: #8a9eed5c;
+}
+.headtitle {
+  display: flex;
+  justify-content: space-between;
+}
+.headtitle .buttons {
+  display: flex;
+  width: 50%;
+  justify-content: flex-end;
+  align-items: center;
+}
+.headtitle .buttons button {
+  margin: 3px;
+}
+.back {
+  display: inline-flex;
+}
+.back button {
+  margin: 0;
+  background: transparent;
+  padding: 0px;
+  font-size: 0.7em;
+  margin-right: 15px;
+}
+.back button[mat-button] mat-icon {
+  margin-right: 0px;
+}
+.expansion-panel[_ngcontent-ng-c1553755739] {
+  box-shadow: unset;
+}
+h1 {
+  margin: 10px 0;
+}
+.expansion-panel[_ngcontent-ng-c1553755739] hr {
+  color: rgb(162, 162, 162);
+}
+.space-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  align-items: center;
+  justify-content: flex-start;
+}
+.space-card .card {
+  padding: 20px;
+  border: 1px solid #c7c5c5;
+  border-radius: 6px;
+  margin: 10px;
+}
+.space-card .card .title {
+  color: #383838;
+  font-weight: bold;
+  font-size: 18px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+.space-card .card .subtitle {
+  color: rgb(155, 155, 155);
+}
+
+.space-card .card .btn-action {
+  margin-top: 25px;
+  display: flex;
+  justify-content: space-around;
+}

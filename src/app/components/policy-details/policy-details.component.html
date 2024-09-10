@@ -1,0 +1,62 @@
+<div *ngIf="!loading">
+  <mat-card class="service-card">
+    <mat-card-title class="service-title"> </mat-card-title>
+    <mat-card-content>
+      <div class="headtitle">
+        <div class="back">
+          <button mat-button (click)="goBack()">
+            <mat-icon>keyboard_arrow_left</mat-icon>
+            Back
+          </button>
+          <h1>Policy Details</h1>
+        </div>
+      </div>
+
+      <div>
+        <h2>{{ policy.id }}</h2>
+        <p><strong>Target:</strong> {{ policy.target }}</p>
+        <p>
+          <strong>Action:</strong>
+          {{ policy.action }}
+        </p>
+        <p>
+          <strong>Assignee:</strong>
+          {{ policy.assignee }}
+        </p>
+
+        <p>
+          <strong>Assigner:</strong>
+          {{ policy.assigner }}
+        </p>
+      </div>
+
+      <mat-expansion-panel
+        class="expansion-panel"
+        *ngIf="policy.permission && policy.permission.length > 0"
+      >
+        <mat-expansion-panel-header>
+          <mat-panel-title>Permissions</mat-panel-title>
+        </mat-expansion-panel-header>
+        <div
+          *ngFor="let permission of policy.permission"
+          class="resource-section"
+        >
+          <div>
+            <p><strong>Action:</strong>{{ permission.action }}</p>
+            <p><strong>Assignee:</strong>{{ permission.assignee }}</p>
+            <p><strong>Assigner:</strong>{{ permission.assigner }}</p>
+            <p><strong>Constraints:</strong></p>
+            <div *ngFor="let constraint of permission.constraint">
+              <p><strong>Left operand:</strong>{{ constraint.leftOperand }}</p>
+              <p><strong>Operator:</strong>{{ constraint.operator }}</p>
+              <p>
+                <strong>Right operand:</strong>{{ constraint.rightOperand }}
+              </p>
+            </div>
+          </div>
+          <hr />
+        </div>
+      </mat-expansion-panel>
+    </mat-card-content>
+  </mat-card>
+</div>

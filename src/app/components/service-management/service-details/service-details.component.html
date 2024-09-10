@@ -1,0 +1,340 @@
+<div *ngIf="loading" class="item">
+  <mat-card class="catalog-card">
+    <ngx-skeleton-loader count="15" appearance="line" animation="pulse" />
+  </mat-card>
+</div>
+
+<div *ngIf="!loading">
+  <mat-card class="service-card">
+    <mat-card-title class="service-title"> </mat-card-title>
+    <mat-card-content>
+      <div class="headtitle">
+        <div class="back">
+          <button
+            mat-button
+            (click)="directEdit ? goBack() : editMode ? cancelEdit() : goBack()"
+          >
+            <mat-icon>keyboard_arrow_left</mat-icon>
+            Back
+          </button>
+          <h1>Service Details</h1>
+        </div>
+
+        <div class="buttons">
+          <button
+            mat-button
+            (click)="toggleEditMode()"
+            [matTooltip]="editMode ? 'Save changes' : 'Edit service'"
+            [disabled]="editMode && !serviceForm.valid"
+          >
+            <mat-icon>{{ editMode ? "save" : "edit" }}</mat-icon>
+          </button>
+          <button
+            mat-button
+            *ngIf="editMode"
+            (click)="cancelEdit()"
+            matTooltip="Cancel editing"
+          >
+            <mat-icon>cancel</mat-icon>
+          </button>
+          <button
+            mat-button
+            color="warn"
+            *ngIf="!editMode"
+            (click)="onDelete(service)"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="!editMode">
+        <mat-tab-group>
+          <mat-tab label="Basic info">
+            <br />
+            <h2>{{ service.title }}</h2>
+            <div class="table-info">
+              <strong>ID</strong>
+              <span>
+                {{ service["@id"] }}
+              </span>
+              <strong>Identifier</strong>
+              <span>
+                {{ service.identifier }}
+              </span>
+              <strong>Type</strong
+              ><span>
+                {{ service.type }}
+              </span>
+              <strong>Theme</strong>
+              <span>
+                {{ service.theme.join(", ") }}
+              </span>
+              <strong>Keyword</strong>
+              <span>
+                {{ service.keyword.join(", ") }}
+              </span>
+              <strong>Conforms to</strong>
+              <span>
+                {{ service.conformsTo }}
+              </span>
+
+              <strong>Endpoint description</strong>
+              <span>
+                {{ service.endpointDescription }}
+              </span>
+
+              <strong>Endpoint URL</strong>
+              <span>
+                {{ service.endpointURL }}
+              </span>
+            </div>
+          </mat-tab>
+          <mat-tab label="Description">
+            <div *ngIf="service.description.length > 0">
+              <br />
+              <mat-form-field appearance="outline">
+                <mat-label>Select Language</mat-label>
+                <mat-select
+                  [(value)]="selectedLanguage"
+                  (selectionChange)="onLanguageSelected()"
+                  outline
+                >
+                  <mat-option
+                    *ngFor="let language of languages"
+                    [value]="language.toUpperCase()"
+                    >{{ language | uppercase }}</mat-option
+                  >
+                </mat-select>
+              </mat-form-field>
+
+              <p *ngIf="descriptionValue">{{ descriptionValue }}</p>
+            </div>
+          </mat-tab>
+          <mat-tab label="Metadata info">
+            <br />
+            <div class="table-info">
+              <strong>Creator</strong
+              ><span>
+                {{ service.creator }}
+              </span>
+
+              <strong>Issued</strong
+              ><span>
+                {{ service.issued | date : "d MMMM y, HH:mm:ss" }}
+              </span>
+
+              <strong>Modified</strong
+              ><span>
+                {{ service.modified | date : "d MMMM y, HH:mm:ss" }}
+              </span>
+
+              <strong>Created by</strong>
+              <span>
+                {{ service.createdBy }}
+              </span>
+
+              <strong>Last modified by</strong
+              ><span>
+                {{ service.lastModifiedBy }}
+              </span>
+            </div>
+          </mat-tab>
+        </mat-tab-group>
+      </div>
+
+      <div *ngIf="editMode">
+        <form [formGroup]="serviceForm">
+          <div class="edit">
+            <br />
+            <div class="edit-input">
+              <mat-form-field appearance="outline">
+                <mat-label>Title</mat-label>
+                <input matInput formControlName="title" />
+                <mat-error
+                  *ngIf="serviceForm.get('title')?.hasError('required')"
+                >
+                  Title is required
+                </mat-error>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Identifier</mat-label>
+                <input matInput formControlName="identifier" />
+              </mat-form-field>
+            </div>
+            <div class="edit-input">
+              <mat-form-field appearance="outline">
+                <mat-label>Creator</mat-label>
+                <input matInput formControlName="creator" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Conforms to</mat-label>
+                <input matInput formControlName="conformsTo" />
+              </mat-form-field>
+            </div>
+            <div class="edit-input">
+              <mat-form-field appearance="outline">
+                <mat-label>Endpoint description</mat-label>
+                <input matInput formControlName="endpointDescription" />
+                <mat-error
+                  *ngIf="
+                    serviceForm.get('endpointDescription')?.hasError('required')
+                  "
+                >
+                  Endpoint description is required
+                </mat-error>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Endpoint URL</mat-label>
+                <input matInput formControlName="endpointURL" />
+                <mat-error
+                  *ngIf="serviceForm.get('endpointURL')?.hasError('required')"
+                >
+                  Endpoint URL is required
+                </mat-error>
+              </mat-form-field>
+            </div>
+            <!-- <mat-form-field appearance="outline">
+              <mat-label>Select Dataset</mat-label>
+              <mat-select formControlName="servesDataset" multiple>
+                <mat-option
+                  *ngFor="let dataset of allDatasets"
+                  [value]="dataset"
+                >
+                  {{ dataset.title }}
+                </mat-option>
+              </mat-select>
+              <mat-error
+                *ngIf="serviceForm.get('servesDataset')?.hasError('required')"
+              >
+                Dataset is required
+              </mat-error>
+            </mat-form-field> -->
+            <p><strong>Description:</strong></p>
+            <div formArrayName="description">
+              <div
+                *ngFor="let desc of descriptionControls; let i = index"
+                [formGroupName]="i"
+              >
+                <div class="lang-desc">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Language</mat-label>
+                    <input
+                      matInput
+                      formControlName="language"
+                      placeholder="Language"
+                      maxlength="2"
+                    />
+                    <mat-error
+                      *ngIf="desc.get('language')?.hasError('required')"
+                    >
+                      Language is required
+                    </mat-error>
+                  </mat-form-field>
+                  <div class="desc-text">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Description</mat-label>
+                      <textarea
+                        matInput
+                        formControlName="value"
+                        placeholder="Description"
+                      ></textarea>
+                      <mat-error
+                        *ngIf="desc.get('value')?.hasError('required')"
+                      >
+                        Description is required
+                      </mat-error>
+                    </mat-form-field>
+                    <button mat-icon-button (click)="removeDescription(i)">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button mat-button (click)="addDescription()">
+              <mat-icon>add</mat-icon> Add Description
+            </button>
+
+            <p><strong>Keyword:</strong></p>
+            <div formArrayName="keyword">
+              <div class="key">
+                <div *ngFor="let keyword of keywordControls; let i = index">
+                  <mat-form-field appearance="outline">
+                    <input
+                      matInput
+                      [formControlName]="i"
+                      placeholder="Keyword"
+                    />
+                    <mat-error
+                      *ngIf="
+                        serviceForm.get(['keyword', i])?.hasError('required') &&
+                        serviceForm.get(['keyword', i])?.touched
+                      "
+                    >
+                      Keyword is required
+                    </mat-error>
+                  </mat-form-field>
+                  <button mat-icon-button (click)="removeKeyword(i)">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <button mat-button (click)="addKeyword()">
+              <mat-icon>add</mat-icon> Add Keyword
+            </button>
+
+            <p><strong>Theme:</strong></p>
+            <div formArrayName="theme">
+              <div class="key">
+                <div *ngFor="let theme of themeControls; let i = index">
+                  <mat-form-field appearance="outline">
+                    <input matInput [formControlName]="i" placeholder="Theme" />
+                    <mat-error
+                      *ngIf="
+                        serviceForm.get(['theme', i])?.hasError('required') &&
+                        serviceForm.get(['theme', i])?.touched
+                      "
+                    >
+                      Theme is required
+                    </mat-error>
+                  </mat-form-field>
+                  <button mat-icon-button (click)="removeTheme(i)">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <button mat-button (click)="addTheme()">
+              <mat-icon>add</mat-icon> Add Theme
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- <mat-expansion-panel
+        class="expansion-panel"
+        *ngIf="
+          !editMode && service.servesDataset && service.servesDataset.length > 0
+        "
+      >
+        <mat-expansion-panel-header>
+          <mat-panel-title>Serves datasets</mat-panel-title>
+        </mat-expansion-panel-header>
+        <div
+          *ngFor="let dataSet of service.servesDataset"
+          class="resource-section"
+        >
+          <div>
+            <p>{{ dataSet.title }}</p>
+            <button mat-button (click)="navigateToDataSetDetails(dataSet)">
+              <mat-icon>visibility</mat-icon>
+            </button>
+          </div>
+          <hr />
+        </div>
+      </mat-expansion-panel> -->
+    </mat-card-content>
+  </mat-card>
+</div>

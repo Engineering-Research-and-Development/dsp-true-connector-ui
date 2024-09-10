@@ -1,0 +1,78 @@
+/* You can add global styles to this file, and also import other style files */
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+h1 {
+  font-family: Arial, Helvetica, sans-serif;
+  color: #8b1e74;
+}
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: Arial, Helvetica, sans-serif;
+  color: #383838;
+}
+
+p {
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: #646464;
+}
+a {
+  text-decoration: none;
+  color: #8a9eed;
+}
+
+.mat-toolbar.mat-primary {
+  background-color: #8a9eed;
+}
+
+.custom-snackbar {
+  .mat-mdc-snack-bar-container .mdc-snackbar__surface {
+    border-radius: 8px !important;
+  }
+
+  .mat-mdc-button.mat-mdc-snack-bar-action {
+    color: white !important;
+  }
+}
+
+.snackbar-success {
+  .mdc-snackbar__surface {
+    background-color: #8a9eed !important;
+    border-radius: 15px !important;
+  }
+
+  .mdc-snackbar__label {
+    color: white !important;
+  }
+  .mdc-button__label {
+    color: #8b1e74 !important;
+  }
+}
+
+.snackbar-error {
+  .mdc-snackbar__surface {
+    background-color: #b13636 !important;
+    border-radius: 15px !important;
+  }
+
+  .mdc-snackbar__label {
+    color: white !important;
+  }
+  .mdc-button__label {
+    color: black !important;
+  }
+}

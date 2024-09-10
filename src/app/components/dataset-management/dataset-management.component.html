@@ -1,0 +1,92 @@
+<div *ngIf="loading" class="item">
+  <mat-card class="service-card">
+    <ngx-skeleton-loader count="15" appearance="line" animation="pulse" />
+  </mat-card>
+</div>
+
+<div *ngIf="!loading">
+  <mat-card class="service-card">
+    <mat-card-title class="service-title"> </mat-card-title>
+    <mat-card-content>
+      <div class="headtitle">
+        <div class="back">
+          <h1>Manage Datasets</h1>
+        </div>
+
+        <div class="buttons">
+          <mat-form-field>
+            <input
+              matInput
+              [formControl]="searchControl"
+              placeholder="Search by title"
+            />
+          </mat-form-field>
+          <button mat-button matTooltip="Add new dataset" (click)="onAdd()">
+            <mat-icon>add</mat-icon>
+          </button>
+        </div>
+      </div>
+      <div class="space-card">
+        <div *ngFor="let dataset of filteredDatasets">
+          <div class="card">
+            <div class="title">
+              {{ dataset.title }}
+            </div>
+            <div class="subtitle">
+              {{ dataset.type }}
+            </div>
+            <div class="content">
+              <p>
+                <strong>ID:</strong>
+                {{ dataset["@id"] }}
+              </p>
+              <p>
+                <strong>Identifier:</strong>
+                {{ dataset.identifier }}
+              </p>
+              <p>
+                <strong>Issued:</strong>
+                {{ dataset.issued | date : "d MMMM y, HH:mm:ss" }}
+              </p>
+              <p>
+                <strong>Modified:</strong>
+                {{ dataset.modified | date : "d MMMM y, HH:mm:ss" }}
+              </p>
+              <p>
+                <strong>Distributions:</strong>
+                {{ dataset.distribution.length || 0 }}
+              </p>
+              <p>
+                <strong>Policies:</strong>
+                {{ dataset.hasPolicy.length || 0 }}
+              </p>
+            </div>
+            <div class="btn-action">
+              <button
+                mat-button
+                matTooltip="View details"
+                (click)="navigateToDatasetDetails(dataset)"
+              >
+                <mat-icon>visibility</mat-icon>
+              </button>
+              <button
+                mat-button
+                matTooltip="Edit dataset"
+                (click)="onEdit(dataset)"
+              >
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button
+                mat-button
+                matTooltip="Delete dataset"
+                (click)="onDelete(dataset)"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

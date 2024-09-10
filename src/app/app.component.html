@@ -1,0 +1,113 @@
+<div *ngIf="isUserLoggedIn">
+  <mat-toolbar color="primary" class="toolbar">
+    <button mat-icon-button (click)="toggleSidenav()">
+      <mat-icon>menu</mat-icon>
+    </button>
+    <h1 class="app-name">
+      <img
+        src="assets/img/tc_logo.png"
+        alt="True Connector Logo"
+        class="header-image"
+      />
+      V0.0.1
+    </h1>
+    <span class="spacer"></span>
+
+    <button mat-icon-button [matMenuTriggerFor]="userMenu">
+      <mat-icon>person</mat-icon>
+    </button>
+    <mat-menu #userMenu="matMenu">
+      <div class="user-info">
+        <p>User test</p>
+      </div>
+      <button mat-menu-item (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        <span>Logout</span>
+      </button>
+    </mat-menu>
+  </mat-toolbar>
+</div>
+<mat-sidenav-container class="container" autosize>
+  <mat-sidenav #sidenav class="sidenav" mode="side" [opened]="isExpanded">
+    <mat-nav-list>
+      <div>
+        <div class="configuration">
+          <a routerLink="/catalog-browser">
+            <mat-list-item>
+              <mat-icon>find_in_page</mat-icon>
+              <span>Catalog Browser</span>
+            </mat-list-item>
+          </a>
+        </div>
+        <mat-expansion-panel #providerPanel>
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <mat-icon mat-list-icon>edit_document</mat-icon>
+              <span>Catalog Management</span>
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+          <a routerLink="/catalog-management">
+            <mat-list-item>
+              <mat-icon>description</mat-icon>
+              <span>Manage Catalog Data</span>
+            </mat-list-item>
+          </a>
+          <a routerLink="/catalog-management/service-management">
+            <mat-list-item>
+              <mat-icon>service_toolbox</mat-icon>
+              <span>Manage Services</span>
+            </mat-list-item>
+          </a>
+          <a routerLink="/catalog-management/dataset-management">
+            <mat-list-item>
+              <mat-icon>dataset</mat-icon>
+              <span>Manage Datasets</span>
+            </mat-list-item>
+          </a>
+          <a routerLink="/catalog-management/distribution-management">
+            <mat-list-item>
+              <mat-icon>share</mat-icon>
+              <span>Manage Distributions</span>
+            </mat-list-item>
+          </a>
+          <!-- <a routerLink="/under-construction">
+            <mat-list-item>
+              <mat-icon>contract</mat-icon>
+              <span>Manage Contract Offers</span>
+            </mat-list-item>
+          </a> -->
+        </mat-expansion-panel>
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <mat-icon mat-list-icon>gavel</mat-icon>
+              <span>Contract Negotiation</span>
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+          <a (click)="goToProviderContractNegotiation()">
+            <mat-list-item>
+              <mat-icon>arrow_upload_progress</mat-icon>
+              <span>Contract Negotiations as provider</span>
+            </mat-list-item>
+          </a>
+          <a (click)="goToConsumerContractNegotiation()">
+            <mat-list-item>
+              <mat-icon>downloading</mat-icon>
+              <span>Contract Negotiations as consumer</span>
+            </mat-list-item>
+          </a>
+        </mat-expansion-panel>
+        <div class="configuration">
+          <a routerLink="/under-construction">
+            <mat-list-item>
+              <mat-icon>settings</mat-icon>
+              <span>Connector configuration</span>
+            </mat-list-item>
+          </a>
+        </div>
+      </div>
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <div><router-outlet></router-outlet></div>
+</mat-sidenav-container>

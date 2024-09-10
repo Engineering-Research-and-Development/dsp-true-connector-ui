@@ -1,0 +1,253 @@
+<div *ngIf="loading" class="item">
+  <mat-card class="catalog-card">
+    <ngx-skeleton-loader count="15" appearance="line" animation="pulse" />
+  </mat-card>
+</div>
+
+<div *ngIf="!loading">
+  <mat-card class="service-card">
+    <mat-card-title class="service-title"> </mat-card-title>
+    <mat-card-content>
+      <div class="headtitle">
+        <div class="back">
+          <button
+            mat-button
+            (click)="directEdit ? goBack() : editMode ? cancelEdit() : goBack()"
+          >
+            <mat-icon>keyboard_arrow_left</mat-icon>
+            Back
+          </button>
+          <h1>Distribution Details</h1>
+        </div>
+
+        <div class="buttons">
+          <button
+            mat-button
+            (click)="toggleEditMode()"
+            [matTooltip]="editMode ? 'Save changes' : 'Edit service'"
+            [disabled]="editMode && !distributionForm.valid"
+          >
+            <mat-icon>{{ editMode ? "save" : "edit" }}</mat-icon>
+          </button>
+          <button
+            mat-button
+            *ngIf="editMode"
+            (click)="cancelEdit()"
+            matTooltip="Cancel editing"
+          >
+            <mat-icon>cancel</mat-icon>
+          </button>
+          <button
+            mat-button
+            color="warn"
+            *ngIf="!editMode"
+            (click)="onDelete(distribution)"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="!editMode">
+        <mat-tab-group>
+          <mat-tab label="Basic info">
+            <br />
+            <h2>{{ distribution.title }}</h2>
+            <div class="table-info">
+              <strong>ID</strong>
+              <span>
+                {{ distribution["@id"] }}
+              </span>
+
+              <strong>Type</strong>
+              <span>
+                {{ distribution.type }}
+              </span>
+            </div></mat-tab
+          >
+          <mat-tab
+            *ngIf="distribution.description !== null"
+            label="Description"
+          >
+            <div>
+              <div *ngIf="distribution.description.length > 0">
+                <br />
+                <mat-form-field appearance="outline">
+                  <mat-label>Select Language</mat-label>
+                  <mat-select
+                    [(value)]="selectedLanguage"
+                    (selectionChange)="onLanguageSelected()"
+                    outline
+                  >
+                    <mat-option
+                      *ngFor="let language of languages"
+                      [value]="language.toUpperCase()"
+                      >{{ language | uppercase }}</mat-option
+                    >
+                  </mat-select>
+                </mat-form-field>
+
+                <p *ngIf="descriptionValue">{{ descriptionValue }}</p>
+              </div>
+            </div>
+          </mat-tab>
+          <mat-tab label="Metadata info">
+            <br />
+            <div class="table-info">
+              <strong>Issued</strong>
+
+              <span>
+                {{ distribution.issued | date : "d MMMM y, HH:mm:ss" }}
+              </span>
+              <strong>Modified:</strong>
+
+              <span>
+                {{ distribution.modified | date : "d MMMM y, HH:mm:ss" }} </span
+              ><strong>Created by:</strong>
+              <span>
+                {{ distribution.createdBy }}
+              </span>
+              <strong>Last modified by:</strong>
+
+              <span>
+                {{ distribution.lastModifiedBy }}
+              </span>
+            </div>
+          </mat-tab>
+        </mat-tab-group>
+      </div>
+
+      <div *ngIf="editMode">
+        <form [formGroup]="distributionForm">
+          <div class="edit">
+            <br />
+            <div class="edit-input">
+              <mat-form-field appearance="outline">
+                <mat-label>Title</mat-label>
+                <input matInput formControlName="title" />
+                <mat-error
+                  *ngIf="distributionForm.get('title')?.hasError('required')"
+                >
+                  Title is required
+                </mat-error> </mat-form-field
+              ><mat-form-field appearance="outline">
+                <mat-label>Select Access Services</mat-label>
+                <mat-select formControlName="accessService" multiple>
+                  <mat-option
+                    *ngFor="let service of allServices"
+                    [value]="service"
+                  >
+                    {{ service.title }}
+                  </mat-option>
+                </mat-select>
+                <mat-error
+                  *ngIf="
+                    distributionForm.get('accessService')?.hasError('required')
+                  "
+                >
+                  Access service is required
+                </mat-error>
+              </mat-form-field>
+            </div>
+            <p><strong>Description:</strong></p>
+            <div formArrayName="description">
+              <div
+                *ngFor="let desc of descriptionControls; let i = index"
+                [formGroupName]="i"
+              >
+                <div class="lang-desc">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Language</mat-label>
+                    <input
+                      matInput
+                      formControlName="language"
+                      placeholder="Language"
+                      maxlength="2"
+                    />
+                    <mat-error
+                      *ngIf="desc.get('language')?.hasError('required')"
+                    >
+                      Language is required
+                    </mat-error>
+                  </mat-form-field>
+                  <div class="desc-text">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Description</mat-label>
+                      <textarea
+                        matInput
+                        formControlName="value"
+                        placeholder="Description"
+                      ></textarea>
+                      <mat-error
+                        *ngIf="desc.get('value')?.hasError('required')"
+                      >
+                        Description is required
+                      </mat-error>
+                    </mat-form-field>
+                    <button mat-icon-button (click)="removeDescription(i)">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <button mat-button (click)="addDescription()">
+                <mat-icon>add</mat-icon> Add Description
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="sdd">
+        <mat-expansion-panel
+          class="expansion-panel"
+          *ngIf="
+            !editMode &&
+            distribution.accessService &&
+            distribution.accessService.length > 0
+          "
+        >
+          <mat-expansion-panel-header>
+            <mat-panel-title>Access services</mat-panel-title>
+          </mat-expansion-panel-header>
+          <div
+            *ngFor="let service of distribution.accessService"
+            class="resource-section"
+          >
+            <div>
+              <p>{{ service.title }}</p>
+              <button mat-button (click)="navigateToServiceDetails(service)">
+                <mat-icon>visibility</mat-icon>
+              </button>
+            </div>
+            <hr />
+          </div>
+        </mat-expansion-panel>
+
+        <mat-expansion-panel
+          class="expansion-panel"
+          *ngIf="
+            !editMode &&
+            distribution.hasPolicy &&
+            distribution.hasPolicy.length > 0
+          "
+        >
+          <mat-expansion-panel-header>
+            <mat-panel-title>Policies</mat-panel-title>
+          </mat-expansion-panel-header>
+          <div
+            *ngFor="let policy of distribution.hasPolicy"
+            class="resource-section"
+          >
+            <div>
+              <p>{{ policy.title }}</p>
+              <button mat-button (click)="navigateToPolicyDetails(policy)">
+                <mat-icon>visibility</mat-icon>
+              </button>
+            </div>
+            <hr />
+          </div>
+        </mat-expansion-panel>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

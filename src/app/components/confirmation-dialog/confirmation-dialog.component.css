@@ -1,0 +1,13 @@
+.dialog {
+  padding: 20px;
+}
+.dialog h1 {
+  text-align: center;
+  color: black;
+}
+
+.dialog .buttons {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+}

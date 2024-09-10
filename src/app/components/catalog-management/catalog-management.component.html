@@ -1,0 +1,448 @@
+<div *ngIf="loading" class="item">
+  <mat-card class="catalog-card">
+    <ngx-skeleton-loader
+      count="15"
+      appearance="line"
+      animation="pulse"
+    ></ngx-skeleton-loader>
+  </mat-card>
+</div>
+<div *ngIf="!loading && catalogData === undefined" class="buttons">
+  <h1>There is no catalog, please create one</h1>
+  <button mat-button (click)="onAdd()">Add New Catalog</button>
+
+  <input
+    type="file"
+    (change)="onFileSelected($event)"
+    accept=".json"
+    style="display: none"
+    #fileInput
+  />
+
+  <button mat-button (click)="fileInput.click()">
+    Upload catalog from file
+  </button>
+</div>
+<div *ngIf="!loading && catalogData != undefined">
+  <form [formGroup]="catalogForm">
+    <mat-card class="catalog-card">
+      <mat-card-title class="catalog-title"></mat-card-title>
+      <mat-card-content>
+        <div class="headtitle">
+          <div class="back">
+            <h1>Manage Catalog data</h1>
+          </div>
+
+          <div class="buttons">
+            <button
+              mat-button
+              *ngIf="!editMode"
+              color="basic"
+              (click)="onDownload(catalogData['@id']!)"
+              matTooltip="Download catalog as json"
+            >
+              <mat-icon>download</mat-icon>
+            </button>
+            <button
+              mat-button
+              (click)="toggleEditMode()"
+              [matTooltip]="editMode ? 'Save changes' : 'Edit catalog'"
+              [disabled]="editMode && !catalogForm.valid"
+            >
+              <mat-icon>{{ editMode ? "save" : "edit" }}</mat-icon>
+            </button>
+            <button
+              mat-button
+              *ngIf="!editMode"
+              color="warn"
+              (click)="onDelete(catalogData)"
+              matTooltip="Delete catalog"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+            <button
+              mat-button
+              *ngIf="editMode"
+              (click)="cancelEdit()"
+              matTooltip="Cancel editing"
+            >
+              <mat-icon>cancel</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="!editMode">
+          <mat-tab-group>
+            <mat-tab label="Basic info">
+              <div class="bc-blue">
+                <br />
+                <h2>{{ catalogData.title }}</h2>
+                <div class="table-info">
+                  <strong>ID</strong> <span>{{ catalogData["@id"] }}</span>
+                  <strong>Identifier</strong
+                  ><span>{{ catalogData.identifier }}</span>
+                  <strong>Type</strong
+                  ><span>
+                    {{ catalogData.type }}
+                  </span>
+                  <strong>Conforms to</strong>
+                  <span>{{ catalogData.conformsTo }}</span>
+
+                  <strong>Keyword</strong>
+                  <span>{{ catalogData.keyword.join(", ") }}</span>
+
+                  <strong>Theme</strong>
+                  <span>{{ catalogData.theme.join(", ") }}</span>
+
+                  <strong>Participant ID</strong>
+                  <span> {{ catalogData.participantId }}</span>
+
+                  <strong>Homepage</strong>
+                  <span>{{ catalogData.homepage }}</span>
+                </div>
+              </div>
+            </mat-tab>
+            <mat-tab label="Description">
+              <div class="desc">
+                <br />
+                <mat-form-field appearance="outline">
+                  <mat-label>Select Language</mat-label>
+                  <mat-select
+                    [(value)]="selectedLanguage"
+                    (selectionChange)="onLanguageSelected()"
+                    outline
+                  >
+                    <mat-option
+                      *ngFor="let language of languages"
+                      [value]="language.toUpperCase()"
+                      >{{ language | uppercase }}</mat-option
+                    >
+                  </mat-select>
+                </mat-form-field>
+
+                <p *ngIf="descriptionValue">{{ descriptionValue }}</p>
+              </div>
+            </mat-tab>
+            <mat-tab label="Metadata info">
+              <div>
+                <br />
+                <div class="page-wrraper">
+                  <div class="bc-grey">
+                    <div class="table-info">
+                      <strong>Creator</strong>
+                      <span>{{ catalogData.creator }} </span>
+
+                      <strong>Created by</strong>
+                      <span> {{ catalogData.createdBy }}</span>
+
+                      <strong>Issued</strong>
+                      <span>
+                        {{ catalogData.issued | date : "d MMMM y, HH:mm:ss" }}
+                      </span>
+
+                      <strong>Modified</strong>
+                      <span>
+                        {{ catalogData.modified | date : "d MMMM y, HH:mm:ss" }}
+                      </span>
+
+                      <strong>Last modified by</strong>
+                      <span>
+                        {{ catalogData.lastModifiedBy }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div></mat-tab
+            >
+          </mat-tab-group>
+        </div>
+
+        <div
+          *ngIf="
+            !editMode &&
+            (catalogData.service.length < 1 ||
+              catalogData.distribution.length < 1 ||
+              catalogData.dataset.length < 1)
+          "
+        >
+          The catalog is missing one of next things: Distribution, Service or
+          Dataset, please assign to it to be valid.
+        </div>
+        <div class="content-flex">
+          <div *ngIf="editMode">
+            <div class="edit">
+              <br />
+              <div class="edit-input">
+                <mat-form-field appearance="outline">
+                  <mat-label>Title</mat-label>
+                  <input matInput formControlName="title" />
+                  <mat-error
+                    *ngIf="catalogForm.get('title')?.hasError('required')"
+                  >
+                    Title is required
+                  </mat-error>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Identifier</mat-label>
+                  <input matInput formControlName="identifier" />
+                  <mat-error
+                    *ngIf="catalogForm.get('identifier')?.hasError('required')"
+                  >
+                    Identifier is required
+                  </mat-error>
+                </mat-form-field>
+              </div>
+              <div class="edit-input">
+                <mat-form-field appearance="outline">
+                  <mat-label>Creator</mat-label>
+                  <input matInput formControlName="creator" />
+                  <mat-error
+                    *ngIf="catalogForm.get('creator')?.hasError('required')"
+                  >
+                    Creator is required
+                  </mat-error>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Conforms to</mat-label>
+                  <input matInput formControlName="conformsTo" />
+                  <mat-error
+                    *ngIf="catalogForm.get('conformsTo')?.hasError('required')"
+                  >
+                    Conforms to is required
+                  </mat-error>
+                </mat-form-field>
+              </div>
+              <div class="edit-input">
+                <mat-form-field appearance="outline">
+                  <mat-label>Participant ID</mat-label>
+                  <input matInput formControlName="participantId" />
+                  <mat-error
+                    *ngIf="
+                      catalogForm.get('participantId')?.hasError('required')
+                    "
+                  >
+                    Participant ID is required
+                  </mat-error>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Homepage</mat-label>
+                  <input matInput formControlName="homepage" />
+                  <mat-error
+                    *ngIf="catalogForm.get('homepage')?.hasError('required')"
+                  >
+                    Homepage is required
+                  </mat-error>
+                </mat-form-field>
+              </div>
+              <p *ngIf="catalogForm.get('description')?.value.length > 0">
+                <strong>Description*:</strong>
+              </p>
+              <p *ngIf="catalogForm.get('description')?.value.length < 1">
+                <strong style="color: red">Description*:</strong>
+              </p>
+              <br />
+              <mat-error
+                *ngIf="catalogForm.get('description')?.value.length < 1"
+              >
+                Description is required
+              </mat-error>
+              <div formArrayName="description">
+                <div
+                  *ngFor="let desc of descriptionControls; let i = index"
+                  [formGroupName]="i"
+                >
+                  <div class="lang-desc">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Language</mat-label>
+                      <input
+                        matInput
+                        formControlName="language"
+                        placeholder="Language"
+                        maxlength="2"
+                      />
+                      <mat-error
+                        *ngIf="desc.get('language')?.hasError('required')"
+                      >
+                        Language is required
+                      </mat-error>
+                    </mat-form-field>
+                    <div class="desc-text">
+                      <mat-form-field appearance="outline">
+                        <mat-label>Description</mat-label>
+                        <textarea
+                          matInput
+                          formControlName="value"
+                          placeholder="Description"
+                        ></textarea>
+                        <mat-error
+                          *ngIf="desc.get('value')?.hasError('required')"
+                        >
+                          Description is required
+                        </mat-error>
+                      </mat-form-field>
+
+                      <button mat-icon-button (click)="removeDescription(i)">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <button mat-button (click)="addDescription()">
+                <mat-icon>add</mat-icon> Add Description
+              </button>
+
+              <p *ngIf="catalogForm.get('keyword')?.value.length > 0">
+                <strong>Keywords*:</strong>
+              </p>
+              <p *ngIf="catalogForm.get('keyword')?.value.length < 1">
+                <strong style="color: red">Keywords*:</strong>
+              </p>
+              <br />
+
+              <mat-error *ngIf="catalogForm.get('keyword')?.value.length < 1">
+                Keywords is required
+              </mat-error>
+
+              <div formArrayName="keyword">
+                <div class="key">
+                  <div *ngFor="let keyword of keywordControls; let i = index">
+                    <mat-form-field appearance="outline">
+                      <input
+                        matInput
+                        [formControlName]="i"
+                        placeholder="Keyword"
+                      />
+                      <mat-error
+                        *ngIf="
+                          catalogForm
+                            .get(['keyword', i])
+                            ?.hasError('required') &&
+                          catalogForm.get(['keyword', i])?.touched
+                        "
+                      >
+                        Keyword is required
+                      </mat-error>
+                    </mat-form-field>
+                    <button mat-icon-button (click)="removeKeyword(i)">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <button mat-button (click)="addKeyword()">
+                <mat-icon>add</mat-icon> Add Keyword
+              </button>
+
+              <p><strong>Themes:</strong></p>
+              <br />
+              <div formArrayName="theme">
+                <div class="key">
+                  <div *ngFor="let theme of themeControls; let i = index">
+                    <mat-form-field appearance="outline">
+                      <input
+                        matInput
+                        [formControlName]="i"
+                        placeholder="Theme"
+                      />
+                      <mat-error
+                        *ngIf="
+                          catalogForm.get(['theme', i])?.hasError('required') &&
+                          catalogForm.get(['theme', i])?.touched
+                        "
+                      >
+                        Theme is required
+                      </mat-error>
+                    </mat-form-field>
+                    <button mat-icon-button (click)="removeTheme(i)">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <button mat-button (click)="addTheme()">
+                <mat-icon>add</mat-icon> Add Theme
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="sdd">
+          <mat-expansion-panel
+            class="expansion-panel"
+            *ngIf="!editMode && catalogData.service.length > 0"
+          >
+            <mat-expansion-panel-header>
+              <mat-panel-title>Services</mat-panel-title>
+            </mat-expansion-panel-header>
+            <div
+              *ngFor="let service of catalogData.service"
+              class="resource-section"
+            >
+              <div>
+                <p>{{ service.title }}</p>
+                <button
+                  mat-button
+                  matTooltip="View details"
+                  (click)="navigateToServiceDetails(service)"
+                >
+                  <mat-icon>visibility</mat-icon>
+                </button>
+              </div>
+              <hr />
+            </div>
+          </mat-expansion-panel>
+
+          <mat-expansion-panel
+            class="expansion-panel"
+            *ngIf="!editMode && catalogData.dataset.length > 0"
+          >
+            <mat-expansion-panel-header>
+              <mat-panel-title>Datasets</mat-panel-title>
+            </mat-expansion-panel-header>
+            <div
+              *ngFor="let dataset of catalogData.dataset"
+              class="resource-section"
+            >
+              <div>
+                <p>{{ dataset.title }}</p>
+                <button
+                  mat-button
+                  matTooltip="View details"
+                  (click)="navigateToDatasetDetails(dataset)"
+                >
+                  <mat-icon>visibility</mat-icon>
+                </button>
+              </div>
+              <hr />
+            </div>
+          </mat-expansion-panel>
+
+          <mat-expansion-panel
+            class="expansion-panel"
+            *ngIf="!editMode && catalogData.distribution.length > 0"
+          >
+            <mat-expansion-panel-header>
+              <mat-panel-title>Distributions</mat-panel-title>
+            </mat-expansion-panel-header>
+            <div
+              *ngFor="let distribution of catalogData.distribution"
+              class="resource-section"
+            >
+              <div>
+                <p>{{ distribution.title }}</p>
+                <button
+                  mat-button
+                  matTooltip="View details"
+                  (click)="navigateToDistributionDetails(distribution)"
+                >
+                  <mat-icon>visibility</mat-icon>
+                </button>
+              </div>
+              <hr />
+            </div>
+          </mat-expansion-panel>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </form>
+</div>

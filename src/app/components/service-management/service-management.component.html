@@ -1,0 +1,89 @@
+<div *ngIf="loading" class="item">
+  <mat-card class="service-card">
+    <ngx-skeleton-loader count="15" appearance="line" animation="pulse" />
+  </mat-card>
+</div>
+
+<div *ngIf="!loading">
+  <mat-card class="service-card">
+    <mat-card-title class="service-title"> </mat-card-title>
+    <mat-card-content>
+      <div class="headtitle">
+        <div class="back">
+          <h1>Manage Services</h1>
+        </div>
+
+        <div class="buttons">
+          <mat-form-field>
+            <input
+              appearance="outline"
+              matInput
+              [formControl]="searchControl"
+              placeholder="Search by title"
+            />
+          </mat-form-field>
+          <button mat-button matTooltip="Add new service" (click)="onAdd()">
+            <mat-icon>add</mat-icon>
+          </button>
+        </div>
+      </div>
+      <div class="space-card">
+        <div *ngFor="let service of filteredDataServices">
+          <div class="card">
+            <div class="title">
+              {{ service.title }}
+            </div>
+            <div class="subtitle">
+              {{ service.type }}
+            </div>
+            <div class="content">
+              <p>
+                <strong>ID:</strong>
+                {{ service["@id"] }}
+              </p>
+              <p>
+                <strong>Identifier:</strong>
+                {{ service.identifier }}
+              </p>
+              <p>
+                <strong>Issued:</strong>
+                {{ service.issued | date : "d MMMM y, HH:mm:ss" }}
+              </p>
+              <p>
+                <strong>Modified:</strong>
+                {{ service.modified | date : "d MMMM y, HH:mm:ss" }}
+              </p>
+              <p>
+                <strong>Serves datasets:</strong>
+                {{ service.servesDataset?.length || 0 }}
+              </p>
+            </div>
+            <div class="btn-action">
+              <button
+                mat-button
+                matTooltip="View details"
+                (click)="navigateToServiceDetails(service)"
+              >
+                <mat-icon>visibility</mat-icon>
+              </button>
+              <button
+                mat-button
+                matTooltip="Edit service"
+                (click)="onEdit(service)"
+              >
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button
+                mat-button
+                matTooltip="Delete service"
+                (click)="onDelete(service)"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

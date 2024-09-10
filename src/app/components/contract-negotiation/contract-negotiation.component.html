@@ -1,0 +1,192 @@
+<div *ngIf="loading" class="item">
+  <mat-card class="service-card">
+    <ngx-skeleton-loader count="15" appearance="line" animation="pulse" />
+  </mat-card>
+</div>
+
+<div *ngIf="!loading">
+  <mat-card class="service-card">
+    <mat-card-title class="service-title"> </mat-card-title>
+    <mat-card-content>
+      <div class="headtitle">
+        <div class="back">
+          <h1 *ngIf="userType === 'provider'">
+            Manage contract offers as provider
+          </h1>
+          <h1 *ngIf="userType === 'consumer'">
+            Manage contract offers as consumer
+          </h1>
+        </div>
+      </div>
+      <div>
+        <section>
+          <h3>Filter by State</h3>
+          <mat-button-toggle-group
+            name="states"
+            aria-label="Contract Negotiation States"
+            [value]="selectedStates"
+            (change)="onStatesChange($event.value)"
+            multiple
+          >
+            <mat-button-toggle
+              *ngFor="let state of contractNegotiationStates"
+              [value]="state"
+            >
+              {{ getStateDisplayName(state) }}
+            </mat-button-toggle>
+          </mat-button-toggle-group>
+        </section>
+      </div>
+      <div class="space-card">
+        <div *ngFor="let contractNegotiation of filteredContractNegotiations">
+          <div class="card">
+            <div class="title">
+              {{ contractNegotiation["@id"] }}
+            </div>
+            <div class="subtitle">
+              {{ contractNegotiation.type }}
+            </div>
+            <div class="content">
+              <p>
+                <strong>Assigner:</strong>
+                {{ contractNegotiation.assigner }}
+              </p>
+              <p>
+                <strong>Callback address:</strong>
+                {{ contractNegotiation.callbackAddress }}
+              </p>
+              <p>
+                <strong>Provider PID:</strong>
+                {{ contractNegotiation.providerPid }}
+              </p>
+              <p>
+                <strong>Consumer PID:</strong>
+                {{ contractNegotiation.consumerPid }}
+              </p>
+              <p>
+                <strong>State:</strong>
+                {{ contractNegotiation.state }}
+              </p>
+
+              <div *ngIf="contractNegotiation.offer !== null">
+                <h3>Offer details</h3>
+                <div>
+                  <p>
+                    <strong>ID:</strong>
+                    {{ contractNegotiation.offer["@id"] }}
+                  </p>
+                  <p>
+                    <strong>Provider PID:</strong>
+                    {{ contractNegotiation.offer.providerPid }}
+                  </p>
+                  <p>
+                    <strong>Consumer PID:</strong>
+                    {{ contractNegotiation.offer.consumerPid }}
+                  </p>
+                  <p>
+                    <strong>Assignee:</strong>
+                    {{ contractNegotiation.offer.assignee }}
+                  </p>
+                  <p>
+                    <strong>Assigner:</strong>
+                    {{ contractNegotiation.offer.assigner }}
+                  </p>
+                  <p>
+                    <strong>Target:</strong>
+                    {{ contractNegotiation.offer.target }}
+                  </p>
+                  <mat-expansion-panel
+                    class="expansion-panel"
+                    *ngIf="contractNegotiation.offer.permission.length > 0"
+                  >
+                    <mat-expansion-panel-header>
+                      <mat-panel-title>Permissions</mat-panel-title>
+                    </mat-expansion-panel-header>
+                    <div
+                      *ngFor="
+                        let permission of contractNegotiation.offer.permission
+                      "
+                      class="resource-section"
+                    >
+                      <div>
+                        <p>
+                          <strong>Action:</strong>
+                          {{ permission.action }}
+                        </p>
+                        <p>
+                          <strong>Assignee:</strong>
+                          {{ permission.assignee }}
+                        </p>
+                        <p>
+                          <strong>Assigner:</strong>
+                          {{ permission.assigner }}
+                        </p>
+                        <p>
+                          <strong>Target:</strong>
+                          {{ permission.target }}
+                        </p>
+                      </div>
+                      <hr />
+                    </div>
+                  </mat-expansion-panel>
+                </div>
+              </div>
+            </div>
+            <div class="btn-action">
+              <!-- Conditionally show buttons based on state -->
+              <button
+                mat-button
+                matTooltip="Approve contract"
+                *ngIf="
+                  contractNegotiation.state ===
+                    contractNegotiationState.REQUESTED &&
+                  userType === 'provider'
+                "
+                (click)="onApprove(contractNegotiation)"
+              >
+                <mat-icon>check</mat-icon>
+                <p>Approve</p>
+              </button>
+              <button
+                mat-button
+                matTooltip="Verify contract"
+                *ngIf="
+                  contractNegotiation.state ===
+                    contractNegotiationState.AGREED && userType === 'consumer'
+                "
+                (click)="onVerify(contractNegotiation)"
+              >
+                <mat-icon>check</mat-icon>
+                <p>Verify</p>
+              </button>
+              <button
+                mat-button
+                matTooltip="Finalize contract"
+                *ngIf="
+                  contractNegotiation.state ===
+                    contractNegotiationState.VERIFIED && userType === 'provider'
+                "
+                (click)="onFinalize(contractNegotiation)"
+              >
+                <mat-icon>check</mat-icon>
+                <p>Finalize</p>
+              </button>
+              <button
+                mat-button
+                matTooltip="Terminate contract"
+                *ngIf="
+                  contractNegotiation.state !==
+                  contractNegotiationState.FINALIZED
+                "
+                (click)="onTerminate(contractNegotiation)"
+              >
+                <mat-icon>cancel</mat-icon>
+                <p>Terminate</p>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

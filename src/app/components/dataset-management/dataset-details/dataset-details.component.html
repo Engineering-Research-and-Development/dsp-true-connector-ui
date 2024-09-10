@@ -1,0 +1,493 @@
+<div *ngIf="loading" class="item">
+  <mat-card class="catalog-card">
+    <ngx-skeleton-loader count="15" appearance="line" animation="pulse" />
+  </mat-card>
+</div>
+
+<div *ngIf="!loading">
+  <mat-card class="dataset-card">
+    <mat-card-title class="dataset-title"> </mat-card-title>
+    <mat-card-content>
+      <div class="headtitle">
+        <div class="back">
+          <button
+            mat-button
+            (click)="directEdit ? goBack() : editMode ? cancelEdit() : goBack()"
+          >
+            <mat-icon>keyboard_arrow_left</mat-icon>
+            Back
+          </button>
+          <h1>Dataset Details</h1>
+        </div>
+
+        <div class="buttons">
+          <button
+            mat-button
+            (click)="toggleEditMode()"
+            [matTooltip]="editMode ? 'Save changes' : 'Edit dataset'"
+            [disabled]="editMode && !datasetForm.valid"
+          >
+            <mat-icon>{{ editMode ? "save" : "edit" }}</mat-icon>
+          </button>
+          <button
+            mat-button
+            *ngIf="editMode"
+            (click)="cancelEdit()"
+            matTooltip="Cancel editing"
+          >
+            <mat-icon>cancel</mat-icon>
+          </button>
+          <button
+            mat-button
+            color="warn"
+            *ngIf="!editMode"
+            (click)="onDelete(dataset)"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="!editMode">
+        <mat-tab-group>
+          <mat-tab label="Basic info">
+            <br />
+
+            <div>
+              <h2>{{ dataset.title }}</h2>
+              <div class="table-info">
+                <strong>ID</strong>
+                <span>
+                  {{ dataset["@id"] }}
+                </span>
+                <strong>Identifier</strong>
+                <span>
+                  {{ dataset.identifier }}
+                </span>
+                <strong>Type</strong>
+                <span>
+                  {{ dataset.type }}
+                </span>
+                <strong>Keyword</strong
+                ><span>
+                  {{ dataset.keyword.join(", ") }}
+                </span>
+                <strong>Theme</strong>
+                <span>
+                  {{ dataset.theme.join(", ") }}
+                </span>
+                <strong>Conforms to</strong>
+                <span>
+                  {{ dataset.conformsTo }}
+                </span>
+              </div>
+            </div>
+          </mat-tab>
+          <mat-tab label="Description">
+            <div *ngIf="dataset.description.length > 0">
+              <br />
+              <mat-form-field appearance="outline">
+                <mat-label>Select Language</mat-label>
+                <mat-select
+                  [(value)]="selectedLanguage"
+                  (selectionChange)="onLanguageSelected()"
+                  outline
+                >
+                  <mat-option
+                    *ngFor="let language of languages"
+                    [value]="language.toUpperCase()"
+                    >{{ language | uppercase }}</mat-option
+                  >
+                </mat-select>
+              </mat-form-field>
+
+              <p *ngIf="descriptionValue">{{ descriptionValue }}</p>
+            </div></mat-tab
+          >
+          <mat-tab label="Metadata info">
+            <br />
+            <div class="table-info">
+              <strong>Creator</strong>
+              <span>
+                {{ dataset.creator }}
+              </span>
+              <strong>Issued</strong
+              ><span>
+                {{ dataset.issued | date : "d MMMM y, HH:mm:ss" }}
+              </span>
+              <strong>Modified</strong
+              ><span>
+                {{ dataset.modified | date : "d MMMM y, HH:mm:ss" }}
+              </span>
+              <strong>Created by:</strong
+              ><span>
+                {{ dataset.createdBy }}
+              </span>
+              <strong>Last modified by</strong>
+              <span>
+                {{ dataset.lastModifiedBy }}
+              </span>
+            </div>
+          </mat-tab>
+        </mat-tab-group>
+      </div>
+
+      <div *ngIf="editMode">
+        <form [formGroup]="datasetForm">
+          <div class="edit">
+            <br />
+            <div class="edit-input">
+              <mat-form-field appearance="outline">
+                <mat-label>Title</mat-label>
+                <input matInput formControlName="title" />
+                <mat-error
+                  *ngIf="datasetForm.get('title')?.hasError('required')"
+                >
+                  Title is required
+                </mat-error>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Identifier</mat-label>
+                <input matInput formControlName="identifier" />
+                <mat-error
+                  *ngIf="datasetForm.get('identifier')?.hasError('required')"
+                >
+                  Identifier is required
+                </mat-error>
+              </mat-form-field>
+            </div>
+            <div class="edit-input">
+              <mat-form-field appearance="outline">
+                <mat-label>Creator</mat-label>
+                <input matInput formControlName="creator" />
+                <mat-error
+                  *ngIf="datasetForm.get('creator')?.hasError('required')"
+                >
+                  Creator is required
+                </mat-error>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Conforms to</mat-label>
+                <input matInput formControlName="conformsTo" />
+                <mat-error
+                  *ngIf="datasetForm.get('conformsTo')?.hasError('required')"
+                >
+                  Conforms to is required
+                </mat-error>
+              </mat-form-field>
+            </div>
+            <p><strong>Description:</strong></p>
+            <div formArrayName="description">
+              <div
+                *ngFor="let desc of descriptionControls; let i = index"
+                [formGroupName]="i"
+              >
+                <div class="lang-desc">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Language</mat-label>
+                    <input
+                      matInput
+                      formControlName="language"
+                      placeholder="Language"
+                    />
+                    <mat-error
+                      *ngIf="desc.get('language')?.hasError('required')"
+                    >
+                      Language is required
+                    </mat-error>
+                  </mat-form-field>
+                  <div class="desc-text">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Description</mat-label>
+                      <textarea
+                        matInput
+                        formControlName="value"
+                        placeholder="Description"
+                      ></textarea>
+                      <mat-error
+                        *ngIf="desc.get('value')?.hasError('required')"
+                      >
+                        Description is required
+                      </mat-error>
+                    </mat-form-field>
+                    <button mat-icon-button (click)="removeDescription(i)">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button mat-button (click)="addDescription()">
+              <mat-icon>add</mat-icon> Add Description
+            </button>
+
+            <p><strong>Policies:</strong></p>
+            <div formArrayName="hasPolicy">
+              <div
+                *ngFor="let policy of policyControls; let i = index"
+                [formGroupName]="i"
+              >
+                <div class="edit">
+                  <br />
+                  <div class="edit-input">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Assigner</mat-label>
+                      <input
+                        matInput
+                        formControlName="assigner"
+                        placeholder="Assigner"
+                      />
+                      <mat-error
+                        *ngIf="policy.get('assigner')?.hasError('required')"
+                      >
+                        Assigner is required
+                      </mat-error>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                      <mat-label>Assignee</mat-label>
+                      <input
+                        matInput
+                        formControlName="assignee"
+                        placeholder="Assignee"
+                      />
+                      <mat-error
+                        *ngIf="policy.get('assignee')?.hasError('required')"
+                      >
+                        Assignee is required
+                      </mat-error>
+                    </mat-form-field>
+                  </div>
+                </div>
+                <!-- Permissions -->
+                <div formArrayName="permission">
+                  <div
+                    *ngFor="
+                      let perm of getPermissionsControls(i);
+                      let j = index
+                    "
+                    [formGroupName]="j"
+                  >
+                    <mat-form-field appearance="outline">
+                      <mat-label>Action</mat-label>
+                      <mat-select formControlName="action">
+                        <mat-option
+                          *ngFor="let action of actionOptions"
+                          [value]="action"
+                        >
+                          {{ action }}
+                        </mat-option>
+                      </mat-select>
+                      <mat-error
+                        *ngIf="perm.get('action')?.hasError('required')"
+                      >
+                        Action is required
+                      </mat-error>
+                    </mat-form-field>
+
+                    <div formArrayName="constraint">
+                      <div
+                        *ngFor="
+                          let cons of getConstraintsControls(i, j);
+                          let k = index
+                        "
+                        [formGroupName]="k"
+                      >
+                        <div class="row-action">
+                          <mat-form-field appearance="outline">
+                            <mat-label>Left Operand</mat-label>
+                            <mat-select formControlName="leftOperand">
+                              <mat-option
+                                *ngFor="let operand of leftOperandOptions"
+                                [value]="operand"
+                              >
+                                {{ operand }}
+                              </mat-option>
+                            </mat-select>
+                            <mat-error
+                              *ngIf="
+                                cons.get('leftOperand')?.hasError('required')
+                              "
+                            >
+                              Left Operand is required
+                            </mat-error>
+                          </mat-form-field>
+                          <mat-form-field appearance="outline">
+                            <mat-label>Right Operand</mat-label>
+                            <input
+                              matInput
+                              formControlName="rightOperand"
+                              placeholder="Right Operand"
+                            />
+                            <mat-error
+                              *ngIf="
+                                cons.get('rightOperand')?.hasError('required')
+                              "
+                            >
+                              Right Operand is required
+                            </mat-error>
+                          </mat-form-field>
+                          <mat-form-field appearance="outline">
+                            <mat-label>Operator</mat-label>
+                            <mat-select formControlName="operator">
+                              <mat-option
+                                *ngFor="let operator of operatorOptions"
+                                [value]="operator"
+                              >
+                                {{ operator }}
+                              </mat-option>
+                            </mat-select>
+                            <mat-error
+                              *ngIf="cons.get('operator')?.hasError('required')"
+                            >
+                              Operator is required
+                            </mat-error>
+                          </mat-form-field>
+                          <button
+                            mat-icon-button
+                            (click)="removeConstraint(i, j, k)"
+                          >
+                            <mat-icon>delete</mat-icon>
+                          </button>
+                        </div>
+                      </div>
+                      <button mat-button (click)="addConstraint(i, j)">
+                        <mat-icon>add</mat-icon> Add Constraint
+                      </button>
+                    </div>
+
+                    <button mat-icon-button (click)="removePermission(i, j)">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                  <button mat-button (click)="addPermission(i)">
+                    <mat-icon>add</mat-icon> Add Permission
+                  </button>
+                </div>
+
+                <button mat-icon-button (click)="removePolicy(i)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+            <button mat-button (click)="addPolicy()">
+              <mat-icon>add</mat-icon> Add Policy
+            </button>
+            <br />
+            <mat-form-field appearance="outline">
+              <mat-label>Select distribution</mat-label>
+              <mat-select formControlName="distribution" multiple>
+                <mat-option
+                  *ngFor="let distribution of allDistributions"
+                  [value]="distribution"
+                >
+                  {{ distribution.title }}
+                </mat-option>
+              </mat-select>
+              <mat-error
+                *ngIf="datasetForm.get('distribution')?.hasError('required')"
+              >
+                Distribution is required
+              </mat-error>
+            </mat-form-field>
+
+            <p><strong>Keyword:</strong></p>
+            <div formArrayName="keyword">
+              <div *ngFor="let keyword of keywordControls; let i = index">
+                <mat-form-field appearance="outline">
+                  <input matInput [formControlName]="i" placeholder="Keyword" />
+                  <mat-error
+                    *ngIf="
+                      datasetForm.get(['keyword', i])?.hasError('required') &&
+                      datasetForm.get(['keyword', i])?.touched
+                    "
+                  >
+                    Keyword is required
+                  </mat-error>
+                </mat-form-field>
+                <button mat-icon-button (click)="removeKeyword(i)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+            <button mat-button (click)="addKeyword()">
+              <mat-icon>add</mat-icon> Add Keyword
+            </button>
+
+            <p><strong>Theme:</strong></p>
+            <div formArrayName="theme">
+              <div *ngFor="let theme of themeControls; let i = index">
+                <mat-form-field appearance="outline">
+                  <input matInput [formControlName]="i" placeholder="Theme" />
+                  <mat-error
+                    *ngIf="
+                      datasetForm.get(['theme', i])?.hasError('required') &&
+                      datasetForm.get(['theme', i])?.touched
+                    "
+                  >
+                    Theme is required
+                  </mat-error>
+                </mat-form-field>
+                <button mat-icon-button (click)="removeTheme(i)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+            <button mat-button (click)="addTheme()">
+              <mat-icon>add</mat-icon> Add Theme
+            </button>
+          </div>
+        </form>
+      </div>
+      <div class="sdd">
+        <mat-expansion-panel
+          class="expansion-panel"
+          *ngIf="!editMode && dataset.distribution.length > 0"
+        >
+          <mat-expansion-panel-header>
+            <mat-panel-title>Distributions</mat-panel-title>
+          </mat-expansion-panel-header>
+          <div
+            *ngFor="let distribution of dataset.distribution"
+            class="resource-section"
+          >
+            <div>
+              <p>{{ distribution.title }}</p>
+              <button
+                mat-button
+                matTooltip="View details"
+                (click)="navigateToDistributionDetails(distribution)"
+              >
+                <mat-icon>visibility</mat-icon>
+              </button>
+            </div>
+            <hr />
+          </div>
+        </mat-expansion-panel>
+        <mat-expansion-panel
+          class="expansion-panel"
+          *ngIf="!editMode && dataset.distribution.length > 0"
+        >
+          <mat-expansion-panel-header>
+            <mat-panel-title>Policies</mat-panel-title>
+          </mat-expansion-panel-header>
+          <div
+            *ngFor="let policy of dataset.hasPolicy"
+            class="resource-section"
+          >
+            <div>
+              <p>{{ policy["@id"] }}</p>
+              <button
+                mat-button
+                matTooltip="View details"
+                (click)="navigateToPolicyDetails(policy)"
+              >
+                <mat-icon>visibility</mat-icon>
+              </button>
+            </div>
+            <hr />
+          </div>
+        </mat-expansion-panel>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
