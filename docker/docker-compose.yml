@@ -38,7 +38,7 @@ services:
       - tc_a_log:/var/log/tc
   
   ui-a:
-    image: dsp-true-connector-ui:0.0.1
+    image: ghcr.io/engineering-research-and-development/dsp-true-connector-ui:test
     container_name: ui-a
     networks:
       - network-a
@@ -102,7 +102,7 @@ services:
       - ./:/home/nobody/ftp
       - tc_b_log:/var/log/tc
   ui-b:
-    image: dsp-true-connector-ui:0.0.1
+    image: ghcr.io/engineering-research-and-development/dsp-true-connector-ui:test
     container_name: ui-b
     networks:
       - network-b
