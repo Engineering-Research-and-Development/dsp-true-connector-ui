@@ -1,6 +1,6 @@
 export interface GenericApiResponse<T> {
   success: boolean;
   message: string;
-  data: T;
+  data?: T;
   timestamp: string;
 }

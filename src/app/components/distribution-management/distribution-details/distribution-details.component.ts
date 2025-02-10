@@ -26,7 +26,6 @@ import { Multilanguage } from '../../../models/multilanguage';
 import { Offer } from '../../../models/offer';
 import { DataServiceService } from '../../../services/data-service/data-service.service';
 import { DistributionService } from '../../../services/distribution/distribution.service';
-import { SnackbarService } from '../../../services/snackbar/snackbar.service';
 import { ConfirmationDialogComponent } from '../../confirmation-dialog/confirmation-dialog.component';
 import { Distribution } from './../../../models/distribution';
 
@@ -71,7 +70,6 @@ export class DistributionDetailsComponent implements OnInit {
     private location: Location,
     private distributionService: DistributionService,
     private fb: FormBuilder,
-    private snackBarService: SnackbarService,
     private dataServiceService: DataServiceService
   ) {
     const navigation = this.router.getCurrentNavigation();

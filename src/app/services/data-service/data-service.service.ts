@@ -1,9 +1,10 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, catchError, map, throwError } from 'rxjs';
+import { Observable, catchError, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { DataService } from '../../models/dataService';
 import { GenericApiResponse } from '../../models/genericApiResponse';
+import { ErrorHandlerService } from '../error-handler/error-handler.service';
 import { SnackbarService } from '../snackbar/snackbar.service';
 
 @Injectable({
@@ -14,11 +15,14 @@ export class DataServiceService {
 
   /**
    * Constructor in order to use the HttpClient and set the httpOptions
-   * @param http
+   * @param http - HttpClient
+   * @param snackBarService - service to show snack bar messages
+   * @param errorHandlerService - service to handle errors
    * */
   constructor(
     private http: HttpClient,
-    private snackBarService: SnackbarService
+    private snackBarService: SnackbarService,
+    private errorHandlerService: ErrorHandlerService
   ) {}
   httpOptions = {
     headers: new HttpHeaders({
@@ -41,20 +45,20 @@ export class DataServiceService {
       )
       .pipe(
         map((response: GenericApiResponse<DataService>) => {
-          if (response.success) {
-            return response.data;
-          } else {
+          if (response.success && response.data) {
             this.snackBarService.openSnackBar(
               response.message,
               'OK',
               'center',
               'bottom',
-              'snackbar-error'
+              'snackbar-success'
             );
+            return response.data;
+          } else {
             throw new Error(response.message);
           }
         }),
-        catchError(this.errorHandler.bind(this))
+        catchError((error) => this.errorHandlerService.handleError(error))
       );
   }
 
@@ -71,20 +75,13 @@ export class DataServiceService {
       )
       .pipe(
         map((response: GenericApiResponse<DataService[]>) => {
-          if (response.success) {
+          if (response.success && response.data) {
             return response.data;
           } else {
-            this.snackBarService.openSnackBar(
-              response.message,
-              'OK',
-              'center',
-              'bottom',
-              'snackbar-error'
-            );
             throw new Error(response.message);
           }
         }),
-        catchError(this.errorHandler.bind(this))
+        catchError((error) => this.errorHandlerService.handleError(error))
       );
   }
 
@@ -101,20 +98,13 @@ export class DataServiceService {
       )
       .pipe(
         map((response: GenericApiResponse<DataService>) => {
-          if (response.success) {
+          if (response.success && response.data) {
             return response.data;
           } else {
-            this.snackBarService.openSnackBar(
-              response.message,
-              'OK',
-              'center',
-              'bottom',
-              'snackbar-error'
-            );
             throw new Error(response.message);
           }
         }),
-        catchError(this.errorHandler.bind(this))
+        catchError((error) => this.errorHandlerService.handleError(error))
       );
   }
 
@@ -137,20 +127,20 @@ export class DataServiceService {
       )
       .pipe(
         map((response: GenericApiResponse<DataService>) => {
-          if (response.success) {
-            return response.data;
-          } else {
+          if (response.success && response.data) {
             this.snackBarService.openSnackBar(
               response.message,
               'OK',
               'center',
               'bottom',
-              'snackbar-error'
+              'snackbar-success'
             );
+            return response.data;
+          } else {
             throw new Error(response.message);
           }
         }),
-        catchError(this.errorHandler.bind(this))
+        catchError((error) => this.errorHandlerService.handleError(error))
       );
   }
 
@@ -169,45 +159,19 @@ export class DataServiceService {
       .pipe(
         map((response: GenericApiResponse<DataService>) => {
           if (response.success) {
-            return response.message;
-          } else {
             this.snackBarService.openSnackBar(
               response.message,
               'OK',
               'center',
               'bottom',
-              'snackbar-error'
+              'snackbar-success'
             );
+            return response.message;
+          } else {
             throw new Error(response.message);
           }
         }),
-        catchError(this.errorHandler.bind(this))
+        catchError((error) => this.errorHandlerService.handleError(error))
       );
-  }
-
-  /**
-   * Error handler
-   * @param error
-   * @returns throwError
-   * */
-  errorHandler(error: any) {
-    console.log('ERR', error);
-    let errorMessage = '';
-    if (error.error instanceof ErrorEvent) {
-      errorMessage = error.error.message;
-    } else {
-      errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
-    }
-    this.snackBarService.openSnackBar(
-      'An error occurred: ' + errorMessage,
-      'OK',
-      'center',
-      'bottom',
-      'snackbar-error'
-    );
-    console.log(errorMessage);
-    return throwError(() => {
-      return errorMessage;
-    });
   }
 }

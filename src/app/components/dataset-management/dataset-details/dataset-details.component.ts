@@ -21,12 +21,15 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router, RouterModule } from '@angular/router';
 import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
+import { catchError, map, Observable, of } from 'rxjs';
+import { Artifact } from '../../../models/artifact';
 import { Dataset } from '../../../models/dataset';
 import { Action } from '../../../models/enums/action.enum';
 import { LeftOperand } from '../../../models/enums/left-operand.enum';
 import { Operator } from '../../../models/enums/operators.enum';
 import { Multilanguage } from '../../../models/multilanguage';
 import { Offer } from '../../../models/offer';
+import { ArtifactService } from '../../../services/artifact/artifact.service';
 import { DatasetService } from '../../../services/dataset/dataset.service';
 import { DistributionService } from '../../../services/distribution/distribution.service';
 import { SnackbarService } from '../../../services/snackbar/snackbar.service';
@@ -72,6 +75,10 @@ export class DatasetDetailsComponent {
   leftOperandOptions = Object.values(LeftOperand);
   operatorOptions = Object.values(Operator);
 
+  selectedFile: File | undefined;
+  datasetArtifact!: Artifact;
+  updateArtifact: boolean = false;
+
   constructor(
     public dialog: MatDialog,
     private router: Router,
@@ -79,15 +86,27 @@ export class DatasetDetailsComponent {
     private datasetService: DatasetService,
     private fb: FormBuilder,
     private snackBarService: SnackbarService,
-    private distributionService: DistributionService
+    private distributionService: DistributionService,
+    private artifactService: ArtifactService
   ) {
     const navigation = this.router.getCurrentNavigation();
     if (navigation?.extras.state) {
       this.dataset = navigation.extras.state['dataset'];
+      if (navigation.extras.state['datasetArtifact']) {
+        this.datasetArtifact = navigation.extras.state['datasetArtifact'];
+      }
+      console.log('Artifact:', this.datasetArtifact);
       if (navigation.extras.state['editMode']) {
+        console.log('Edit mode:', navigation.extras.state['editMode']);
         this.editMode = navigation.extras.state['editMode'];
         this.directEdit = navigation.extras.state['editMode'];
         this.originalDataset = { ...this.dataset };
+        this.datasetArtifact = navigation.extras.state['datasetArtifact'];
+        console.log('Upadrte artifact:', this.updateArtifact);
+        console.log('dataset:', this.dataset);
+        if (this.dataset['@id'] != undefined) {
+          this.updateArtifact = true;
+        }
       }
       this.languages = this.extractLanguages(this.dataset.description);
       console.log('Languages:', this.languages);
@@ -163,18 +182,59 @@ export class DatasetDetailsComponent {
    * If the edit mode is disabled, it sets the original dataset data to the current dataset data.
    * */
   toggleEditMode() {
+    console.log('Toggling edit mode', this.editMode);
     if (this.editMode) {
       if (this.directEdit) {
         if (this.dataset['@id'] != undefined) {
+          if (
+            !this.selectedFile ||
+            this.dataset.fileId === undefined ||
+            this.dataset.fileId === null
+          ) {
+            this.snackBarService.openSnackBar(
+              'Dataset file is required',
+              'OK',
+              'center',
+              'bottom',
+              'snackbar-error'
+            );
+
+            return;
+          }
           this.updateDatasetData();
           this.directEdit = false;
         } else {
+          if (!this.selectedFile) {
+            this.snackBarService.openSnackBar(
+              'Dataset file is required',
+              'OK',
+              'center',
+              'bottom',
+              'snackbar-error'
+            );
+
+            return;
+          }
           this.saveDatasetData();
         }
       } else {
+        this.updateArtifact = true;
+
+        if (!this.selectedFile) {
+          this.snackBarService.openSnackBar(
+            'Dataset file is required',
+            'OK',
+            'center',
+            'bottom',
+            'snackbar-error'
+          );
+
+          return;
+        }
         this.updateDatasetData();
       }
     } else {
+      this.updateArtifact = true;
       this.originalDataset = this.dataset;
     }
     this.editMode = !this.editMode;
@@ -198,7 +258,7 @@ export class DatasetDetailsComponent {
    * Saves the dataset data.
    * After response is received, sets the dataset data to the response data, extracts the languages
    * from the descriptions, updates the form with the dataset data, and sets the loading flag to false.
-   * */
+   */
   saveDatasetData() {
     console.log('Saving dataset data:', this.cleanFormData(this.datasetForm));
     this.loading = true;
@@ -206,11 +266,36 @@ export class DatasetDetailsComponent {
       .createDataset(this.cleanFormData(this.datasetForm))
       .subscribe({
         next: (data) => {
-          this.dataset = data;
-          this.languages = this.extractLanguages(this.dataset.description);
-          this.onLanguageSelected();
-          this.updateForm(this.dataset);
-          this.loading = false;
+          console.log('Dataset saved successfully:', data);
+          this.uploadDatasetFile(data['@id']).subscribe({
+            next: (uploadedFileId) => {
+              console.log(
+                'Dataset file uploaded successfully:',
+                uploadedFileId
+              );
+              this.dataset = data;
+              this.dataset.fileId = uploadedFileId;
+              this.languages = this.extractLanguages(this.dataset.description);
+              this.onLanguageSelected();
+              this.updateForm(this.dataset);
+              this.getArtifactById(uploadedFileId).subscribe({
+                next: (artifact) => {
+                  console.log('Artifact:', artifact);
+                  this.datasetArtifact = artifact[0];
+
+                  this.loading = false;
+                },
+                error: (error) => {
+                  console.error('Error fetching artifact:', error);
+                  this.loading = false;
+                },
+              });
+            },
+            error: (error) => {
+              console.error('File upload subscription failed:', error);
+              this.loading = false;
+            },
+          });
         },
         error: (error) => {
           console.error('Saving dataset failed:', error);
@@ -232,12 +317,34 @@ export class DatasetDetailsComponent {
       .updateDataset(this.dataset['@id']!, this.cleanFormData(this.datasetForm))
       .subscribe({
         next: (data) => {
-          console.log('Dataset updated successfully', data);
-          this.dataset = data;
-          this.languages = this.extractLanguages(this.dataset.description);
-          this.onLanguageSelected();
-          this.updateForm(this.dataset);
-          this.loading = false;
+          this.uploadDatasetFile(data['@id']!).subscribe({
+            next: (uploadedFileId) => {
+              console.log(
+                'Dataset file uploaded successfully:',
+                uploadedFileId
+              );
+              this.dataset = data;
+              this.dataset.fileId = uploadedFileId;
+              this.languages = this.extractLanguages(this.dataset.description);
+              this.onLanguageSelected();
+              this.updateForm(this.dataset);
+              this.getArtifactById(uploadedFileId).subscribe({
+                next: (artifact) => {
+                  console.log('Artifact:', artifact);
+                  this.datasetArtifact = artifact[0];
+                  this.loading = false;
+                },
+                error: (error) => {
+                  console.error('Error fetching artifact:', error);
+                  this.loading = false;
+                },
+              });
+            },
+            error: (error) => {
+              console.error('File upload subscription failed:', error);
+              this.loading = false;
+            },
+          });
         },
         error: (error) => {
           console.error('Error updating dataset:', error);
@@ -361,6 +468,7 @@ export class DatasetDetailsComponent {
       '@id': [''],
       title: ['', Validators.required],
       identifier: [null],
+      // fileId: [null],
       description: this.fb.array([], Validators.required),
       keyword: this.fb.array([]),
       theme: this.fb.array([]),
@@ -386,6 +494,7 @@ export class DatasetDetailsComponent {
         '@id': dataset['@id'],
         title: dataset.title,
         identifier: dataset.identifier,
+        fileId: dataset.fileId,
         creator: dataset.creator,
         conformsTo: dataset.conformsTo,
         createdBy: dataset.createdBy,
@@ -409,6 +518,15 @@ export class DatasetDetailsComponent {
         );
       this.setFormArray('hasPolicy', dataset.hasPolicy || []);
     }
+  }
+
+  /**
+   * Fetches an artifact by id using the ArtifactService.
+   * @param id The id of the artifact to fetch.
+   * @returns Observable<Artifact>
+   */
+  getArtifactById(id: string): Observable<Artifact[]> {
+    return this.artifactService.getArtifactById(id);
   }
 
   /**
@@ -674,5 +792,57 @@ export class DatasetDetailsComponent {
         .at(permissionIndex)
         .get('constraint') as FormArray
     ).controls;
+  }
+
+  /**
+   * Handles the file selected event.
+   * @param event The event.
+   * */
+  onFileSelected(event: Event): void {
+    const inputElement = event.target as HTMLInputElement;
+    this.selectedFile = inputElement.files?.[0];
+
+    if (this.selectedFile) {
+      console.log('Selected file:', this.selectedFile);
+      // this.uploadCatalogFile(selectedFile);
+    }
+  }
+
+  /**
+   * Removes the selected file.
+   */
+  removeFile(): void {
+    this.selectedFile = undefined;
+    this.updateArtifact = false;
+  }
+
+  /**
+   * Uploads the file associated with dataset.
+   * @param dataSetId The id of the dataset.
+   * @returns Observable<string> - The ID extracted from the response.
+   */
+  uploadDatasetFile(dataSetId: string): Observable<string> {
+    if (this.selectedFile) {
+      console.log('Uploading file:', this.selectedFile);
+      return this.artifactService
+        .uploadDatasetFile(this.selectedFile, dataSetId)
+        .pipe(
+          map((response) => {
+            console.log('File uploaded successfully:', response);
+            const match = response.match(/File uploaded (.+)$/);
+            if (match && match[1]) {
+              return match[1];
+            } else {
+              throw new Error('Failed to extract ID from response');
+            }
+          }),
+          catchError((error) => {
+            console.error('File upload failed:', error);
+            throw error;
+          })
+        );
+    } else {
+      return of('');
+    }
   }
 }

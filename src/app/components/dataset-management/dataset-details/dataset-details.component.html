@@ -111,6 +111,18 @@
               <span>
                 {{ dataset.creator }}
               </span>
+              <strong>Artifact name</strong>
+              <span>
+                {{ datasetArtifact.filename }}
+              </span>
+              <strong>Artifact type</strong>
+              <span>
+                {{ datasetArtifact.artifactType }}
+              </span>
+              <strong>Artifact content type</strong>
+              <span>
+                {{ datasetArtifact["Content-Type"] }}
+              </span>
               <strong>Issued</strong
               ><span>
                 {{ dataset.issued | date : "d MMMM y, HH:mm:ss" }}
@@ -119,7 +131,7 @@
               ><span>
                 {{ dataset.modified | date : "d MMMM y, HH:mm:ss" }}
               </span>
-              <strong>Created by:</strong
+              <strong>Created by</strong
               ><span>
                 {{ dataset.createdBy }}
               </span>
@@ -175,6 +187,40 @@
                   Conforms to is required
                 </mat-error>
               </mat-form-field>
+            </div>
+            <div>
+              <p><strong>Related file:</strong></p>
+
+              <div *ngIf="selectedFile == undefined">
+                <input
+                  type="file"
+                  (change)="onFileSelected($event)"
+                  accept=".json"
+                  style="display: none"
+                  #fileInput
+                />
+
+                <button
+                  *ngIf="!updateArtifact"
+                  mat-button
+                  (click)="fileInput.click()"
+                >
+                  Upload dataset file
+                </button>
+              </div>
+
+              <div *ngIf="selectedFile" class="file-info">
+                <span>{{ selectedFile.name }}</span>
+                <button mat-icon-button (click)="removeFile()">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+              <div *ngIf="!selectedFile && updateArtifact" class="file-info">
+                <span>{{ datasetArtifact.filename }}</span>
+                <button mat-icon-button (click)="removeFile()">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
             </div>
             <p><strong>Description:</strong></p>
             <div formArrayName="description">

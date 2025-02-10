@@ -13,6 +13,7 @@ import { Router } from '@angular/router';
 import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
 import { Catalog } from '../../models/catalog';
 import { CatalogService } from '../../services/catalog/catalog.service';
+import { ProxyService } from '../../services/proxy/proxy.service';
 
 @Component({
   selector: 'app-catalog-browser',
@@ -39,35 +40,36 @@ export class CatalogBrowserComponent implements OnInit {
 
   catalogData: Catalog[] = [];
   searchControl = new FormControl('');
+  urlControl = new FormControl('');
+
   filteredCatalogsData: Catalog[] = [];
 
-  constructor(private catalogService: CatalogService, private router: Router) {}
+  constructor(private router: Router, private proxyService: ProxyService) {}
 
   /**
    * Initializes the component by fetching all catalogs from the server.
    * Subscribes to the search control value changes to filter the catalogs.
    * */
   ngOnInit(): void {
-    this.loading = true;
-    this.catalogService.getCatalog().subscribe({
-      next: (data) => {
-        console.log('Catalog data:', data);
-        this.catalogData.push(data);
-        this.filteredCatalogsData = this.catalogData;
-        console.log(this.filteredCatalogsData);
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error('Error fetching catalogs:', error);
-        this.loading = false;
-      },
-    });
-
-    this.searchControl.valueChanges.subscribe((searchTerm) => {
-      this.filteredCatalogsData = this.catalogData.filter((catalog) =>
-        catalog.title.toLowerCase().includes(searchTerm!.toLowerCase())
-      );
-    });
+    // this.loading = true;
+    // this.catalogService.getCatalog().subscribe({
+    //   next: (data) => {
+    //     console.log('Catalog data:', data);
+    //     this.catalogData.push(data);
+    //     this.filteredCatalogsData = this.catalogData;
+    //     console.log(this.filteredCatalogsData);
+    //     this.loading = false;
+    //   },
+    //   error: (error) => {
+    //     console.error('Error fetching catalogs:', error);
+    //     this.loading = false;
+    //   },
+    // });
+    // this.searchControl.valueChanges.subscribe((searchTerm) => {
+    //   this.filteredCatalogsData = this.catalogData.filter((catalog) =>
+    //     catalog.title.toLowerCase().includes(searchTerm!.toLowerCase())
+    //   );
+    // });
   }
 
   /**
@@ -78,5 +80,28 @@ export class CatalogBrowserComponent implements OnInit {
     this.router.navigate(['/catalog-browser/details'], {
       state: { catalog: catalog },
     });
+  }
+
+  onFetch() {
+    console.log('Fetching catalog');
+    const url = this.urlControl.value;
+    console.log('URL:', url);
+    if (!url) {
+      return;
+    } else {
+      this.proxyService.getRemoteCatalog(url!).subscribe({
+        next: (data) => {
+          console.log('Catalog data:', data);
+          this.catalogData.push(data);
+          this.filteredCatalogsData = this.catalogData;
+          console.log(this.filteredCatalogsData);
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Error:', error);
+          this.loading = false;
+        },
+      });
+    }
   }
 }

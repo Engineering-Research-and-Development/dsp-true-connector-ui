@@ -152,6 +152,30 @@ export class AppComponent implements OnInit {
   }
 
   /**
+   * Navigates to the contract negotiation page for providers and forces a refresh.
+   */
+  goToProviderDataTransfers() {
+    console.log('Navigating to data transfers page for providers');
+    this.forceReload('/data-transfer', { userType: 'provider' });
+  }
+
+  /**
+   * Navigates to the contract negotiation page for consumers and forces a refresh.
+   */
+  goToConsumerDataTransfers() {
+    console.log('Navigating to data transfers  page for consumers');
+    this.forceReload('/data-transfer', { userType: 'consumer' });
+  }
+
+  /**
+   * Navigates to the data consumption page
+   * */
+  goToDataConsumption() {
+    console.log('Navigating to data consumption page');
+    this.router.navigate(['/data-consumption']);
+  }
+
+  /**
    * Forces a refresh by temporarily navigating to a different URL and then back to the desired URL.
    * @param targetUrl The target URL to navigate to.
    * @param state The state object to pass to the target URL.

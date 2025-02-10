@@ -6,7 +6,6 @@
 
 <div *ngIf="!loading">
   <mat-card class="service-card">
-    <mat-card-title class="service-title"> </mat-card-title>
     <mat-card-content>
       <div class="headtitle">
         <div class="back">
@@ -18,23 +17,23 @@
           </h1>
         </div>
       </div>
-      <div>
-        <section>
+      <div class="filter-div">
+        <section class="filter-section">
           <h3>Filter by State</h3>
-          <mat-button-toggle-group
-            name="states"
-            aria-label="Contract Negotiation States"
-            [value]="selectedStates"
-            (change)="onStatesChange($event.value)"
+          <mat-chip-listbox
             multiple
+            aria-label="Contract negotiation state selection"
+            class="contract-state-chips"
           >
-            <mat-button-toggle
+            <mat-chip-option
               *ngFor="let state of contractNegotiationStates"
-              [value]="state"
+              [selected]="selectedStates.includes(state)"
+              (click)="toggleStateSelection(state)"
+              color="primary"
             >
               {{ getStateDisplayName(state) }}
-            </mat-button-toggle>
-          </mat-button-toggle-group>
+            </mat-chip-option>
+          </mat-chip-listbox>
         </section>
       </div>
       <div class="space-card">
@@ -125,8 +124,29 @@
                           <strong>Target:</strong>
                           {{ permission.target }}
                         </p>
+                        <div
+                          *ngFor="let constraint of permission.constraint"
+                          class="constraint-section"
+                        >
+                          <div>
+                            <p>
+                              <strong>Constraint:</strong>
+                            </p>
+                            <p>
+                              <strong>Left operand:</strong>
+                              {{ constraint.leftOperand }}
+                            </p>
+                            <p>
+                              <strong>Operator:</strong>
+                              {{ constraint.operator }}
+                            </p>
+                            <p>
+                              <strong>Right operand:</strong>
+                              {{ constraint.rightOperand }}
+                            </p>
+                          </div>
+                        </div>
                       </div>
-                      <hr />
                     </div>
                   </mat-expansion-panel>
                 </div>
@@ -146,6 +166,17 @@
               >
                 <mat-icon>check</mat-icon>
                 <p>Approve</p>
+              </button>
+              <button
+                mat-button
+                matTooltip="Accept contract"
+                *ngIf="
+                  contractNegotiation.state === contractNegotiationState.OFFERED
+                "
+                (click)="onAccept(contractNegotiation)"
+              >
+                <mat-icon>check</mat-icon>
+                <p>Accept</p>
               </button>
               <button
                 mat-button
@@ -176,7 +207,9 @@
                 matTooltip="Terminate contract"
                 *ngIf="
                   contractNegotiation.state !==
-                  contractNegotiationState.FINALIZED
+                    contractNegotiationState.FINALIZED &&
+                  contractNegotiation.state !==
+                    contractNegotiationState.TERMINATED
                 "
                 (click)="onTerminate(contractNegotiation)"
               >

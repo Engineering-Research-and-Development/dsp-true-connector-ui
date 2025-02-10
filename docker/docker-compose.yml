@@ -1,0 +1,140 @@
+services:
+### Instance A
+  connector-a:
+    image: ghcr.io/engineering-research-and-development/dsp-true-connector:test
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1024M
+    logging:
+      options:
+        max-size: "200M"
+    networks:
+      - network-a
+      - network-b
+    container_name: connector-a
+    ports:
+      - 0.0.0.0:8888:2222 #FTP
+      - 8080:8080
+    depends_on:
+      - mongodb-a
+    environment:
+      - "JDK_JAVA_OPTIONS=-Xmx1024m"
+      - CALLBACK_ADDRESS=${CONNECTOR_A_CALLBACK_ADDRESS}
+      - KEYSTORE_NAME=${KEYSTORE_NAME}
+      - KEY_PASSWORD=${KEY_PASSWORD}
+      - KEYSTORE_PASSWORD=${KEYSTORE_PASSWORD}
+      - KEYSTORE_ALIAS=${KEYSTORE_ALIAS}
+      - DAPS_KEYSTORE_NAME=${DAPS_KEYSTORE_NAME}
+      - DAPS_KEYSTORE_PASSWORD=${DAPS_KEYSTORE_PASSWORD}
+      - DAPS_KEYSTORE_ALIAS=${KEYSTORE_ALIAS}
+      - TRUSTSTORE_NAME=${TRUSTSTORE_NAME}
+      - TRUSTSTORE_PASSWORD=${TRUSTSTORE_PASSWORD}
+    volumes:
+      - ./connector_a_resources:/config
+      - ./tc_cert:/cert
+      - ./:/home/nobody/ftp
+      - tc_a_log:/var/log/tc
+  
+  ui-a:
+    image: dsp-true-connector-ui:0.0.1
+    container_name: ui-a
+    networks:
+      - network-a
+    ports:
+      - "4200:80"
+    environment:
+      - TC_ROOT_API_URL=${CONNECTOR_A_TC_ROOT_API_URL}
+    depends_on:
+      - connector-a	  
+    volumes:
+      - ./ui_a_resources/nginx.conf:/etc/nginx/nginx.conf
+      - ./ui_a_resources/ssl:/etc/nginx/ssl:ro
+
+  mongodb-a:
+    container_name: mongodb-a
+    image: mongo:7.0.12
+    networks:
+      - network-a
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data_a:/data/db
+      - mongodb-configdb_a:/data/configdb
+      
+### instance b
+
+  connector-b:
+    image: ghcr.io/engineering-research-and-development/dsp-true-connector:test
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1024M
+    logging:
+      options:
+        max-size: "200M"
+    networks:
+      - network-a
+      - network-b
+    container_name: connector-b
+    ports:
+      - 0.0.0.0:8889:2222 #FTP
+      - 8090:8080
+    depends_on:
+      - mongodb-b
+    environment:
+      - "JDK_JAVA_OPTIONS=-Xmx1024m"
+      - CALLBACK_ADDRESS=${CONNECTOR_B_CALLBACK_ADDRESS}
+      - KEYSTORE_NAME=${KEYSTORE_NAME}
+      - KEY_PASSWORD=${KEY_PASSWORD}
+      - KEYSTORE_PASSWORD=${KEYSTORE_PASSWORD}
+      - KEYSTORE_ALIAS=${KEYSTORE_ALIAS}
+      - DAPS_KEYSTORE_NAME=${DAPS_KEYSTORE_NAME}
+      - DAPS_KEYSTORE_PASSWORD=${DAPS_KEYSTORE_PASSWORD}
+      - DAPS_KEYSTORE_ALIAS=${KEYSTORE_ALIAS}
+      - TRUSTSTORE_NAME=${TRUSTSTORE_NAME}
+      - TRUSTSTORE_PASSWORD=${TRUSTSTORE_PASSWORD}
+    volumes:
+      - ./connector_b_resources:/config
+      - ./tc_cert:/cert
+      - ./:/home/nobody/ftp
+      - tc_b_log:/var/log/tc
+  ui-b:
+    image: dsp-true-connector-ui:0.0.1
+    container_name: ui-b
+    networks:
+      - network-b
+    ports:
+      - "4300:80"
+    environment:
+      - TC_ROOT_API_URL=${CONNECTOR_B_TC_ROOT_API_URL}
+    depends_on:
+      - connector-b
+    volumes:
+      - ./ui_b_resources/nginx.conf:/etc/nginx/nginx.conf
+      - ./ui_b_resources/ssl:/etc/nginx/ssl:ro
+      
+  mongodb-b:
+    container_name: mongodb-b
+    image: mongo:7.0.12
+    networks:
+      - network-b
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongodb-data_b:/data/db
+      - mongodb-configdb_b:/data/configdb
+      
+networks:
+  network-a: { }
+  network-b: { }
+  
+volumes:
+  tc_a_log: { }
+  mongodb-data_a: { }
+  mongodb-configdb_a: { }
+  tc_b_log: { }
+  mongodb-data_b: { }
+  mongodb-configdb_b: { }

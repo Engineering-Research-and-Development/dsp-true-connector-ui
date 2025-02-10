@@ -26,7 +26,6 @@ import { Dataset } from '../../../models/dataset';
 import { Multilanguage } from '../../../models/multilanguage';
 import { DataServiceService } from '../../../services/data-service/data-service.service';
 import { DatasetService } from '../../../services/dataset/dataset.service';
-import { SnackbarService } from '../../../services/snackbar/snackbar.service';
 import { ConfirmationDialogComponent } from '../../confirmation-dialog/confirmation-dialog.component';
 
 @Component({
@@ -70,7 +69,6 @@ export class ServiceDetailsComponent implements OnInit {
     private location: Location,
     private dataService: DataServiceService,
     private fb: FormBuilder,
-    private snackBarService: SnackbarService,
     private datasetService: DatasetService
   ) {
     const navigation = this.router.getCurrentNavigation();

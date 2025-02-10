@@ -8,6 +8,7 @@ export interface Dataset {
   title: string;
   description: Multilanguage[];
   keyword: string[];
+  fileId?: string;
   distribution: Distribution[];
   hasPolicy: Offer[];
   conformsTo?: string;
@@ -19,4 +20,5 @@ export interface Dataset {
   lastModifiedBy?: string;
   version?: number;
   theme: string[];
+  artifact?: any;
 }

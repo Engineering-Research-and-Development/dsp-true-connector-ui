@@ -3,6 +3,8 @@ import { CatalogBrowserDetailsComponent } from './components/catalog-browser/cat
 import { CatalogBrowserComponent } from './components/catalog-browser/catalog-browser.component';
 import { CatalogManagementComponent } from './components/catalog-management/catalog-management.component';
 import { ContractNegotiationComponent } from './components/contract-negotiation/contract-negotiation.component';
+import { DataConsumptionComponent } from './components/data-consumption/data-consumption.component';
+import { DataTransfersComponent } from './components/data-transfers/data-transfers.component';
 import { DatasetDetailsComponent } from './components/dataset-management/dataset-details/dataset-details.component';
 import { DatasetManagementComponent } from './components/dataset-management/dataset-management.component';
 import { DistributionDetailsComponent } from './components/distribution-management/distribution-details/distribution-details.component';
@@ -79,5 +81,15 @@ export const routes: Routes = [
     path: 'contract-negotiation',
     component: ContractNegotiationComponent,
     title: 'Contract Negotiation',
+  },
+  {
+    path: 'data-transfer',
+    component: DataTransfersComponent,
+    title: 'Data Transfer',
+  },
+  {
+    path: 'data-consumption',
+    component: DataConsumptionComponent,
+    title: 'Data Consumption',
   },
 ];

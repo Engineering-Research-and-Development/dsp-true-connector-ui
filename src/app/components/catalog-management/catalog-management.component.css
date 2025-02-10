@@ -50,7 +50,13 @@ mat-divider {
 }
 
 p {
-  margin: 5px 0;
+  margin: 16px 0px 10px;
+  color: #333333;
+  font-size: 16px;
+}
+
+p strong {
+  color: #383838;
 }
 .table-info {
   display: flex;
@@ -83,9 +89,7 @@ mat-list-item:hover {
 }
 
 button[mat-button] {
-  background-color: #f0f0f0;
   padding: 10px 15px;
-
   font-size: 1em;
   font-weight: 300;
   border: none;

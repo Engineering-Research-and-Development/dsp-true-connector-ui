@@ -16,10 +16,18 @@
           <mat-form-field>
             <input
               matInput
-              [formControl]="searchControl"
-              placeholder="Search by title"
+              [formControl]="urlControl"
+              placeholder="Insert connector URL"
             />
           </mat-form-field>
+
+          <button
+            mat-button
+            matTooltip="Fetch catalog data"
+            (click)="onFetch()"
+          >
+            <mat-icon>compare_arrows</mat-icon>
+          </button>
         </div>
       </div>
       <div class="space-card">

@@ -15,7 +15,6 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
 import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
 import { DataServiceService } from '../../services/data-service/data-service.service';
-import { SnackbarService } from '../../services/snackbar/snackbar.service';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
 import { DataService } from './../../models/dataService';
 
@@ -51,8 +50,7 @@ export class ServiceManagementComponent implements OnInit {
     public dialog: MatDialog,
     private dataServiceService: DataServiceService,
     private router: Router,
-    private dataService: DataServiceService,
-    private snackBarService: SnackbarService
+    private dataService: DataServiceService
   ) {}
 
   /**
@@ -83,6 +81,7 @@ export class ServiceManagementComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error:', error);
+        this.loading = false;
       },
     });
   }

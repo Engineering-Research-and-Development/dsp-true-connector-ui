@@ -97,6 +97,32 @@
             </mat-list-item>
           </a>
         </mat-expansion-panel>
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <mat-icon mat-list-icon>cloud</mat-icon>
+              <span>Data transfers</span>
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+          <a (click)="goToProviderDataTransfers()">
+            <mat-list-item>
+              <mat-icon>backup</mat-icon>
+              <span>Data transfers as provider</span>
+            </mat-list-item>
+          </a>
+          <a (click)="goToConsumerDataTransfers()">
+            <mat-list-item>
+              <mat-icon>cloud_download</mat-icon>
+              <span>Data transfer as consumer</span>
+            </mat-list-item>
+          </a>
+          <a routerLink="/under-construction">
+            <mat-list-item>
+              <mat-icon>data_usage</mat-icon>
+              <span>Data consumption as consumer</span>
+            </mat-list-item>
+          </a>
+        </mat-expansion-panel>
         <div class="configuration">
           <a routerLink="/under-construction">
             <mat-list-item>

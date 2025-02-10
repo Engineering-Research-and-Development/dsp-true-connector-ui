@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -39,6 +40,7 @@ import { ContractNegotiationService } from '../../services/contract-negotiation/
     MatTooltipModule,
     MatButtonToggleModule,
     MatCheckboxModule,
+    MatChipsModule,
   ],
   templateUrl: './contract-negotiation.component.html',
   styleUrls: ['./contract-negotiation.component.css'],
@@ -48,10 +50,10 @@ export class ContractNegotiationComponent implements OnInit {
   loading = false;
   contractNegotiations: ContractNegotiation[] = [];
   filteredContractNegotiations: ContractNegotiation[] = [];
-  selectedStates: ContractNegotiationState[] = []; // To hold multiple selected states
+  selectedStates: ContractNegotiationState[] = [];
   contractNegotiationStates = Object.values(ContractNegotiationState);
 
-  contractNegotiationState = ContractNegotiationState; // Expose enum to template
+  contractNegotiationState = ContractNegotiationState;
 
   constructor(
     private router: Router,
@@ -67,8 +69,8 @@ export class ContractNegotiationComponent implements OnInit {
   }
 
   /**
-   * Initialize the component and checks for which role to fetch the contract negotiations
-   */
+   * Initializes the component by fetching all contract negotiations from the server based on the user type.
+   * */
   ngOnInit(): void {
     this.loading = true;
     if (this.userType === 'provider') {
@@ -79,14 +81,14 @@ export class ContractNegotiationComponent implements OnInit {
   }
 
   /**
-   * Navigate back to the previous page
+   * Navigates back to the previous page.
    * */
   goBack(): void {
     this.location.back();
   }
 
   /**
-   * Fetch all contract negotiations for the provider
+   * Fetches all contract negotiations from the server as a provider.
    */
   getProviderContractNegotiations() {
     this.contractNegotiationService.getAllNegotiationsAsProvider().subscribe({
@@ -94,7 +96,6 @@ export class ContractNegotiationComponent implements OnInit {
         this.contractNegotiations = data;
         this.filterContractNegotiations();
         this.loading = false;
-        console.log('Contract negotiations:', this.contractNegotiations);
       },
       error: (error) => {
         console.error('Error fetching provider contract negotiations:', error);
@@ -104,7 +105,7 @@ export class ContractNegotiationComponent implements OnInit {
   }
 
   /**
-   * Fetch all contract negotiations for the consumer
+   * Fetches all contract negotiations from the server as a consumer.
    * */
   getConsumerContractNegotiations() {
     this.contractNegotiationService.getAllNegotiationsAsConsumer().subscribe({
@@ -121,16 +122,21 @@ export class ContractNegotiationComponent implements OnInit {
   }
 
   /**
-   * Handle the change event of the contract negotiation states filter
-   * @param selected The selected contract negotiation states
+   * Toggles the selection of the contract negotiation state.
+   * @param state The contract negotiation state to toggle.
    */
-  onStatesChange(selected: ContractNegotiationState[]) {
-    this.selectedStates = selected;
+  toggleStateSelection(state: ContractNegotiationState) {
+    const index = this.selectedStates.indexOf(state);
+    if (index > -1) {
+      this.selectedStates.splice(index, 1);
+    } else {
+      this.selectedStates.push(state);
+    }
     this.filterContractNegotiations();
   }
 
   /**
-   * Filter the contract negotiations based on the selected states
+   * Filters the contract negotiations based on the selected states.
    */
   filterContractNegotiations() {
     if (this.selectedStates.length > 0) {
@@ -143,9 +149,9 @@ export class ContractNegotiationComponent implements OnInit {
   }
 
   /**
-   * Get the display name of the contract negotiation state
-   * @param state The contract negotiation state
-   * @returns The display name
+   * Gets the display name for the contract negotiation state.
+   * @param state The contract negotiation state.
+   * @returns The display name of the contract negotiation state.
    */
   getStateDisplayName(state: ContractNegotiationState): string {
     return state;
@@ -168,6 +174,22 @@ export class ContractNegotiationComponent implements OnInit {
       });
   }
 
+  /**
+   * Handle the accept event of the contract negotiation
+   * @param contractNegotiation The contract negotiation
+   */
+  onAccept(contractNegotiation: ContractNegotiation) {
+    this.contractNegotiationService
+      .acceptNegotiation(contractNegotiation['@id'])
+      .subscribe({
+        next: () => {
+          this.getConsumerContractNegotiations();
+        },
+        error: (error) => {
+          console.error('Error accepting contract negotiation:', error);
+        },
+      });
+  }
   /**
    * Handle the reject event of the contract negotiation
    * @param contractNegotiation The contract negotiation

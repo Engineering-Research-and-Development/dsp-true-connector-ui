@@ -81,6 +81,7 @@ export class DistributionManagementComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error:', error);
+        this.loading = false;
       },
     });
   }

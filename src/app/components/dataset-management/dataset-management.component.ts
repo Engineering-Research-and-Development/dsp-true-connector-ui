@@ -14,7 +14,10 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
 import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
+import { Observable } from 'rxjs';
+import { Artifact } from '../../models/artifact';
 import { Dataset } from '../../models/dataset';
+import { ArtifactService } from '../../services/artifact/artifact.service';
 import { DatasetService } from '../../services/dataset/dataset.service';
 import { SnackbarService } from '../../services/snackbar/snackbar.service';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
@@ -50,7 +53,8 @@ export class DatasetManagementComponent implements OnInit {
     public dialog: MatDialog,
     private datasetService: DatasetService,
     private router: Router,
-    private snackBarService: SnackbarService
+    private snackBarService: SnackbarService,
+    private artifactService: ArtifactService
   ) {}
 
   /**
@@ -88,13 +92,33 @@ export class DatasetManagementComponent implements OnInit {
   }
 
   /**
-   * Navigates to the dataset details page with the selected dataset.
+   * Fetches the artifact by id and navigates to the dataset details page.
    * @param dataset The selected dataset to view details for.
    */
   navigateToDatasetDetails(dataset: Dataset): void {
-    this.router.navigate(['/catalog-management/dataset-management/details'], {
-      state: { dataset: dataset },
+    this.getArtifactById(dataset.artifact.id!).subscribe({
+      next: (artifact) => {
+        console.log('Artifact:', artifact);
+        this.router.navigate(
+          ['/catalog-management/dataset-management/details'],
+          {
+            state: { dataset: dataset, datasetArtifact: artifact[0] },
+          }
+        );
+      },
+      error: (error) => {
+        console.error('Error fetching artifact:', error);
+      },
     });
+  }
+
+  /**
+   * Fetches an artifact by id using the ArtifactService.
+   * @param id The id of the artifact to fetch.
+   * @returns Observable<Artifact>
+   */
+  getArtifactById(id: string): Observable<Artifact[]> {
+    return this.artifactService.getArtifactById(id);
   }
 
   /**
@@ -102,8 +126,23 @@ export class DatasetManagementComponent implements OnInit {
    * @param dataset The selected dataset to edit.
    */
   onEdit(dataset: Dataset): void {
-    this.router.navigate(['/catalog-management/dataset-management/details'], {
-      state: { dataset: dataset, editMode: true },
+    this.getArtifactById(dataset.fileId!).subscribe({
+      next: (artifact) => {
+        console.log('Artifact:', artifact);
+        this.router.navigate(
+          ['/catalog-management/dataset-management/details'],
+          {
+            state: {
+              dataset: dataset,
+              datasetArtifact: artifact[0],
+              editMode: true,
+            },
+          }
+        );
+      },
+      error: (error) => {
+        console.error('Error fetching artifact:', error);
+      },
     });
   }
 
@@ -117,6 +156,7 @@ export class DatasetManagementComponent implements OnInit {
       conformsTo: '',
       creator: '',
       description: [],
+      fileId: '',
       identifier: '',
       title: '',
       endpointDescription: '',

@@ -12,7 +12,6 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
 import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
-import { environment } from '../../../../environments/environment';
 import { Catalog } from '../../../models/catalog';
 import { Distribution } from '../../../models/distribution';
 import { Action } from '../../../models/enums/action.enum';
@@ -137,21 +136,22 @@ export class CatalogBrowserDetailsComponent {
    * */
   constructOfferNegotiationRequest(
     offer: Offer,
-    distribution: Distribution
+    distribution: Distribution,
+    datasetId: string
   ): any {
     console.log('Dist:', distribution);
-    // Base structure of the negotiation request
-    const forwardTo =
-      distribution.accessService[0].endpointURL +
-      environment.CONTRACT_NEGOTIATION_FORWARD_TO() +
-      '/request';
 
-    console.log('ForwardTo:', forwardTo);
+    const endpointURL = distribution.accessService[0].endpointURL;
+    const baseEndpoint = endpointURL.endsWith('/')
+      ? endpointURL
+      : endpointURL + '/';
+
+    console.log('ForwardTo:', baseEndpoint);
     const negotiationRequest = {
-      'Forward-To': forwardTo,
+      'Forward-To': baseEndpoint,
       offer: {
         '@id': offer['@id'],
-        target: distribution['@id'],
+        target: datasetId,
         assigner: 'urn:uuid:ASSIGNER_PROVIDER',
         permission: [] as any[],
       },
@@ -181,11 +181,12 @@ export class CatalogBrowserDetailsComponent {
   /**
    * Starts the contract negotiation process.
    */
-  startContractNegotiation(): void {
+  startContractNegotiation(datasetId: string): void {
     if (this.selectedOffer && this.selectedDistribution) {
       const negotiationRequest = this.constructOfferNegotiationRequest(
         this.selectedOffer,
-        this.selectedDistribution
+        this.selectedDistribution,
+        datasetId
       );
 
       this.contractNegotiationService
