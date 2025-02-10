@@ -194,45 +194,13 @@ CONNECTOR_B_TC_ROOT_API_URL= --> URL of exposed endpoint of Connector B for comm
 
 ## Main Features
 
-- Catalog Browser
 - Catalog Management
 - Service Management
 - Dataset Management
 - Distribution Management
+- Catalog Browser
 - Contract Negotiation
 - Data Transfer
-
-### Catalog Browser
-
-The Catalog Browser allows you to view provider catalog data and initiate contract negotiations.
-
-![Catalog browser](/screenshots/catalog_browser.png)
-
-<p style="text-align:center;">Catalog Browser section</p>
-
-#### Steps to Browse Catalogs:
-
-1. Enter the provider endpoint address in the input field (in case of predefined configuration, from ConnectorA UI (http://localhost:4200) request address of ConnectorB is http://connector-b:8080, and from from ConnectorB UI (http://localhost:4300) request address of ConnectorA is http://connector-a:8080)
-2. Click the arrow exchange icon to fetch catalog data
-3. Click the eye icon to view detailed catalog information
-
-![Catalog browser fetched data](/screenshots/catalog_browser_fetched.png)
-
-<p style="text-align:center;">Catalog Browser section after fetching data</p>
-
-![Catalog browser details](/screenshots/catalog_browser_details.png)
-
-<p style="text-align:center;">Catalog details</p>
-
-#### Starting a Negotiation:
-
-1. Navigate to the Datasets tab
-2. Select an offer and format
-3. Click "Start Negotiation"
-
-![Contract negotiation start](/screenshots/negotiation_start.png)
-
-<p style="text-align:center;">Start contract negotiation</p>
 
 ### Catalog Management
 
@@ -260,7 +228,7 @@ After changing related data, click on a save button to update it in DB, or on ca
 
 The Service Management section provides control over all service-related operations.
 
-![Service overview](/screenshots/services_overview.png.png)
+![Service overview](/screenshots/services_overview.png)
 
 <p style="text-align:center;">Service management dashboard</p>
 
@@ -319,6 +287,38 @@ After inserting all necessary related data, click on a save button to store it i
 After changing related data, click on a save button to update it in DB, or on cancel or back button to cancel editing.
 
 ### Distribution Management
+
+### Catalog Browser
+
+The Catalog Browser allows you to view provider catalog data and initiate contract negotiations.
+
+![Catalog browser](/screenshots/catalog_browser.png)
+
+<p style="text-align:center;">Catalog Browser section</p>
+
+#### Steps to Browse Catalogs:
+
+1. Enter the provider endpoint address in the input field (in case of predefined configuration, from ConnectorA UI (http://localhost:4200) request address of ConnectorB is http://connector-b:8080, and from from ConnectorB UI (http://localhost:4300) request address of ConnectorA is http://connector-a:8080)
+2. Click the arrow exchange icon to fetch catalog data
+3. Click the eye icon to view detailed catalog information
+
+![Catalog browser fetched data](/screenshots/catalog_browser_fetched.png)
+
+<p style="text-align:center;">Catalog Browser section after fetching data</p>
+
+![Catalog browser details](/screenshots/catalog_browser_details.png)
+
+<p style="text-align:center;">Catalog details</p>
+
+#### Starting a Negotiation:
+
+1. Navigate to the Datasets tab
+2. Select an offer and format
+3. Click "Start Negotiation"
+
+![Contract negotiation start](/screenshots/negotiation_start.png)
+
+<p style="text-align:center;">Start contract negotiation</p>
 
 The Dataset Management section provides control for distribution of all datasets in Catalog,
 

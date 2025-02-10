@@ -13,6 +13,8 @@ DSP TRUE ('TRU'sted 'E'ngineering) Connector UI for the IDS (International Data 
 
 The DSP TRUE Connector UI is a frontend application developed by Engineering, a leading digital transformation company based in Italy. This UI is part of the DSP TRUE Connector suite, designed to facilitate self-determined data sharing while ensuring compliance with regulations such as GDPR. The application provides user-friendly interfaces for managing catalog data, services, datasets, distributions, and contract negotiations within the IDS ecosystem based on the DSP protocol.
 
+For information on how to start connector with all modules, go to [user manual](/USER_MANUAL.md).
+
 ## Table of Contents
 
 - [Features](#features)
