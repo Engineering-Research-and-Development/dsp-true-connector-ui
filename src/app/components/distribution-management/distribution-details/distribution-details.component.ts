@@ -75,7 +75,6 @@ export class DistributionDetailsComponent implements OnInit {
     const navigation = this.router.getCurrentNavigation();
     if (navigation?.extras.state) {
       this.distribution = navigation.extras.state['distribution'];
-      console.log('Distribution:', this.distribution);
 
       if (navigation.extras.state['editMode']) {
         this.editMode = navigation.extras.state['editMode'];
@@ -101,7 +100,7 @@ export class DistributionDetailsComponent implements OnInit {
   getAllServices(): void {
     this.dataServiceService.getAllDataServices().subscribe({
       next: (data) => {
-        console.log('Data services:', data);
+        console.log('Data services fetched');
         this.allServices = data;
         this.loading = false;
         if (this.distribution) {
@@ -131,7 +130,6 @@ export class DistributionDetailsComponent implements OnInit {
     descriptions.forEach((desc: Multilanguage) => {
       languagesSet.add(desc.language);
     });
-    console.log('Languages set:', languagesSet);
     return Array.from(languagesSet);
   }
 
@@ -224,7 +222,7 @@ export class DistributionDetailsComponent implements OnInit {
       )
       .subscribe({
         next: (data) => {
-          console.log('Distribution updated successfully', data);
+          console.log('Distribution updated successfully');
           this.distribution = data;
           this.languages = this.extractLanguages(this.distribution.description);
           this.onLanguageSelected();
@@ -416,7 +414,6 @@ export class DistributionDetailsComponent implements OnInit {
       }
     });
 
-    console.log('Cleaned data:', cleanedData);
     return cleanedData;
   }
 }

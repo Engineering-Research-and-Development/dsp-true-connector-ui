@@ -64,8 +64,6 @@ export class CatalogBrowserDetailsComponent {
     if (navigation?.extras.state) {
       this.catalogData = navigation.extras.state['catalog'];
       this.languages = this.extractLanguages(this.catalogData!.description);
-      console.log('Languages:', this.languages);
-      console.log('DAtasets:', this.catalogData?.dataset);
       this.loading = false;
     } else {
       this.goBack();
@@ -139,14 +137,10 @@ export class CatalogBrowserDetailsComponent {
     distribution: Distribution,
     datasetId: string
   ): any {
-    console.log('Dist:', distribution);
-
     const endpointURL = distribution.accessService[0].endpointURL;
     const baseEndpoint = endpointURL.endsWith('/')
       ? endpointURL
       : endpointURL + '/';
-
-    console.log('ForwardTo:', baseEndpoint);
     const negotiationRequest = {
       'Forward-To': baseEndpoint,
       offer: {

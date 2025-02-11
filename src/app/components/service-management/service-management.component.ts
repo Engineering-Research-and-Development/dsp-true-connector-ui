@@ -74,7 +74,6 @@ export class ServiceManagementComponent implements OnInit {
   getAllDataServices(): void {
     this.dataServiceService.getAllDataServices().subscribe({
       next: (data) => {
-        console.log('Data services:', data);
         this.dataServices = data;
         this.filteredDataServices = [...this.dataServices];
         this.loading = false;

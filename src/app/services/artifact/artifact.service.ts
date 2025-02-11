@@ -82,7 +82,6 @@ export class ArtifactService {
    * @example datasetService.uploadDatasetFile(file).subscribe({ next: console.log, error: console.error, complete: () => console.log('completed') });
    * */
   uploadDatasetFile(file: File, dataSetId: string): Observable<any> {
-    console.log('Uploading file in service', file);
     const formData = new FormData();
     formData.append('file', file);
     return this.http
@@ -91,7 +90,6 @@ export class ArtifactService {
       })
       .pipe(
         map((response: any) => {
-          console.log('Response', response);
           return response;
         }),
         catchError((error) => this.errorHandlerService.handleError(error))

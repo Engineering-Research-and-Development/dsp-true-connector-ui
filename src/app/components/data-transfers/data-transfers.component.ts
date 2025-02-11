@@ -72,8 +72,6 @@ export class DataTransfersComponent {
    * Initialize the component and checks for which role to fetch the dataTransfers
    */
   ngOnInit(): void {
-    console.log('CN states', this.dataTransferStates);
-    console.log('CN STATE', this.dataTransferState);
     this.fetchDataTransfersByRole();
     this.loading = true;
   }
@@ -98,10 +96,11 @@ export class DataTransfersComponent {
   getProviderDataTransfers() {
     this.dataTransferService.getAllProviderDataTransfers().subscribe({
       next: (data) => {
+        console.log('Data Transfers fetched');
+
         this.dataTransfers = data;
         this.filterDataTransfers();
         this.loading = false;
-        console.log('Data Transfers:', this.dataTransfers);
       },
       error: (error) => {
         console.error('Error fetching provider dataTransfers:', error);

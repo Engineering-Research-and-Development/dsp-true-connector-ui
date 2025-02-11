@@ -27,7 +27,6 @@ export class PolicyDetailsComponent implements OnInit {
     const navigation = this.router.getCurrentNavigation();
     if (navigation?.extras.state) {
       this.policy = navigation.extras.state['policy'];
-      console.log(this.policy);
     } else {
       this.goBack();
     }

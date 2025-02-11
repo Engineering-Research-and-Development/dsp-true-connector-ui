@@ -95,21 +95,17 @@ export class DatasetDetailsComponent {
       if (navigation.extras.state['datasetArtifact']) {
         this.datasetArtifact = navigation.extras.state['datasetArtifact'];
       }
-      console.log('Artifact:', this.datasetArtifact);
       if (navigation.extras.state['editMode']) {
-        console.log('Edit mode:', navigation.extras.state['editMode']);
         this.editMode = navigation.extras.state['editMode'];
         this.directEdit = navigation.extras.state['editMode'];
         this.originalDataset = { ...this.dataset };
         this.datasetArtifact = navigation.extras.state['datasetArtifact'];
-        console.log('Upadrte artifact:', this.updateArtifact);
-        console.log('dataset:', this.dataset);
+
         if (this.dataset['@id'] != undefined) {
           this.updateArtifact = true;
         }
       }
       this.languages = this.extractLanguages(this.dataset.description);
-      console.log('Languages:', this.languages);
     } else {
       this.goBack();
     }
@@ -159,7 +155,6 @@ export class DatasetDetailsComponent {
     descriptions.forEach((desc: Multilanguage) => {
       languagesSet.add(desc.language);
     });
-    console.log('Languages set:', languagesSet);
     return Array.from(languagesSet);
   }
 
@@ -182,7 +177,6 @@ export class DatasetDetailsComponent {
    * If the edit mode is disabled, it sets the original dataset data to the current dataset data.
    * */
   toggleEditMode() {
-    console.log('Toggling edit mode', this.editMode);
     if (this.editMode) {
       if (this.directEdit) {
         if (this.dataset['@id'] != undefined) {
@@ -260,19 +254,15 @@ export class DatasetDetailsComponent {
    * from the descriptions, updates the form with the dataset data, and sets the loading flag to false.
    */
   saveDatasetData() {
-    console.log('Saving dataset data:', this.cleanFormData(this.datasetForm));
     this.loading = true;
     this.datasetService
       .createDataset(this.cleanFormData(this.datasetForm))
       .subscribe({
         next: (data) => {
-          console.log('Dataset saved successfully:', data);
+          console.log('Dataset saved successfully');
           this.uploadDatasetFile(data['@id']).subscribe({
             next: (uploadedFileId) => {
-              console.log(
-                'Dataset file uploaded successfully:',
-                uploadedFileId
-              );
+              console.log('Dataset file uploaded successfully');
               this.dataset = data;
               this.dataset.fileId = uploadedFileId;
               this.languages = this.extractLanguages(this.dataset.description);
@@ -280,9 +270,7 @@ export class DatasetDetailsComponent {
               this.updateForm(this.dataset);
               this.getArtifactById(uploadedFileId).subscribe({
                 next: (artifact) => {
-                  console.log('Artifact:', artifact);
                   this.datasetArtifact = artifact[0];
-
                   this.loading = false;
                 },
                 error: (error) => {
@@ -312,17 +300,14 @@ export class DatasetDetailsComponent {
    * */
   updateDatasetData() {
     this.loading = true;
-    console.log('Updating dataset data:', this.cleanFormData(this.datasetForm));
+    console.log('Updating dataset data');
     this.datasetService
       .updateDataset(this.dataset['@id']!, this.cleanFormData(this.datasetForm))
       .subscribe({
         next: (data) => {
           this.uploadDatasetFile(data['@id']!).subscribe({
             next: (uploadedFileId) => {
-              console.log(
-                'Dataset file uploaded successfully:',
-                uploadedFileId
-              );
+              console.log('Dataset file uploaded successfully');
               this.dataset = data;
               this.dataset.fileId = uploadedFileId;
               this.languages = this.extractLanguages(this.dataset.description);
@@ -330,7 +315,6 @@ export class DatasetDetailsComponent {
               this.updateForm(this.dataset);
               this.getArtifactById(uploadedFileId).subscribe({
                 next: (artifact) => {
-                  console.log('Artifact:', artifact);
                   this.datasetArtifact = artifact[0];
                   this.loading = false;
                 },
@@ -633,7 +617,6 @@ export class DatasetDetailsComponent {
       }
     });
 
-    console.log('Cleaned data:', cleanedData);
     return cleanedData;
   }
 
@@ -642,7 +625,6 @@ export class DatasetDetailsComponent {
    * @param distribution The distribution.
    * */
   navigateToDistributionDetails(distribution: Distribution): void {
-    console.log('Navigating to distribution details:', distribution);
     this.router.navigate(
       ['/catalog-management/distribution-management/details'],
       {
@@ -823,12 +805,12 @@ export class DatasetDetailsComponent {
    */
   uploadDatasetFile(dataSetId: string): Observable<string> {
     if (this.selectedFile) {
-      console.log('Uploading file:', this.selectedFile);
+      console.log('Uploading file');
       return this.artifactService
         .uploadDatasetFile(this.selectedFile, dataSetId)
         .pipe(
           map((response) => {
-            console.log('File uploaded successfully:', response);
+            console.log('File uploaded successfully');
             const match = response.match(/File uploaded (.+)$/);
             if (match && match[1]) {
               return match[1];

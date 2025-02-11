@@ -16,6 +16,25 @@
             Manage contract offers as consumer
           </h1>
         </div>
+        <div class="buttons">
+          <button
+            *ngIf="userType === 'provider'"
+            mat-button
+            matTooltip="Refresh data"
+            (click)="getProviderContractNegotiations()"
+          >
+            <mat-icon>cached</mat-icon>
+          </button>
+
+          <button
+            *ngIf="userType === 'consumer'"
+            mat-button
+            matTooltip="Refresh data"
+            (click)="getConsumerContractNegotiations()"
+          >
+            <mat-icon>cached</mat-icon>
+          </button>
+        </div>
       </div>
       <div class="filter-div">
         <section class="filter-section">

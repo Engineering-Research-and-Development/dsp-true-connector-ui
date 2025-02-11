@@ -17,9 +17,6 @@ The DSP TRUE ('TRU'sted 'E'ngineering) Connector UI is a frontend application de
   - [Getting Started](#getting-started)
   - [Monitoring](#monitoring)
 - [Main Features](#main-features)
-- [Catalog Browser](#catalog-browser)
-  - [Steps to Browse Catalogs](#steps-to-browse-catalogs)
-  - [Starting a Negotiation](#starting-a-negotiation)
 - [Catalog Management](#catalog-management)
   - [Available Actions](#available-actions)
 - [Service Management](#service-management)
@@ -28,6 +25,9 @@ The DSP TRUE ('TRU'sted 'E'ngineering) Connector UI is a frontend application de
   - [Available Actions](#available-actions-2)
 - [Distribution Management](#distribution-management)
   - [Available Actions](#available-actions-3)
+- [Catalog Browser](#catalog-browser)
+  - [Steps to Browse Catalogs](#steps-to-browse-catalogs)
+  - [Starting a Negotiation](#starting-a-negotiation)
 - [Contract Negotiation](#contract-negotiation)
   - [Provider View](#provider-view)
   - [Consumer View](#consumer-view)
@@ -209,7 +209,7 @@ For more information about catalog data, check [here](https://docs.international
 
 ![Catalog management](/screenshots/catalog_overview.png)
 
-<p style="text-align:center;">Catalog Management</p>
+<p align="center">Catalog Management</p>
 
 #### Available Actions:
 
@@ -220,7 +220,7 @@ For more information about catalog data, check [here](https://docs.international
 
 ![Catalog management edit](/screenshots/catalog_edit.png)
 
-<p style="text-align:center;">Editing catalog data</p>
+<p align="center">Editing catalog data</p>
 
 After changing related data, click on a save button to update it in DB, or on cancel or back button to cancel editing.
 
@@ -230,7 +230,7 @@ The Service Management section provides control over all service-related operati
 
 ![Service overview](/screenshots/services_overview.png)
 
-<p style="text-align:center;">Service management dashboard</p>
+<p align="center">Service management dashboard</p>
 
 #### Available Actions:
 
@@ -241,17 +241,17 @@ The Service Management section provides control over all service-related operati
 
 ![Service details](/screenshots/service_details.png)
 
-<p style="text-align:center;">Service details</p>
+<p align="center">Service details</p>
 
 ![Service add](/screenshots/service_add.png)
 
-<p style="text-align:center;">Add new service</p>
+<p align="center">Add new service</p>
 
 After inserting all necessary related data, click on a save button to store it in DB, or on cancel or back button to cancel inserting.
 
 ![Service edit](/screenshots/service_edit.png)
 
-<p style="text-align:center;">Edit service</p>
+<p align="center">Edit service</p>
 
 After changing related data, click on a save button to update it in DB, or on cancel or back button to cancel editing.
 
@@ -261,7 +261,7 @@ The Dataset Management section provides control over all available datasets in C
 
 ![Dataset overview](/screenshots/dataset_overview.png)
 
-<p style="text-align:center;">Dataset management dashboard</p>
+<p align="center">Dataset management dashboard</p>
 
 #### Available Actions:
 
@@ -272,17 +272,17 @@ The Dataset Management section provides control over all available datasets in C
 
 ![Dataset details](/screenshots/dataset_details.png)
 
-<p style="text-align:center;">Dataset details</p>
+<p align="center">Dataset details</p>
 
 ![Dataset add](/screenshots/dataset_add.png)
 
-<p style="text-align:center;">Add new dataset</p>
+<p align="center">Add new dataset</p>
 
 After inserting all necessary related data, click on a save button to store it in DB, or on cancel or back button to cancel inserting.
 
 ![Dataset edit](/screenshots/dataset_add.png)
 
-<p style="text-align:center;">Edit dataset</p>
+<p align="center">Edit dataset</p>
 
 After changing related data, click on a save button to update it in DB, or on cancel or back button to cancel editing.
 
@@ -294,7 +294,7 @@ The Catalog Browser allows you to view provider catalog data and initiate contra
 
 ![Catalog browser](/screenshots/catalog_browser.png)
 
-<p style="text-align:center;">Catalog Browser section</p>
+<p align="center">Catalog Browser section</p>
 
 #### Steps to Browse Catalogs:
 
@@ -304,11 +304,11 @@ The Catalog Browser allows you to view provider catalog data and initiate contra
 
 ![Catalog browser fetched data](/screenshots/catalog_browser_fetched.png)
 
-<p style="text-align:center;">Catalog Browser section after fetching data</p>
+<p align="center">Catalog Browser section after fetching data</p>
 
 ![Catalog browser details](/screenshots/catalog_browser_details.png)
 
-<p style="text-align:center;">Catalog details</p>
+<p align="center">Catalog details</p>
 
 #### Starting a Negotiation:
 
@@ -318,13 +318,13 @@ The Catalog Browser allows you to view provider catalog data and initiate contra
 
 ![Contract negotiation start](/screenshots/negotiation_start.png)
 
-<p style="text-align:center;">Start contract negotiation</p>
+<p align="center">Start contract negotiation</p>
 
 The Dataset Management section provides control for distribution of all datasets in Catalog,
 
 ![Distribution overview](/screenshots/distribution_overview.png)
 
-<p style="text-align:center;">Distribution dashboard</p>
+<p align="center">Distribution dashboard</p>
 
 #### Available Actions:
 
@@ -335,17 +335,17 @@ The Dataset Management section provides control for distribution of all datasets
 
 ![Distribution details](/screenshots/distribution_details.png)
 
-<p style="text-align:center;">Distribution details</p>
+<p align="center">Distribution details</p>
 
 ![Distribution add](/screenshots/distribution_add.png)
 
-<p style="text-align:center;">Add new Distribution</p>
+<p align="center">Add new Distribution</p>
 
 After inserting all necessary related data, click on a save button to store it in DB, or on cancel or back button to cancel inserting.
 
 ![Distribution add](/screenshots/distribution_edit.png)
 
-<p style="text-align:center;">Edit Distribution</p>
+<p align="center">Edit Distribution</p>
 After changing related data, click on a save button to update it in DB, or on cancel or back button to cancel editing.
 
 ### Contract Negotiation
@@ -358,13 +358,13 @@ The Contract Negotiation section is divided into two parts:
 
 ![CN Provider](/screenshots/cn_provider.png)
 
-<p style="text-align:center;">Provider contract negotiation dashboard</p>
+<p align="center">Provider contract negotiation dashboard</p>
 
 #### Consumer View
 
 ![CN Consumer](/screenshots/cn_consumer.png)
 
-<p style="text-align:center;">Consumer contract negotiation dashboard</p>
+<p align="center">Consumer contract negotiation dashboard</p>
 
 #### Available Actions:
 

@@ -79,7 +79,8 @@ export class DatasetManagementComponent implements OnInit {
   getAllDatasets(): void {
     this.datasetService.getAllDatasets().subscribe({
       next: (data) => {
-        console.log('Data services:', data);
+        console.log('Data sets fetched');
+
         this.datasets = data;
         this.filteredDatasets = [...this.datasets];
         this.loading = false;
@@ -98,7 +99,6 @@ export class DatasetManagementComponent implements OnInit {
   navigateToDatasetDetails(dataset: Dataset): void {
     this.getArtifactById(dataset.artifact.id!).subscribe({
       next: (artifact) => {
-        console.log('Artifact:', artifact);
         this.router.navigate(
           ['/catalog-management/dataset-management/details'],
           {
@@ -128,7 +128,6 @@ export class DatasetManagementComponent implements OnInit {
   onEdit(dataset: Dataset): void {
     this.getArtifactById(dataset.fileId!).subscribe({
       next: (artifact) => {
-        console.log('Artifact:', artifact);
         this.router.navigate(
           ['/catalog-management/dataset-management/details'],
           {

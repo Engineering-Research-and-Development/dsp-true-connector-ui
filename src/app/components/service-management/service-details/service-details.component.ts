@@ -74,14 +74,12 @@ export class ServiceDetailsComponent implements OnInit {
     const navigation = this.router.getCurrentNavigation();
     if (navigation?.extras.state) {
       this.service = navigation.extras.state['service'];
-      console.log('Service:', this.service);
       if (navigation.extras.state['editMode']) {
         this.editMode = navigation.extras.state['editMode'];
         this.directEdit = navigation.extras.state['editMode'];
         this.originalService = { ...this.service };
       }
       this.languages = this.extractLanguages(this.service.description);
-      console.log('Languages:', this.languages);
     } else {
       this.goBack();
     }
@@ -101,7 +99,6 @@ export class ServiceDetailsComponent implements OnInit {
   getAllDataSets(): void {
     this.datasetService.getAllDatasets().subscribe({
       next: (data) => {
-        console.log('Datasets:', data);
         this.allDatasets = data;
         if (this.service) {
           this.updateForm(this.service);
@@ -130,7 +127,6 @@ export class ServiceDetailsComponent implements OnInit {
     descriptions.forEach((desc: Multilanguage) => {
       languagesSet.add(desc.language);
     });
-    console.log('Languages set:', languagesSet);
     return Array.from(languagesSet);
   }
 
@@ -189,13 +185,13 @@ export class ServiceDetailsComponent implements OnInit {
    * from the descriptions, updates the form with the service data, and sets the loading flag to false.
    * */
   saveServiceData() {
-    console.log('Saving service data:', this.cleanFormData(this.serviceForm));
+    console.log('Saving service data');
     this.loading = true;
     this.dataService
       .createDataService(this.cleanFormData(this.serviceForm))
       .subscribe({
         next: (data) => {
-          console.log('Service data saved:', data);
+          console.log('Service data saved');
           this.service = data;
           this.languages = this.extractLanguages(this.service.description);
           this.onLanguageSelected();
@@ -217,7 +213,7 @@ export class ServiceDetailsComponent implements OnInit {
    * */
   updateServiceData() {
     this.loading = true;
-    console.log('Updating service data:', this.cleanFormData(this.serviceForm));
+    console.log('Updating service data');
     this.dataService
       .updateDataService(
         this.service['@id']!,
@@ -225,7 +221,7 @@ export class ServiceDetailsComponent implements OnInit {
       )
       .subscribe({
         next: (data) => {
-          console.log('Service data updated successfully', data);
+          console.log('Service data updated successfully');
           this.service = data;
           this.languages = this.extractLanguages(this.service.description);
           this.onLanguageSelected();
@@ -393,7 +389,6 @@ export class ServiceDetailsComponent implements OnInit {
    * @param service The service data to update the form with.
    */
   updateForm(service: DataService): void {
-    console.log('Updating form with service:', service);
     if (service) {
       this.serviceForm.patchValue({
         '@id': service['@id'],
@@ -474,7 +469,6 @@ export class ServiceDetailsComponent implements OnInit {
       }
     });
 
-    console.log('Cleaned data:', cleanedData);
     return cleanedData;
   }
 }

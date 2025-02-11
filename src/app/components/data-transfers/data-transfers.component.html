@@ -17,6 +17,24 @@
             Manage data transfers as consumer
           </h1>
         </div>
+        <div class="buttons">
+          <button
+            *ngIf="userType === 'provider'"
+            mat-button
+            matTooltip="Refresh data"
+            (click)="getProviderDataTransfers()"
+          >
+            <mat-icon>cached</mat-icon>
+          </button>
+          <button
+            *ngIf="userType === 'consumer'"
+            mat-button
+            matTooltip="Refresh data"
+            (click)="getConsumerDataTransfers()"
+          >
+            <mat-icon>cached</mat-icon>
+          </button>
+        </div>
       </div>
       <div class="filter-div">
         <section class="filter-section">

@@ -85,16 +85,15 @@ export class CatalogBrowserComponent implements OnInit {
   onFetch() {
     console.log('Fetching catalog');
     const url = this.urlControl.value;
-    console.log('URL:', url);
     if (!url) {
       return;
     } else {
       this.proxyService.getRemoteCatalog(url!).subscribe({
         next: (data) => {
-          console.log('Catalog data:', data);
+          console.log('Catalog data fetched');
+
           this.catalogData.push(data);
           this.filteredCatalogsData = this.catalogData;
-          console.log(this.filteredCatalogsData);
           this.loading = false;
         },
         error: (error) => {

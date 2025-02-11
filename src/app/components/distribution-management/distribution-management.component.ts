@@ -74,7 +74,7 @@ export class DistributionManagementComponent implements OnInit {
   getAllDistributions(): void {
     this.distributionService.getAllDistributions().subscribe({
       next: (data) => {
-        console.log('Data services:', data);
+        console.log('Datistributions fetched');
         this.distributions = data;
         this.filteredDistributions = [...this.distributions];
         this.loading = false;
