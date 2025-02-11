@@ -34,7 +34,7 @@
         "Information",
         "Test",
         "TRUEConnector team information",
-        "ConnecotrB"
+        "ConnectorB"
       ],
       "theme": ["dark theme", "light theme"],
       "conformsTo": "conformsToSomething",
@@ -50,10 +50,6 @@
       "modified": "2024-04-23T16:26:00.000Z",
       "title": "Testcatalog - TRUEConnector team information",
       "distribution": [
-        {
-          "$ref": "distributions",
-          "$id": "urn:uuid:1dc45797-pdff-4932-8baf-ab7fd66ql4d5"
-        },
         {
           "$ref": "distributions",
           "$id": "urn:uuid:1dc45797-json-4932-8baf-ab7fd66ql4d5"
@@ -88,8 +84,7 @@
         "TRUEConnector team",
         "REST",
         "SFTP",
-        "json",
-        "pdf"
+        "json"
       ],
       "theme": ["dark theme", "light theme"],
       "description": [
@@ -123,10 +118,6 @@
         }
       ],
       "distribution": [
-        {
-          "$ref": "distributions",
-          "$id": "urn:uuid:1dc45797-pdff-4932-8baf-ab7fd66ql4d5"
-        },
         {
           "$ref": "distributions",
           "$id": "urn:uuid:1dc45797-json-4932-8baf-ab7fd66ql4d5"
@@ -167,25 +158,6 @@
     }
   ],
   "distributions": [
-    {
-      "_id": "urn:uuid:1dc45797-pdff-4932-8baf-ab7fd66ql4d5",
-      "_class": "it.eng.catalog.model.Distribution",
-      "title": "PDF file",
-      "format": {
-        "_id": "HttpData-PULL"
-      },
-      "accessService": [
-        {
-          "$ref": "dataservices",
-          "$id": "urn:uuid:1dc45797-4444-conn-8baf-ab7fd66ac4d5"
-        }
-      ],
-      "createdBy": "admin@mail.com",
-      "lastModifiedBy": "admin@mail.com",
-      "issued": "2024-04-23T16:26:00.000Z",
-      "modified": "2024-04-23T16:26:00.000Z",
-      "version": 0
-    },
     {
       "_id": "urn:uuid:1dc45797-json-4932-8baf-ab7fd66ql4d5",
       "_class": "it.eng.catalog.model.Distribution",
