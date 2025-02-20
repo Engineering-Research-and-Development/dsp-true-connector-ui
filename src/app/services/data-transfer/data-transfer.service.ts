@@ -282,9 +282,6 @@ export class DataTransferService {
       .get(this.apiUrl + '/' + transferProcessId + '/view', {
         responseType: 'blob',
         observe: 'response',
-        headers: new HttpHeaders({
-          'Content-Type': 'application/json',
-        }),
       })
       .pipe(
         map((response: any) => {
