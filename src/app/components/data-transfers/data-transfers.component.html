@@ -129,12 +129,26 @@
                 matTooltip="Download artifact"
                 *ngIf="
                   dataTransfer.state === dataTransferState.STARTED &&
-                  userType === 'consumer'
+                  userType === 'consumer' &&
+                  dataTransfer.downloaded === false
                 "
                 (click)="onDownload(dataTransfer)"
               >
                 <mat-icon>download</mat-icon>
                 <p>Download</p>
+              </button>
+              <button
+                mat-button
+                matTooltip="View artifact"
+                *ngIf="
+                  dataTransfer.state === dataTransferState.STARTED &&
+                  userType === 'consumer' &&
+                  dataTransfer.downloaded === true
+                "
+                (click)="onView(dataTransfer)"
+              >
+                <mat-icon>pageview</mat-icon>
+                <p>View</p>
               </button>
               <button
                 mat-button

@@ -211,7 +211,7 @@ export class DataTransferService {
   }
 
   /**
-   * Resume the data transfer
+   * Terminate the data transfer
    * @param transferProcessId - The id of the transfer process
    * @returns Observable<DataTransfer>
    * @example
@@ -245,14 +245,46 @@ export class DataTransferService {
   /**
    * Download artifact
    * @param transactionId Base64.urlEncoded(consumerPid|providerPid) from TransferProcess message
-   * @param callbackAddress The callback address to send the artifact to
    */
-  downloadArtifact(endpoint: string): Observable<any> {
-    console.log('Downloading artifact from:', endpoint);
+  downloadArtifact(transferProcessId: string): Observable<boolean> {
     return this.http
-      .get(endpoint, {
+      .get<GenericApiResponse<any[]>>(
+        this.apiUrl + '/' + transferProcessId + '/download',
+        this.httpOptions
+      )
+      .pipe(
+        map((response: GenericApiResponse<any[]>) => {
+          if (response.success) {
+            this.snackBarService.openSnackBar(
+              response.message,
+              'OK',
+              'center',
+              'bottom',
+              'snackbar-success'
+            );
+            return true;
+          } else {
+            throw new Error(response.message);
+          }
+        }),
+        catchError((error) => this.errorHandlerService.handleError(error))
+      );
+  }
+
+  /**
+   * View artifact after it has been downloaded
+   * @param transactionId Base64.urlEncoded(consumerPid|providerPid) from TransferProcess message
+   * @returns   Observable<any>
+   */
+  viewArtifact(transferProcessId: string): Observable<any> {
+    console.log('Downloading artifact for process id:', transferProcessId);
+    return this.http
+      .get(this.apiUrl + '/' + transferProcessId + '/view', {
         responseType: 'blob',
         observe: 'response',
+        headers: new HttpHeaders({
+          'Content-Type': 'application/json',
+        }),
       })
       .pipe(
         map((response: any) => {

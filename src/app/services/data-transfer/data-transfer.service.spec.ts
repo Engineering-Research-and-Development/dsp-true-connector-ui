@@ -1,3 +1,4 @@
+import { HttpHeaders } from '@angular/common/http';
 import {
   HttpClientTestingModule,
   HttpTestingController,
@@ -480,6 +481,139 @@ describe('DataTransferService', () => {
         'bottom',
         'snackbar-error'
       );
+    });
+  });
+
+  describe('downloadArtifact', () => {
+    it('should download artifact successfully', () => {
+      const transferProcessId = 'test-transfer-process-id';
+      const mockResponse: GenericApiResponse<any[]> = {
+        success: true,
+        message: 'Artifact downloaded successfully',
+        timestamp: '2025-01-13T15:14:06+01:00',
+      };
+
+      service.downloadArtifact(transferProcessId).subscribe({
+        next: (response) => {
+          expect(response).toBe(true);
+        },
+      });
+
+      const req = httpMock.expectOne(
+        `${environment.DATA_TRANSFER_API_URL()}/${transferProcessId}/download`
+      );
+      expect(req.request.method).toBe('GET');
+      req.flush(mockResponse);
+
+      expect(snackbarService.openSnackBar).toHaveBeenCalledWith(
+        mockResponse.message,
+        'OK',
+        'center',
+        'bottom',
+        'snackbar-success'
+      );
+    });
+
+    it('should handle error when downloading artifact fails', () => {
+      const transferProcessId = 'test-transfer-process-id';
+      const errorResponse: GenericApiResponse<any[]> = {
+        success: false,
+        message: 'Failed to download artifact',
+        timestamp: '2025-01-13T15:14:06+01:00',
+      };
+
+      service.downloadArtifact(transferProcessId).subscribe({
+        error: (error) => {},
+      });
+
+      const req = httpMock.expectOne(
+        `${environment.DATA_TRANSFER_API_URL()}/${transferProcessId}/download`
+      );
+      expect(req.request.method).toBe('GET');
+      req.flush(errorResponse, { status: 400, statusText: 'Bad Request' });
+
+      expect(snackbarService.openSnackBar).toHaveBeenCalledWith(
+        'An error occurred: Failed to download artifact',
+        'OK',
+        'center',
+        'bottom',
+        'snackbar-error'
+      );
+    });
+  });
+
+  describe('viewArtifact', () => {
+    it('should view artifact successfully', () => {
+      const transferProcessId = 'test-transfer-process-id';
+      const mockBlob = new Blob(['test content'], { type: 'text/plain' });
+      const mockResponse = {
+        body: mockBlob,
+        headers: new HttpHeaders({
+          'Content-Disposition': 'attachment; filename="test-file.txt"',
+        }),
+      };
+
+      const mockLink = {
+        href: '',
+        download: '',
+        click: jasmine.createSpy('click'),
+      };
+      spyOn(document, 'createElement').and.returnValue(mockLink as any);
+      spyOn(window.URL, 'createObjectURL').and.returnValue('mock-url');
+      spyOn(window.URL, 'revokeObjectURL');
+
+      service.viewArtifact(transferProcessId).subscribe({
+        next: (response) => {
+          expect(response).toBeTruthy();
+          expect(mockLink.download).toBe('test-file.txt');
+          expect(mockLink.click).toHaveBeenCalled();
+          expect(window.URL.createObjectURL).toHaveBeenCalledWith(mockBlob);
+          expect(window.URL.revokeObjectURL).toHaveBeenCalledWith('mock-url');
+        },
+      });
+
+      const req = httpMock.expectOne(
+        `${environment.DATA_TRANSFER_API_URL()}/${transferProcessId}/view`
+      );
+      expect(req.request.method).toBe('GET');
+      expect(req.request.responseType).toBe('blob');
+      req.flush(mockBlob, {
+        headers: new HttpHeaders({
+          'Content-Disposition': 'attachment; filename="test-file.txt"',
+        }),
+      });
+    });
+
+    it('should handle missing content disposition header', () => {
+      const transferProcessId = 'test-transfer-process-id';
+      const mockBlob = new Blob(['test content'], { type: 'text/plain' });
+      const mockResponse = {
+        body: mockBlob,
+        headers: new HttpHeaders(),
+      };
+
+      const mockLink = {
+        href: '',
+        download: '',
+        click: jasmine.createSpy('click'),
+      };
+      spyOn(document, 'createElement').and.returnValue(mockLink as any);
+      spyOn(window.URL, 'createObjectURL').and.returnValue('mock-url');
+      spyOn(window.URL, 'revokeObjectURL');
+
+      service.viewArtifact(transferProcessId).subscribe({
+        next: (response) => {
+          expect(response).toBeTruthy();
+          expect(mockLink.download).toBe('download');
+          expect(mockLink.click).toHaveBeenCalled();
+        },
+      });
+
+      const req = httpMock.expectOne(
+        `${environment.DATA_TRANSFER_API_URL()}/${transferProcessId}/view`
+      );
+      expect(req.request.method).toBe('GET');
+      req.flush(mockBlob);
     });
   });
 });
