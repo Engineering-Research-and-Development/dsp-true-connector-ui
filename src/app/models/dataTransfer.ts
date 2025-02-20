@@ -11,8 +11,10 @@ export interface DataTransfer {
   datasetId: string;
   role: string;
   dataAddress?: any;
+  dataId?: string;
   format?: string;
   createdBy?: string;
   lastModifiedBy?: string;
   version: number;
+  downloaded?: boolean;
 }

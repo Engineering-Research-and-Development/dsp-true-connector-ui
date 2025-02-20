@@ -199,18 +199,30 @@ export class DataTransfersComponent {
    * @param dataTransfer The data transfer object
    * */
   onDownload(dataTransfer: DataTransfer) {
-    this.dataTransferService
-      .downloadArtifact(dataTransfer.dataAddress.endpoint)
-      .subscribe({
-        next: () => {
-          this.fetchDataTransfersByRole();
-        },
-        error: (error) => {
-          console.error('Error verifying contract dataTransfer:', error);
-        },
-      });
+    this.dataTransferService.downloadArtifact(dataTransfer['@id']).subscribe({
+      next: () => {
+        this.fetchDataTransfersByRole();
+      },
+      error: (error) => {
+        console.error('Error downloading artifact:', error);
+      },
+    });
   }
 
+  /**
+   * Handle the view event of data transfer
+   * @param dataTransfer The data transfer object
+   * */
+  onView(dataTransfer: DataTransfer) {
+    this.dataTransferService.viewArtifact(dataTransfer['@id']).subscribe({
+      next: () => {
+        this.fetchDataTransfersByRole();
+      },
+      error: (error) => {
+        console.error('Error viewing data transfer:', error);
+      },
+    });
+  }
   /**
    * Handle the complete event of data transfer
    * @param dataTransfer The data transfer object
