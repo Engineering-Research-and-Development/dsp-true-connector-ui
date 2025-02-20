@@ -98,7 +98,6 @@ export class DataTransfersComponent {
       next: (data) => {
         console.log('Data Transfers fetched');
 
-        console.log('DT', data);
         this.dataTransfers = data;
         this.filterDataTransfers();
         this.loading = false;
@@ -116,8 +115,6 @@ export class DataTransfersComponent {
   getConsumerDataTransfers() {
     this.dataTransferService.getAllConsumerDataTransfers().subscribe({
       next: (data) => {
-        console.log('DT', data);
-
         this.dataTransfers = data;
         this.filterDataTransfers();
         this.loading = false;
