@@ -4,10 +4,6 @@ import {
 } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { throwError } from 'rxjs';
-import { environment } from '../../../environments/environment';
-import { Artifact } from '../../models/artifact';
-import { GenericApiResponse } from '../../models/genericApiResponse';
-import { MOCK_ARTIFACT } from '../../test-utils/test-utils';
 import { ErrorHandlerService } from '../error-handler/error-handler.service';
 import { ArtifactService } from './artifact.service';
 
@@ -47,92 +43,45 @@ describe('ArtifactService', () => {
     expect(service).toBeTruthy();
   });
 
-  describe('getAllArtifacts', () => {
-    it('should retrieve all artifacts successfully', () => {
-      const mockArtifacts = [
-        MOCK_ARTIFACT,
-        { ...MOCK_ARTIFACT, '@id': 'urn:uuid:test-artifact-id-2' },
-      ];
-      const mockResponse: GenericApiResponse<Artifact[]> = {
-        success: true,
-        message: 'Stored artifacts',
-        data: mockArtifacts,
-        timestamp: '2025-01-13T15:14:06+01:00',
-      };
-
-      service.getAllArtifacts().subscribe({
-        next: (response) => {
-          expect(response).toEqual(mockArtifacts);
-          expect(response.length).toBe(2);
-        },
+  describe('downloadArtifact', () => {
+    it('should download artifact successfully', () => {
+      const transactionId = 'test-transaction-id';
+      const callbackAddress = 'https://api.example.com';
+      const mockBlob = new Blob(['test data'], {
+        type: 'application/octet-stream',
       });
 
-      const req = httpMock.expectOne(environment.ARTIFACTS_API_URL());
-      expect(req.request.method).toBe('GET');
-      req.flush(mockResponse);
-    });
-
-    it('should handle error when retrieving artifacts fails', () => {
-      const errorResponse: GenericApiResponse<Artifact[]> = {
-        success: false,
-        message: 'Artifact and file not found',
-        timestamp: '2025-01-13T15:14:06+01:00',
-      };
-
-      service.getAllArtifacts().subscribe({
-        error: () => {
-          expect(errorHandlerService.handleError).toHaveBeenCalled();
-        },
-      });
-
-      const req = httpMock.expectOne(environment.ARTIFACTS_API_URL());
-      req.flush(errorResponse, { status: 404, statusText: 'Not Found' });
-    });
-  });
-
-  describe('getArtifactById', () => {
-    it('should retrieve artifact by id successfully', () => {
-      const artifactId = 'test-artifact-id';
-      const mockResponse: GenericApiResponse<Artifact[]> = {
-        success: true,
-        message: 'Stored artifacts',
-        data: [MOCK_ARTIFACT],
-        timestamp: '2025-01-13T15:14:06+01:00',
-      };
-
-      service.getArtifactById(artifactId).subscribe({
+      service.downloadArtifact(transactionId, callbackAddress).subscribe({
         next: (response) => {
-          expect(response).toEqual([MOCK_ARTIFACT]);
+          expect(response).toEqual(mockBlob);
+          expect(response instanceof Blob).toBeTrue();
         },
       });
 
       const req = httpMock.expectOne(
-        `${environment.ARTIFACTS_API_URL()}/${artifactId}`
+        `${callbackAddress}/artifacts/${transactionId}`
       );
       expect(req.request.method).toBe('GET');
-      req.flush(mockResponse);
+      expect(req.request.responseType).toBe('blob');
+      req.flush(mockBlob);
     });
 
-    it('should handle error when artifact is not found', () => {
-      const artifactId = 'test-artifact-id';
-      const errorResponse: GenericApiResponse<Artifact[]> = {
-        success: false,
-        message: 'Artifact and file not found',
-        timestamp: '2025-01-13T15:14:06+01:00',
-      };
+    it('should handle error when download fails', () => {
+      const transactionId = 'test-transaction-id';
+      const callbackAddress = 'https://api.example.com';
+      const errorResponse = new ProgressEvent('error');
 
-      service.getArtifactById(artifactId).subscribe({
-        error: () => {
+      service.downloadArtifact(transactionId, callbackAddress).subscribe({
+        error: (error) => {
           expect(errorHandlerService.handleError).toHaveBeenCalled();
+          expect(error.message).toBe('Test error');
         },
       });
 
       const req = httpMock.expectOne(
-        `${environment.ARTIFACTS_API_URL()}/${artifactId}`
+        `${callbackAddress}/artifacts/${transactionId}`
       );
-      req.flush(errorResponse, { status: 404, statusText: 'Not Found' });
+      req.error(errorResponse);
     });
   });
-
-  //TODO cover logic for upload and download after changes to sync with BE adding external artifact
 });
