@@ -280,7 +280,17 @@ The Dataset Management section provides control over all available datasets in C
 
 After inserting all necessary related data, click on a save button to store it in DB, or on cancel or back button to cancel inserting.
 
-![Dataset edit](/screenshots/dataset_add.png)
+Artifact related to data set can be either file which will be uploaded, or external URL from where artifact will be fetched. If artifact is from external URL, authorization can be set, and it can be none, Basic (username/password) or Bearer Token.
+
+![Artifact add](/screenshots/artifact_add_file.png)
+
+<p align="center">Add file artifact</p>
+
+![Artifact add](/screenshots/artifact_add_external.png)
+
+<p align="center">Add external artifact</p>
+
+![Dataset add](/screenshots/dataset_edit.png)
 
 <p align="center">Edit dataset</p>
 
@@ -392,3 +402,4 @@ For more information, flow, states, etc. about Data Transfers, please check [her
 - View transfer details
 - Manage transfer status
 - Download artifacts
+- View artifacts
