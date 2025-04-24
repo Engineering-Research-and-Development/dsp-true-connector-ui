@@ -15,6 +15,8 @@ export interface DataTransfer {
   format?: string;
   createdBy?: string;
   lastModifiedBy?: string;
+  created: string;
+  modified: string;
   version: number;
   downloaded?: boolean;
 }
