@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatToolbarModule } from '@angular/material/toolbar';
 
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
 import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
 import { Catalog } from '../../models/catalog';
@@ -30,6 +31,7 @@ import { ProxyService } from '../../services/proxy/proxy.service';
     FormsModule,
     ReactiveFormsModule,
     NgxSkeletonLoaderModule,
+    MatTooltipModule,
   ],
   providers: [CatalogService],
   templateUrl: './catalog-browser.component.html',

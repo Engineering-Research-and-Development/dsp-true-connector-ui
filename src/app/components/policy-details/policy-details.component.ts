@@ -4,6 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIcon } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router, RouterModule } from '@angular/router';
 
 @Component({
@@ -16,6 +17,7 @@ import { Router, RouterModule } from '@angular/router';
     MatButtonModule,
     MatExpansionModule,
     MatIcon,
+    MatTooltipModule,
   ],
   templateUrl: './policy-details.component.html',
   styleUrl: './policy-details.component.css',
