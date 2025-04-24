@@ -94,6 +94,14 @@
                 {{ dataTransfer.format }}
               </p>
               <p>
+                <strong>Created:</strong>
+                {{ dataTransfer.created | date : "d MMMM y, HH:mm:ss" }}
+              </p>
+              <p>
+                <strong>Modified:</strong>
+                {{ dataTransfer.modified | date : "d MMMM y, HH:mm:ss" }}
+              </p>
+              <p>
                 <strong>State:</strong>
                 {{ dataTransfer.state }}
               </p>

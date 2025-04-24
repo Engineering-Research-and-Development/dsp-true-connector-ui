@@ -349,8 +349,8 @@ export class DistributionDetailsComponent implements OnInit {
         version: distribution.version,
         issued: distribution.issued,
         modified: distribution.modified,
-        // accessService: distribution.accessService.map((service) => service.id), // Adjusted to set multiple values
       });
+
       this.distributionForm
         .get('accessService')
         ?.setValue(
@@ -358,8 +358,12 @@ export class DistributionDetailsComponent implements OnInit {
             this.allServices.find((s) => s['@id'] === service['@id'])
           )
         );
-      this.setFormArray('description', distribution.description);
       this.setFormArray('hasPolicy', distribution.hasPolicy || []);
+      if (distribution.description.length === 0) {
+        this.addDescription();
+      } else {
+        this.setFormArray('description', distribution.description);
+      }
     }
   }
 

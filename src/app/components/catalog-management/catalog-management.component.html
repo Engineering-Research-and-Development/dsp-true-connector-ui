@@ -271,11 +271,17 @@
                         formControlName="language"
                         placeholder="Language"
                         maxlength="2"
+                        pattern="[a-zA-Z ]*"
                       />
                       <mat-error
                         *ngIf="desc.get('language')?.hasError('required')"
                       >
                         Language is required
+                      </mat-error>
+                      <mat-error
+                        *ngIf="desc.get('language')?.hasError('pattern')"
+                      >
+                        Only letters are allowed
                       </mat-error>
                     </mat-form-field>
                     <div class="desc-text">

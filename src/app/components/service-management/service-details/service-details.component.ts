@@ -369,8 +369,8 @@ export class ServiceDetailsComponent implements OnInit {
       title: [null, Validators.required],
       identifier: null,
       description: this.fb.array([]),
-      keyword: this.fb.array([]),
-      theme: this.fb.array([]),
+      keyword: this.fb.array([], Validators.required),
+      theme: this.fb.array([], Validators.required),
       creator: null,
       conformsTo: null,
       endpointDescription: ['', Validators.required],
@@ -405,16 +405,19 @@ export class ServiceDetailsComponent implements OnInit {
         modified: service.modified,
       });
 
-      this.setFormArray('description', service.description);
-      this.setFormArray('keyword', service.keyword);
-      this.setFormArray('theme', service.theme);
-      this.serviceForm
-        .get('servesDataset')
-        ?.setValue(
-          service.servesDataset!.map((dataset) =>
-            this.allDatasets.find((ds) => ds['@id'] === dataset['@id'])
-          )
-        );
+      if (
+        service.description.length === 0 &&
+        service.keyword.length === 0 &&
+        service.theme.length === 0
+      ) {
+        this.addDescription();
+        this.addKeyword();
+        this.addTheme();
+      } else {
+        this.setFormArray('description', service.description);
+        this.setFormArray('keyword', service.keyword);
+        this.setFormArray('theme', service.theme);
+      }
     }
   }
 

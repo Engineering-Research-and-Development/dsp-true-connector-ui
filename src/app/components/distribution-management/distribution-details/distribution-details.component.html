@@ -163,6 +163,7 @@
                       formControlName="language"
                       placeholder="Language"
                       maxlength="2"
+                      pattern="[a-zA-Z ]*"
                     />
                     <mat-error
                       *ngIf="desc.get('language')?.hasError('required')"

@@ -85,6 +85,14 @@
                 <strong>State:</strong>
                 {{ contractNegotiation.state }}
               </p>
+              <p>
+                <strong>Created:</strong>
+                {{ contractNegotiation.created | date : "d MMMM y, HH:mm:ss" }}
+              </p>
+              <p>
+                <strong>Modified:</strong>
+                {{ contractNegotiation.modified | date : "d MMMM y, HH:mm:ss" }}
+              </p>
 
               <div *ngIf="contractNegotiation.offer !== null">
                 <h3>Offer details</h3>
