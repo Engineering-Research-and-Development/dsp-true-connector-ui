@@ -150,11 +150,39 @@ h1 {
   flex-wrap: wrap;
   flex-direction: row;
 }
+.key > div {
+  display: flex;
+  align-items: center;
+  margin-right: 10px;
+  margin-bottom: 10px;
+}
+.key mat-form-field {
+  width: auto;
+  min-width: 200px;
+  margin-right: 5px;
+  margin-bottom: 0;
+}
+.key button[mat-icon-button] {
+  height: 40px;
+  width: 40px;
+  padding: 0;
+  margin-top: 4px;
+  align-self: flex-start;
+}
+.key .mat-icon {
+  vertical-align: middle;
+}
 .table-info {
   display: flex;
   justify-content: space-around;
   flex-wrap: wrap;
   width: 70%;
+}
+.table-info div {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  width: 100%;
 }
 strong {
   color: #000000;

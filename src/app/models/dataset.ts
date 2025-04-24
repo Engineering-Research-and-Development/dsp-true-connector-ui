@@ -1,3 +1,4 @@
+import { Artifact } from './artifact';
 import { Distribution } from './distribution';
 import { Multilanguage } from './multilanguage';
 import { Offer } from './offer';
@@ -8,7 +9,7 @@ export interface Dataset {
   title: string;
   description: Multilanguage[];
   keyword: string[];
-  fileId?: string;
+  // value: string;
   distribution: Distribution[];
   hasPolicy: Offer[];
   conformsTo?: string;
@@ -20,5 +21,5 @@ export interface Dataset {
   lastModifiedBy?: string;
   version?: number;
   theme: string[];
-  artifact?: any;
+  artifact: Artifact;
 }

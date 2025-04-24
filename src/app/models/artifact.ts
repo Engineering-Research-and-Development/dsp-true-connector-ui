@@ -1,12 +1,15 @@
 export interface Artifact {
-  id: string;
-  'Content-Type': string;
-  artifactType: string;
-  createdBy: string;
-  created: string;
-  lastModifiedDate: string;
-  filename: string;
-  lastModifiedBy: string;
+  id?: string;
+  artifactType: 'FILE' | 'EXTERNAL';
+  filename?: string;
+  contentType?: string;
+  authorization?: string;
+  createdAt?: string;
+  modifiedAt?: string;
+  created?: string;
+  createdBy?: string;
+  lastModifiedBy?: string;
+  lastModifiedDate?: string;
+  version?: number;
   value: string;
-  version: number;
 }
