@@ -1,0 +1,139 @@
+<!-- artifact-dialog.component.html -->
+<h2 mat-dialog-title>Add Artifact</h2>
+<mat-dialog-content>
+  <mat-tab-group
+    [(selectedIndex)]="selectedTabIndex"
+    (selectedIndexChange)="updateArtifactType($event)"
+  >
+    <mat-tab label="Upload File">
+      <div class="tab-content">
+        <div
+          class="file-dropzone"
+          [class.active]="isDragging"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave($event)"
+          (drop)="onDrop($event)"
+          (click)="fileInput.click()"
+        >
+          <div class="dropzone-content">
+            <mat-icon>cloud_upload</mat-icon>
+            <p>Drag and drop a file here</p>
+            <p>or</p>
+            <button
+              mat-raised-button
+              color="primary"
+              (click)="$event.stopPropagation(); fileInput.click()"
+            >
+              Browse Files
+            </button>
+            <input
+              type="file"
+              (change)="onFileSelected($event)"
+              accept=".json,.csv,.xlsx,.pdf"
+              #fileInput
+              style="display: none"
+            />
+          </div>
+        </div>
+
+        <div *ngIf="selectedFile" class="selected-file-info">
+          <mat-icon>check_circle</mat-icon>
+          Selected file: {{ selectedFile.name }}
+        </div>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="External URL">
+      <div class="tab-content">
+        <p>Specify an external resource URL</p>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>External URL</mat-label>
+          <input matInput [(ngModel)]="externalUrl" required />
+        </mat-form-field>
+
+        <div class="auth-section">
+          <p>Authorization (Optional)</p>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Authorization Type</mat-label>
+            <mat-select
+              [(ngModel)]="authType"
+              (selectionChange)="onAuthTypeChange()"
+            >
+              <mat-option value="none">None</mat-option>
+              <mat-option value="basic">Username/Password</mat-option>
+              <mat-option value="bearer">Bearer Token</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <div *ngIf="authType === 'basic'" class="basic-auth">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Username</mat-label>
+              <input
+                matInput
+                [(ngModel)]="username"
+                (ngModelChange)="updateBasicAuth()"
+              />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Password</mat-label>
+              <input
+                matInput
+                type="password"
+                [(ngModel)]="password"
+                (ngModelChange)="updateBasicAuth()"
+              />
+            </mat-form-field>
+          </div>
+
+          <mat-form-field
+            appearance="outline"
+            class="full-width"
+            *ngIf="authType === 'bearer'"
+          >
+            <mat-label>Bearer Token</mat-label>
+            <input
+              matInput
+              [(ngModel)]="bearerToken"
+              (ngModelChange)="updateBearerAuth()"
+            />
+            <mat-hint *ngIf="bearerTokenHasDuplicate" class="error-hint">
+              Token already starts with 'Bearer '. Please enter only the token
+              value.
+            </mat-hint>
+          </mat-form-field>
+
+          <mat-form-field
+            appearance="outline"
+            class="full-width"
+            *ngIf="authType !== 'none'"
+          >
+            <mat-label>Generated Authorization Header</mat-label>
+            <input matInput [value]="authorization" readonly />
+            <mat-hint
+              >This value will be used as the Authorization header</mat-hint
+            >
+          </mat-form-field>
+        </div>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancel</button>
+  <button
+    mat-raised-button
+    color="primary"
+    [disabled]="
+      (artifactType === 'FILE' && !selectedFile) ||
+      (artifactType === 'EXTERNAL' && !externalUrl) ||
+      bearerTokenHasDuplicate
+    "
+    (click)="onSubmit()"
+    type="submit"
+  >
+    Add
+  </button>
+</mat-dialog-actions>

@@ -382,3 +382,12 @@ p strong {
     line-height: 3;
   }
 }
+
+.help-icon {
+  font-size: 1.1em;
+  margin-left: 8px;
+  vertical-align: middle;
+  color: grey;
+  cursor: help;
+  margin-top: 20px;
+}

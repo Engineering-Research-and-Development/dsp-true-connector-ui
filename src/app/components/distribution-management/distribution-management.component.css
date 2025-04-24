@@ -218,3 +218,12 @@ h1 {
     justify-content: flex-start;
   }
 }
+
+.help-icon {
+  font-size: 1.1em;
+  margin-left: 8px;
+  vertical-align: middle;
+  color: grey;
+  cursor: help;
+  margin-top: 10px;
+}

@@ -1,3 +1,6 @@
+// src/app/test-utils/test-utils.ts
+
+// --- Existing Mocks (Keep these) ---
 import { Artifact } from '../models/artifact';
 import { Catalog } from '../models/catalog';
 import { ContractNegotiation } from '../models/contractNegotiation';
@@ -8,6 +11,19 @@ import { ContractNegotiationState } from '../models/enums/contractNegotiationSta
 import { DataTransferState } from '../models/enums/dataTransferState';
 import { Offer } from '../models/offer';
 import { Permission } from '../models/permission';
+
+export const MOCK_ARTIFACT: Artifact = {
+  id: 'urn:uuid:test-artifact-id', // Keep this generic one if used elsewhere
+  contentType: 'application/json',
+  artifactType: 'FILE',
+  createdBy: 'admin@admin.com',
+  created: '2024-04-23T18:26:00+02:00',
+  lastModifiedDate: '2024-04-23T18:26:00+02:00',
+  filename: 'Employees.txt',
+  lastModifiedBy: 'admin@admin.com',
+  value: '123456789',
+  version: 1,
+};
 
 export const MOCK_DATA_SERVICE: DataService = {
   '@id': 'a7064ac6-626a-45b7-9359-5f7334533bfc',
@@ -121,7 +137,7 @@ export const MOCK_DATASET: Dataset = {
   version: 1,
   createdBy: 'admin@admin.com',
   lastModifiedBy: 'admin@admin.com',
-  artifact: null,
+  artifact: MOCK_ARTIFACT,
 };
 
 export const MOCK_CATALOG: Catalog = {
@@ -207,6 +223,8 @@ export const MOCK_DATA_TRANSFER = {
   createdBy: 'admin@admin.com',
   lastModifiedBy: 'admin@admin.com',
   version: 1,
+  created: '2024-04-23T18:26:00+02:00',
+  modified: '2024-04-23T18:26:00+02:00',
 };
 
 export const MOCK_TRANSFER_REQUEST = {
@@ -273,6 +291,12 @@ export const MOCK_CONTRACT_NEGOTIATION: ContractNegotiation = {
   consumerPid: 'urn:uuid:CONSUMER_PID',
   providerPid: 'urn:uuid:PROVIDER_PID',
   state: ContractNegotiationState.REQUESTED,
+  agreement: null,
+  created: '2024-04-23T18:26:00+02:00',
+  createdBy: 'tc',
+  lastModifiedBy: 'tc',
+  modified: '2024-04-23T18:26:00+02:00',
+  role: 'CONSUMER',
 };
 
 export const MOCK_CONTRACT_NEGOTIATION_REQUESTED: ContractNegotiation = {
@@ -310,15 +334,75 @@ export const MOCK_CONTRACT_NEGOTIATION_TERMINATED: ContractNegotiation = {
   state: ContractNegotiationState.TERMINATED,
 };
 
-export const MOCK_ARTIFACT: Artifact = {
-  id: 'urn:uuid:test-artifact-id',
-  'Content-Type': 'application/json',
+// --- NEW Mocks for Artifact Dialog Component ---
+
+export const MOCK_FILE_ARTIFACT: Artifact = {
+  id: 'artifact-file-1',
   artifactType: 'FILE',
-  createdBy: 'admin@admin.com',
-  created: '2024-04-23T18:26:00+02:00',
-  lastModifiedDate: '2024-04-23T18:26:00+02:00',
-  filename: 'Employees.txt',
-  lastModifiedBy: 'admin@admin.com',
-  value: '123456789',
+  filename: 'test-file.txt',
+  contentType: 'text/plain',
+  value: '', // Value might not be relevant for FILE type on client
+  // Add other optional fields if needed based on your Artifact model
+  createdBy: 'test@test.com',
+  created: new Date().toISOString(),
+  lastModifiedBy: 'test@test.com',
+  lastModifiedDate: new Date().toISOString(),
+  version: 1,
+  authorization: undefined, // Explicitly undefined for file artifacts
+};
+
+export const MOCK_EXTERNAL_ARTIFACT_NO_AUTH: Artifact = {
+  id: 'artifact-ext-1',
+  artifactType: 'EXTERNAL',
+  value: 'http://example.com/data.csv', // URL stored in value
+  filename: 'data.csv', // Optional filename info
+  contentType: 'text/csv',
+  authorization: undefined, // No authorization
+  createdBy: 'test@test.com',
+  created: new Date().toISOString(),
+  lastModifiedBy: 'test@test.com',
+  lastModifiedDate: new Date().toISOString(),
+  version: 1,
+};
+
+export const MOCK_EXTERNAL_ARTIFACT_BASIC_AUTH: Artifact = {
+  id: 'artifact-ext-2',
+  artifactType: 'EXTERNAL',
+  value: 'http://example.com/secure/data.json',
+  filename: 'data.json',
+  contentType: 'application/json',
+  authorization: 'Basic dXNlcjpwYXNz', // base64 for "user:pass"
+  createdBy: 'test@test.com',
+  created: new Date().toISOString(),
+  lastModifiedBy: 'test@test.com',
+  lastModifiedDate: new Date().toISOString(),
+  version: 1,
+};
+
+export const MOCK_EXTERNAL_ARTIFACT_BEARER_AUTH: Artifact = {
+  id: 'artifact-ext-3',
+  artifactType: 'EXTERNAL',
+  value: 'http://example.com/api/resource',
+  filename: 'resource',
+  contentType: 'application/json',
+  authorization: 'Bearer mytoken123',
+  createdBy: 'test@test.com',
+  created: new Date().toISOString(),
+  lastModifiedBy: 'test@test.com',
+  lastModifiedDate: new Date().toISOString(),
+  version: 1,
+};
+
+export const MOCK_EXTERNAL_ARTIFACT_OTHER_AUTH: Artifact = {
+  id: 'artifact-ext-4',
+  artifactType: 'EXTERNAL',
+  value: 'http://example.com/api/other',
+  filename: 'other',
+  contentType: 'application/xml',
+  authorization: 'CustomApiKey abcdef12345', // Doesn't start with Basic/Bearer
+  createdBy: 'test@test.com',
+  created: new Date().toISOString(),
+  lastModifiedBy: 'test@test.com',
+  lastModifiedDate: new Date().toISOString(),
   version: 1,
 };

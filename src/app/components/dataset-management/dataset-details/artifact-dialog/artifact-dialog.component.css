@@ -1,0 +1,83 @@
+.full-width {
+  width: 100%;
+}
+
+.half-width {
+  width: 48%;
+  margin-right: 2%;
+}
+
+.tab-content {
+  padding: 20px 0;
+}
+
+.file-dropzone {
+  border: 2px dashed #ccc;
+  border-radius: 6px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: #fafafa;
+  margin: 15px 0;
+}
+
+.file-dropzone.active {
+  border-color: #3f51b5;
+  background-color: rgba(63, 81, 181, 0.05);
+}
+
+.dropzone-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}
+
+.dropzone-content mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 15px;
+  color: #3f51b5;
+}
+
+.dropzone-content p {
+  margin: 5px 0;
+}
+
+.selected-file-info {
+  display: flex;
+  align-items: center;
+  margin-top: 15px;
+  padding: 10px 15px;
+  border-radius: 4px;
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.selected-file-info mat-icon {
+  margin-right: 10px;
+}
+
+.auth-section {
+  margin-top: 20px;
+}
+
+.basic-auth {
+  display: flex;
+  gap: 15px;
+}
+
+.error-hint {
+  color: #f44336 !important;
+}
+
+mat-dialog-content {
+  min-height: 400px;
+}

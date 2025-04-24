@@ -18,6 +18,12 @@
             Back
           </button>
           <h1>Distribution Details</h1>
+          <mat-icon
+            class="help-icon"
+            matTooltip=" Here you can view all information such as metadata and related access service, edit, or delete the chosen distribution. Use the tabs and buttons to navigate and manage the data."
+            aria-label="Help regarding distribution details"
+            >help_outline</mat-icon
+          >
         </div>
 
         <div class="buttons">
@@ -163,6 +169,7 @@
                       formControlName="language"
                       placeholder="Language"
                       maxlength="2"
+                      pattern="[a-zA-Z ]*"
                     />
                     <mat-error
                       *ngIf="desc.get('language')?.hasError('required')"

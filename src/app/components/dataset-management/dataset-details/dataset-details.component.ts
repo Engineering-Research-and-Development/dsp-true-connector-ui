@@ -10,6 +10,8 @@ import {
 } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDialog } from '@angular/material/dialog';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -21,7 +23,6 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router, RouterModule } from '@angular/router';
 import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
-import { catchError, map, Observable, of } from 'rxjs';
 import { Artifact } from '../../../models/artifact';
 import { Dataset } from '../../../models/dataset';
 import { Action } from '../../../models/enums/action.enum';
@@ -35,6 +36,7 @@ import { DistributionService } from '../../../services/distribution/distribution
 import { SnackbarService } from '../../../services/snackbar/snackbar.service';
 import { ConfirmationDialogComponent } from '../../confirmation-dialog/confirmation-dialog.component';
 import { Distribution } from './../../../models/distribution';
+import { ArtifactDialogComponent } from './artifact-dialog/artifact-dialog.component';
 
 @Component({
   selector: 'app-dataset-details',
@@ -55,6 +57,8 @@ import { Distribution } from './../../../models/distribution';
     MatInputModule,
     MatTooltipModule,
     MatTabsModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
   ],
   templateUrl: './dataset-details.component.html',
   styleUrls: ['./dataset-details.component.css'],
@@ -78,6 +82,8 @@ export class DatasetDetailsComponent {
   selectedFile: File | undefined;
   datasetArtifact!: Artifact;
   updateArtifact: boolean = false;
+  private constraintTypes: Record<string, string> = {};
+  private timeValues: Record<string, string> = {};
 
   constructor(
     public dialog: MatDialog,
@@ -92,15 +98,13 @@ export class DatasetDetailsComponent {
     const navigation = this.router.getCurrentNavigation();
     if (navigation?.extras.state) {
       this.dataset = navigation.extras.state['dataset'];
-      if (navigation.extras.state['datasetArtifact']) {
-        this.datasetArtifact = navigation.extras.state['datasetArtifact'];
-      }
+      this.datasetArtifact = this.dataset.artifact;
+
       if (navigation.extras.state['editMode']) {
         this.editMode = navigation.extras.state['editMode'];
         this.directEdit = navigation.extras.state['editMode'];
         this.originalDataset = { ...this.dataset };
-        this.datasetArtifact = navigation.extras.state['datasetArtifact'];
-
+        this.datasetArtifact = this.originalDataset.artifact;
         if (this.dataset['@id'] != undefined) {
           this.updateArtifact = true;
         }
@@ -116,7 +120,6 @@ export class DatasetDetailsComponent {
    */
   ngOnInit(): void {
     this.initForm();
-
     this.getAllDistributions();
   }
 
@@ -180,10 +183,25 @@ export class DatasetDetailsComponent {
     if (this.editMode) {
       if (this.directEdit) {
         if (this.dataset['@id'] != undefined) {
+          // Validate artifact requirement
+          if (!this.selectedFile && !this.updateArtifact) {
+            this.snackBarService.openSnackBar(
+              'Dataset file is required',
+              'OK',
+              'center',
+              'bottom',
+              'snackbar-error'
+            );
+            return;
+          }
+          this.updateDatasetData();
+          this.directEdit = false;
+        } else {
+          // Validate artifact requirement for new dataset
           if (
-            !this.selectedFile ||
-            this.dataset.fileId === undefined ||
-            this.dataset.fileId === null
+            !this.selectedFile &&
+            (!this.datasetArtifact ||
+              this.datasetArtifact.artifactType !== 'EXTERNAL')
           ) {
             this.snackBarService.openSnackBar(
               'Dataset file is required',
@@ -192,21 +210,6 @@ export class DatasetDetailsComponent {
               'bottom',
               'snackbar-error'
             );
-
-            return;
-          }
-          this.updateDatasetData();
-          this.directEdit = false;
-        } else {
-          if (!this.selectedFile) {
-            this.snackBarService.openSnackBar(
-              'Dataset file is required',
-              'OK',
-              'center',
-              'bottom',
-              'snackbar-error'
-            );
-
             return;
           }
           this.saveDatasetData();
@@ -214,7 +217,8 @@ export class DatasetDetailsComponent {
       } else {
         this.updateArtifact = true;
 
-        if (!this.selectedFile) {
+        // Validate artifact requirement for update
+        if (!this.selectedFile && !this.updateArtifact) {
           this.snackBarService.openSnackBar(
             'Dataset file is required',
             'OK',
@@ -222,7 +226,6 @@ export class DatasetDetailsComponent {
             'bottom',
             'snackbar-error'
           );
-
           return;
         }
         this.updateDatasetData();
@@ -255,41 +258,69 @@ export class DatasetDetailsComponent {
    */
   saveDatasetData() {
     this.loading = true;
-    this.datasetService
-      .createDataset(this.cleanFormData(this.datasetForm))
-      .subscribe({
-        next: (data) => {
-          console.log('Dataset saved successfully');
-          this.uploadDatasetFile(data['@id']).subscribe({
-            next: (uploadedFileId) => {
-              console.log('Dataset file uploaded successfully');
-              this.dataset = data;
-              this.dataset.fileId = uploadedFileId;
-              this.languages = this.extractLanguages(this.dataset.description);
-              this.onLanguageSelected();
-              this.updateForm(this.dataset);
-              this.getArtifactById(uploadedFileId).subscribe({
-                next: (artifact) => {
-                  this.datasetArtifact = artifact[0];
-                  this.loading = false;
-                },
-                error: (error) => {
-                  console.error('Error fetching artifact:', error);
-                  this.loading = false;
-                },
-              });
-            },
-            error: (error) => {
-              console.error('File upload subscription failed:', error);
-              this.loading = false;
-            },
-          });
-        },
-        error: (error) => {
-          console.error('Saving dataset failed:', error);
-          this.loading = false;
-        },
-      });
+    const cleanedData = this.cleanFormData(this.datasetForm);
+
+    if (this.selectedFile) {
+      // Use file artifact
+      this.datasetService
+        .createDataset(cleanedData, this.selectedFile)
+        .subscribe({
+          next: (data) => {
+            console.log('Dataset saved successfully');
+            this.dataset = data;
+            this.datasetArtifact = data.artifact;
+            this.languages = this.extractLanguages(this.dataset.description);
+            this.onLanguageSelected();
+            this.updateForm(this.dataset);
+            this.loading = false;
+          },
+          error: (error) => {
+            console.error('Saving dataset failed:', error);
+            this.loading = false;
+          },
+        });
+    } else if (
+      this.datasetArtifact &&
+      this.datasetArtifact.artifactType === 'EXTERNAL'
+    ) {
+      // Use external artifact
+      console.log(
+        'Using external artifact',
+        this.datasetArtifact.authorization
+      );
+      this.datasetService
+        .createDataset(
+          cleanedData,
+          undefined,
+          this.datasetArtifact.value,
+          this.datasetArtifact.authorization
+        )
+        .subscribe({
+          next: (data) => {
+            console.log('Dataset saved successfully');
+            this.dataset = data;
+            this.datasetArtifact = data.artifact;
+            this.languages = this.extractLanguages(this.dataset.description);
+            this.onLanguageSelected();
+            this.updateForm(this.dataset);
+            this.loading = false;
+          },
+          error: (error) => {
+            console.error('Saving dataset failed:', error);
+            this.loading = false;
+          },
+        });
+    } else {
+      // No artifact - show error
+      this.snackBarService.openSnackBar(
+        'Dataset file is required',
+        'OK',
+        'center',
+        'bottom',
+        'snackbar-error'
+      );
+      this.loading = false;
+    }
   }
 
   /**
@@ -300,41 +331,84 @@ export class DatasetDetailsComponent {
    * */
   updateDatasetData() {
     this.loading = true;
-    console.log('Updating dataset data');
-    this.datasetService
-      .updateDataset(this.dataset['@id']!, this.cleanFormData(this.datasetForm))
-      .subscribe({
-        next: (data) => {
-          this.uploadDatasetFile(data['@id']!).subscribe({
-            next: (uploadedFileId) => {
-              console.log('Dataset file uploaded successfully');
-              this.dataset = data;
-              this.dataset.fileId = uploadedFileId;
-              this.languages = this.extractLanguages(this.dataset.description);
-              this.onLanguageSelected();
-              this.updateForm(this.dataset);
-              this.getArtifactById(uploadedFileId).subscribe({
-                next: (artifact) => {
-                  this.datasetArtifact = artifact[0];
-                  this.loading = false;
-                },
-                error: (error) => {
-                  console.error('Error fetching artifact:', error);
-                  this.loading = false;
-                },
-              });
-            },
-            error: (error) => {
-              console.error('File upload subscription failed:', error);
-              this.loading = false;
-            },
-          });
-        },
-        error: (error) => {
-          console.error('Error updating dataset:', error);
-          this.loading = false;
-        },
-      });
+    const cleanedData = this.cleanFormData(this.datasetForm);
+    if (this.selectedFile) {
+      // Update with new file
+      this.datasetService
+        .updateDataset(this.dataset['@id']!, cleanedData, this.selectedFile)
+        .subscribe({
+          next: (data) => {
+            console.log('Dataset updated successfully');
+            this.dataset = data;
+            this.datasetArtifact = data.artifact;
+            this.languages = this.extractLanguages(this.dataset.description);
+            this.onLanguageSelected();
+            this.updateForm(this.dataset);
+            this.loading = false;
+          },
+          error: (error) => {
+            console.error('Error updating dataset:', error);
+            this.loading = false;
+          },
+        });
+    } else if (
+      this.datasetArtifact &&
+      this.datasetArtifact.artifactType === 'EXTERNAL'
+    ) {
+      // Update with new external artifact
+      this.datasetService
+        .updateDataset(
+          this.dataset['@id']!,
+          cleanedData,
+          undefined,
+          this.datasetArtifact.value, // Using filename for URL
+          this.datasetArtifact.authorization
+        )
+        .subscribe({
+          next: (data) => {
+            console.log('Dataset updated successfully');
+            this.dataset = data;
+            this.datasetArtifact = data.artifact;
+            this.languages = this.extractLanguages(this.dataset.description);
+            this.onLanguageSelected();
+            this.updateForm(this.dataset);
+            this.loading = false;
+          },
+          error: (error) => {
+            console.error('Error updating dataset:', error);
+            this.loading = false;
+          },
+        });
+    } else if (this.updateArtifact) {
+      // Keep existing artifact, just update dataset data
+      this.datasetService
+        .updateDataset(this.dataset['@id']!, cleanedData)
+        .subscribe({
+          next: (data) => {
+            console.log('Dataset updated successfully');
+            this.dataset = data;
+            this.datasetArtifact = data.artifact;
+            this.languages = this.extractLanguages(this.dataset.description);
+            this.onLanguageSelected();
+            this.updateForm(this.dataset);
+            this.loading = false;
+          },
+          error: (error) => {
+            console.error('Error updating dataset:', error);
+            this.loading = false;
+          },
+        });
+    } else {
+      // No artifact - show error
+      this.snackBarService.openSnackBar(
+        'Dataset file is required',
+        'OK',
+        'center',
+        'bottom',
+        'snackbar-error'
+      );
+      this.loading = false;
+    }
   }
 
   /**
@@ -369,12 +443,13 @@ export class DatasetDetailsComponent {
         }
       });
   }
+
   /**
    * Adds a description form group to the description form array.
    * */
   addDescription() {
     const control = this.fb.group({
-      language: ['', Validators.required],
+      language: ['', [Validators.required, Validators.pattern('[a-zA-Z]*')]],
       value: ['', Validators.required],
     });
     (this.datasetForm.get('description') as FormArray).push(control);
@@ -449,10 +524,9 @@ export class DatasetDetailsComponent {
    */
   initForm(): void {
     this.datasetForm = this.fb.group({
-      '@id': [''],
       title: ['', Validators.required],
       identifier: [null],
-      // fileId: [null],
+      value: [null],
       description: this.fb.array([], Validators.required),
       keyword: this.fb.array([]),
       theme: this.fb.array([]),
@@ -469,16 +543,17 @@ export class DatasetDetailsComponent {
   }
 
   /**
-   * Helper function to update the form with the catalog data.
-   * @param catalogData The catalog data to update the form with.
+   * Helper function to update the form with the dataset data.
+   * @param dataset The dataset data to update the form with.
    */
   updateForm(dataset: Dataset): void {
     if (dataset) {
+      console.log('Updating form with dataset:', dataset);
       this.datasetForm.patchValue({
         '@id': dataset['@id'],
         title: dataset.title,
         identifier: dataset.identifier,
-        fileId: dataset.fileId,
+        // value: dataset.value,
         creator: dataset.creator,
         conformsTo: dataset.conformsTo,
         createdBy: dataset.createdBy,
@@ -487,10 +562,6 @@ export class DatasetDetailsComponent {
         issued: dataset.issued,
         modified: dataset.modified,
       });
-
-      this.setFormArray('description', dataset.description || []);
-      this.setFormArray('keyword', dataset.keyword || []);
-      this.setFormArray('theme', dataset.theme || []);
       this.datasetForm
         .get('distribution')
         ?.setValue(
@@ -500,17 +571,26 @@ export class DatasetDetailsComponent {
             )
           ) || []
         );
-      this.setFormArray('hasPolicy', dataset.hasPolicy || []);
-    }
-  }
+      if (
+        dataset.description.length === 0 &&
+        dataset.keyword.length === 0 &&
+        dataset.theme.length === 0 &&
+        dataset.hasPolicy.length === 0
+      ) {
+        this.addDescription();
+        this.addKeyword();
+        this.addTheme();
+        this.addPolicy();
+      } else {
+        this.setFormArray('description', dataset.description);
+        this.setFormArray('keyword', dataset.keyword);
+        this.setFormArray('theme', dataset.theme);
+        this.setFormArray('hasPolicy', dataset.hasPolicy);
+      }
 
-  /**
-   * Fetches an artifact by id using the ArtifactService.
-   * @param id The id of the artifact to fetch.
-   * @returns Observable<Artifact>
-   */
-  getArtifactById(id: string): Observable<Artifact[]> {
-    return this.artifactService.getArtifactById(id);
+      // Initialize constraint types for existing data
+      this.initializeConstraintTypes();
+    }
   }
 
   /**
@@ -526,7 +606,10 @@ export class DatasetDetailsComponent {
         if (formArrayName === 'description') {
           formArray.push(
             this.fb.group({
-              language: [value.language, Validators.required],
+              language: [
+                value.language,
+                [Validators.required, Validators.pattern('[a-zA-Z]*')],
+              ],
               value: [value.value, Validators.required],
             })
           );
@@ -572,7 +655,7 @@ export class DatasetDetailsComponent {
 
   /**
    * Helper function to set the form array for constraints.
-   *  @param formArray The form array to set.
+   * @param formArray The form array to set.
    * @param values The values to set.
    * */
   setFormArrayForConstraints(formArray: FormArray, values: any[]): void {
@@ -591,14 +674,16 @@ export class DatasetDetailsComponent {
   }
 
   /**
-   * Helper function to clean the form data before sending it to the server.
-   * Removes the id, createdBy, lastModifiedBy, version, issued, and modified fields from the form group.
+   * Helper function to clean and prepare the form data before sending it to the server.
+   * Removes unnecessary fields, formats dates, and handles empty values.
    * @param formGroup The form group to clean.
-   * @returns The cleaned form group.
+   * @returns The cleaned and prepared form data.
    * */
   cleanFormData(formGroup: FormGroup): any {
+    console.log('Cleaning and preparing form data:', formGroup.value);
     const cleanedData = { ...formGroup.value };
 
+    // Remove metadata fields that shouldn't be sent
     delete cleanedData['@id'];
     delete cleanedData.createdBy;
     delete cleanedData.lastModifiedBy;
@@ -606,6 +691,7 @@ export class DatasetDetailsComponent {
     delete cleanedData.issued;
     delete cleanedData.modified;
 
+    // Clean empty fields and arrays
     Object.keys(cleanedData).forEach((key) => {
       if (cleanedData[key] === '') {
         cleanedData[key] = null;
@@ -617,7 +703,218 @@ export class DatasetDetailsComponent {
       }
     });
 
+    if (cleanedData.hasPolicy) {
+      cleanedData.hasPolicy.forEach((policy: any) => {
+        if (policy.permission) {
+          policy.permission.forEach((permission: any) => {
+            if (permission.constraint) {
+              permission.constraint.forEach((constraint: any) => {
+                switch (constraint.leftOperand) {
+                  case 'DATE_TIME':
+                    if (constraint.rightOperand instanceof Date) {
+                      constraint.rightOperand = this.formatDateWithTimezone(
+                        constraint.rightOperand
+                      );
+                    }
+                    break;
+                  case 'COUNT':
+                    if (typeof constraint.rightOperand === 'string') {
+                      constraint.rightOperand = Number(constraint.rightOperand);
+                    }
+                    break;
+                  case 'PURPOSE':
+                  case 'SPATIAL':
+                    if (
+                      constraint.rightOperand !== null &&
+                      constraint.rightOperand !== undefined &&
+                      typeof constraint.rightOperand !== 'string'
+                    ) {
+                      constraint.rightOperand = String(constraint.rightOperand);
+                    }
+                    break;
+                }
+              });
+            }
+          });
+        }
+      });
+    }
+
+    console.log('Cleaned and prepared data:', cleanedData);
     return cleanedData;
+  }
+
+  /**
+   * Formats a date object to ISO 8601 format with timezone information.
+   * @param date The date object to format.
+   * @returns A string in the format "YYYY-MM-DDThh:mm:ss+TZ:00".
+   */
+  private formatDateWithTimezone(date: Date): string {
+    // Get timezone offset in hours and minutes
+    const tzOffset = -date.getTimezoneOffset();
+    const tzHours = Math.floor(Math.abs(tzOffset) / 60);
+    const tzMinutes = Math.abs(tzOffset) % 60;
+
+    // Format the timezone string (+/-HH:MM)
+    const tzSign = tzOffset >= 0 ? '+' : '-';
+    const tzString = `${tzSign}${tzHours
+      .toString()
+      .padStart(2, '0')}:${tzMinutes.toString().padStart(2, '0')}`;
+
+    // Format the date in the desired format with seconds set to 01
+    const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1)
+      .toString()
+      .padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}T${date
+      .getHours()
+      .toString()
+      .padStart(2, '0')}:${date
+      .getMinutes()
+      .toString()
+      .padStart(2, '0')}:01${tzString}`;
+
+    return formattedDate;
+  }
+
+  /**
+   * Initialize constraint types map for existing data after form is loaded.
+   * This ensures the correct input fields are shown for all constraint types when editing existing constraints.
+   */
+  initializeConstraintTypes(): void {
+    const policiesFormArray = this.datasetForm.get('hasPolicy') as FormArray;
+
+    if (policiesFormArray) {
+      for (let i = 0; i < policiesFormArray.length; i++) {
+        const policy = policiesFormArray.at(i);
+        const permissionsFormArray = policy.get('permission') as FormArray;
+
+        if (permissionsFormArray) {
+          for (let j = 0; j < permissionsFormArray.length; j++) {
+            const permission = permissionsFormArray.at(j);
+            const constraintsFormArray = permission.get(
+              'constraint'
+            ) as FormArray;
+
+            if (constraintsFormArray) {
+              for (let k = 0; k < constraintsFormArray.length; k++) {
+                const constraint = constraintsFormArray.at(k);
+                const leftOperand = constraint.get('leftOperand')?.value;
+
+                if (leftOperand) {
+                  const key = this.getConstraintKey(i, j, k);
+                  this.constraintTypes[key] = leftOperand;
+
+                  // For DATE_TIME constraints, also initialize the time value
+                  if (leftOperand === 'DATE_TIME') {
+                    this.initializeTimeValue(i, j, k);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Initializes the time value for a DATE_TIME constraint from an existing date value.
+   * @param policyIndex The index of the policy.
+   * @param permissionIndex The index of the permission.
+   * @param constraintIndex The index of the constraint.
+   */
+  private initializeTimeValue(
+    policyIndex: number,
+    permissionIndex: number,
+    constraintIndex: number
+  ): void {
+    const control = this.getConstraintControl(
+      policyIndex,
+      permissionIndex,
+      constraintIndex
+    );
+    const dateValue = control.get('rightOperand')?.value;
+
+    if (dateValue) {
+      let date: Date;
+
+      if (dateValue instanceof Date) {
+        date = dateValue;
+      } else if (typeof dateValue === 'string') {
+        // Try to parse the ISO string
+        try {
+          date = new Date(dateValue);
+        } catch (e) {
+          console.error('Error parsing date string:', e);
+          return;
+        }
+      } else {
+        return;
+      }
+
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      const key = this.getConstraintKey(
+        policyIndex,
+        permissionIndex,
+        constraintIndex
+      );
+      this.timeValues[key] = `${hours}:${minutes}`;
+    }
+  }
+
+  /**
+   * Gets the time value for a constraint in the format HH:MM
+   * @param policyIndex The index of the policy.
+   * @param permissionIndex The index of the permission.
+   * @param constraintIndex The index of the constraint.
+   * @returns The time value in HH:MM format, or an empty string if not available.
+   */
+  getTimeValue(
+    policyIndex: number,
+    permissionIndex: number,
+    constraintIndex: number
+  ): string {
+    const key = this.getConstraintKey(
+      policyIndex,
+      permissionIndex,
+      constraintIndex
+    );
+
+    // Check if we have a stored time value first
+    if (this.timeValues[key]) {
+      return this.timeValues[key];
+    }
+
+    // If no stored time value, try to get it from the date in the form control
+    const control = this.getConstraintControl(
+      policyIndex,
+      permissionIndex,
+      constraintIndex
+    );
+    const dateValue = control.get('rightOperand')?.value;
+
+    if (dateValue instanceof Date) {
+      const hours = dateValue.getHours().toString().padStart(2, '0');
+      const minutes = dateValue.getMinutes().toString().padStart(2, '0');
+      return `${hours}:${minutes}`;
+    }
+
+    // For string date values (e.g., ISO strings)
+    if (typeof dateValue === 'string' && dateValue) {
+      try {
+        const date = new Date(dateValue);
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+
+        // Store the time value so we don't have to parse it again
+        this.timeValues[key] = `${hours}:${minutes}`;
+        return this.timeValues[key];
+      } catch (e) {
+        console.error('Error parsing date string:', e);
+      }
+    }
+
+    return '';
   }
 
   /**
@@ -653,6 +950,13 @@ export class DatasetDetailsComponent {
       permission: this.fb.array([]), // Initialize the permission array
     });
     (this.datasetForm.get('hasPolicy') as FormArray).push(control);
+    const policyIndex =
+      (this.datasetForm.get('hasPolicy') as FormArray).length - 1;
+    this.addPermission(policyIndex);
+
+    // Add constraint to the permission
+    const permissionIndex = 0;
+    this.addConstraint(policyIndex, permissionIndex);
   }
 
   /**
@@ -799,32 +1103,167 @@ export class DatasetDetailsComponent {
   }
 
   /**
-   * Uploads the file associated with dataset.
-   * @param dataSetId The id of the dataset.
-   * @returns Observable<string> - The ID extracted from the response.
+   * Opens the artifact dialog
    */
-  uploadDatasetFile(dataSetId: string): Observable<string> {
-    if (this.selectedFile) {
-      console.log('Uploading file');
-      return this.artifactService
-        .uploadDatasetFile(this.selectedFile, dataSetId)
-        .pipe(
-          map((response) => {
-            console.log('File uploaded successfully');
-            const match = response.match(/File uploaded (.+)$/);
-            if (match && match[1]) {
-              return match[1];
-            } else {
-              throw new Error('Failed to extract ID from response');
-            }
-          }),
-          catchError((error) => {
-            console.error('File upload failed:', error);
-            throw error;
-          })
-        );
-    } else {
-      return of('');
+  openArtifactDialog(): void {
+    const dialogRef = this.dialog.open(ArtifactDialogComponent, {
+      width: '600px',
+      data: {
+        artifact: this.updateArtifact ? this.datasetArtifact : undefined,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      console.log('The dialog was closed', result);
+      if (result) {
+        if (result.artifactType === 'FILE') {
+          this.selectedFile = result.file;
+          this.updateArtifact = true;
+        } else if (result.artifactType === 'EXTERNAL') {
+          // For external artifacts
+          this.updateArtifact = true;
+          this.selectedFile = undefined;
+          if (result.authorization !== undefined) {
+            this.datasetArtifact = {
+              artifactType: 'EXTERNAL',
+              value: result.filename,
+              authorization: result.authorization,
+            };
+          } else {
+            console.log('No authorization');
+            this.datasetArtifact = {
+              artifactType: 'EXTERNAL',
+              value: result.filename,
+            };
+          }
+        }
+      }
+    });
+  }
+
+  // Handle left operand selection change
+  onLeftOperandChange(
+    policyIndex: number,
+    permissionIndex: number,
+    constraintIndex: number
+  ): void {
+    const leftOperand = this.getConstraintControl(
+      policyIndex,
+      permissionIndex,
+      constraintIndex
+    ).get('leftOperand')?.value;
+    const key = this.getConstraintKey(
+      policyIndex,
+      permissionIndex,
+      constraintIndex
+    );
+
+    this.constraintTypes[key] = leftOperand;
+
+    // Reset the right operand value when changing types
+    this.getConstraintControl(policyIndex, permissionIndex, constraintIndex)
+      .get('rightOperand')
+      ?.setValue('');
+  }
+
+  // Get the left operand type for a specific constraint
+  getLeftOperandType(
+    policyIndex: number,
+    permissionIndex: number,
+    constraintIndex: number
+  ): string {
+    const key = this.getConstraintKey(
+      policyIndex,
+      permissionIndex,
+      constraintIndex
+    );
+
+    // First check if we have a cached value
+    if (this.constraintTypes[key]) {
+      return this.constraintTypes[key];
+    }
+
+    // If not in cache, try to get it directly from the form control
+    const control = this.getConstraintControl(
+      policyIndex,
+      permissionIndex,
+      constraintIndex
+    );
+    const leftOperandValue = control.get('leftOperand')?.value;
+
+    // If we found a value directly from the control, cache it for future use
+    if (leftOperandValue) {
+      this.constraintTypes[key] = leftOperandValue;
+    }
+
+    return leftOperandValue || '';
+  }
+
+  // Helper method to get a unique key for each constraint
+  private getConstraintKey(
+    policyIndex: number,
+    permissionIndex: number,
+    constraintIndex: number
+  ): string {
+    return `p${policyIndex}_pm${permissionIndex}_c${constraintIndex}`;
+  }
+
+  // Helper method to get a constraint control
+  private getConstraintControl(
+    policyIndex: number,
+    permissionIndex: number,
+    constraintIndex: number
+  ): FormGroup {
+    return (
+      (
+        (this.datasetForm.get('hasPolicy') as FormArray)
+          .at(policyIndex)
+          .get('permission') as FormArray
+      )
+        .at(permissionIndex)
+        .get('constraint') as FormArray
+    ).at(constraintIndex) as FormGroup;
+  }
+
+  /**
+   * Handles time input changes and updates the date value in the form control.
+   * @param event The input event.
+   * @param policyIndex The index of the policy.
+   * @param permissionIndex The index of the permission.
+   * @param constraintIndex The index of the constraint.
+   */
+  onTimeChange(
+    event: Event,
+    policyIndex: number,
+    permissionIndex: number,
+    constraintIndex: number
+  ): void {
+    const time = (event.target as HTMLInputElement).value;
+    const key = this.getConstraintKey(
+      policyIndex,
+      permissionIndex,
+      constraintIndex
+    );
+    this.timeValues[key] = time;
+
+    // Get the current date value
+    const control = this.getConstraintControl(
+      policyIndex,
+      permissionIndex,
+      constraintIndex
+    );
+    const dateValue = control.get('rightOperand')?.value;
+
+    if (dateValue && time) {
+      // Create a new date with both date and time
+      const dateTime = new Date(dateValue);
+      const [hours, minutes] = time.split(':').map(Number);
+
+      // Set hours and minutes, and ensure seconds are set to 1 as per the required format
+      dateTime.setHours(hours, minutes, 1);
+
+      // Update the form control with the new date
+      control.get('rightOperand')?.setValue(dateTime);
     }
   }
 }

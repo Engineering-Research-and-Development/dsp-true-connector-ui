@@ -18,6 +18,12 @@
             Back
           </button>
           <h1>Dataset Details</h1>
+          <mat-icon
+            class="help-icon"
+            matTooltip=" Here you can view all information such as metadata, related distributions and policies, edit, or delete the chosen dataset. Use the tabs and buttons to navigate and manage the data."
+            aria-label="Help regarding dataset details"
+            >help_outline</mat-icon
+          >
         </div>
 
         <div class="buttons">
@@ -111,18 +117,34 @@
               <span>
                 {{ dataset.creator }}
               </span>
-              <strong>Artifact name</strong>
-              <span>
-                {{ datasetArtifact.filename }}
-              </span>
-              <strong>Artifact type</strong>
-              <span>
-                {{ datasetArtifact.artifactType }}
-              </span>
-              <strong>Artifact content type</strong>
-              <span>
-                {{ datasetArtifact["Content-Type"] }}
-              </span>
+              <div *ngIf="datasetArtifact.artifactType === 'FILE'">
+                <strong>Artifact type</strong>
+                <span>
+                  {{ datasetArtifact.artifactType }}
+                </span>
+                <strong>Artifact name</strong>
+                <span>
+                  {{ datasetArtifact.filename }}
+                </span>
+                <strong>Artifact content type</strong>
+                <span>
+                  {{ datasetArtifact.contentType }}
+                </span>
+              </div>
+              <div *ngIf="datasetArtifact.artifactType === 'EXTERNAL'">
+                <strong>Artifact type</strong>
+                <span>
+                  {{ datasetArtifact.artifactType }}
+                </span>
+                <strong>Artifact URL</strong>
+                <span>
+                  {{ datasetArtifact.value }}
+                </span>
+                <strong>Artifact authorization</strong>
+                <span>
+                  {{ datasetArtifact.authorization }}
+                </span>
+              </div>
               <strong>Issued</strong
               ><span>
                 {{ dataset.issued | date : "d MMMM y, HH:mm:ss" }}
@@ -189,37 +211,59 @@
               </mat-form-field>
             </div>
             <div>
-              <p><strong>Related file:</strong></p>
+              <p><strong>Related artifact:</strong></p>
 
-              <div *ngIf="selectedFile == undefined">
-                <input
-                  type="file"
-                  (change)="onFileSelected($event)"
-                  accept=".json"
-                  style="display: none"
-                  #fileInput
-                />
-
-                <button
-                  *ngIf="!updateArtifact"
-                  mat-button
-                  (click)="fileInput.click()"
-                >
-                  Upload dataset file
+              <div *ngIf="!selectedFile && !updateArtifact">
+                <button mat-button (click)="openArtifactDialog()">
+                  <mat-icon>upload_file</mat-icon> Add Artifact
                 </button>
               </div>
 
               <div *ngIf="selectedFile" class="file-info">
-                <span>{{ selectedFile.name }}</span>
+                <div class="artifact-details">
+                  <mat-icon>description</mat-icon>
+                  <span>{{ selectedFile.name }}</span>
+                  <span class="artifact-type">File Artifact</span>
+                </div>
                 <button mat-icon-button (click)="removeFile()">
                   <mat-icon>delete</mat-icon>
                 </button>
               </div>
-              <div *ngIf="!selectedFile && updateArtifact" class="file-info">
-                <span>{{ datasetArtifact.filename }}</span>
-                <button mat-icon-button (click)="removeFile()">
-                  <mat-icon>delete</mat-icon>
-                </button>
+
+              <div
+                *ngIf="!selectedFile && updateArtifact && datasetArtifact"
+                class="file-info"
+              >
+                <div class="artifact-details">
+                  <span>{{
+                    datasetArtifact.artifactType === "EXTERNAL"
+                      ? "External URL:"
+                      : "File Artifact:"
+                  }}</span>
+                  <mat-icon>{{
+                    datasetArtifact.artifactType === "EXTERNAL"
+                      ? "link"
+                      : "description"
+                  }}</mat-icon>
+
+                  <span>
+                    {{
+                      datasetArtifact.artifactType === "EXTERNAL"
+                        ? datasetArtifact.value
+                        : datasetArtifact.filename
+                    }}
+                  </span>
+                  <span *ngIf="datasetArtifact.artifactType === 'EXTERNAL'">
+                    <mat-icon>security</mat-icon
+                    >{{ datasetArtifact.authorization }}</span
+                  >
+                  <button mat-icon-button (click)="openArtifactDialog()">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button mat-icon-button (click)="removeFile()">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
               </div>
             </div>
             <p><strong>Description:</strong></p>
@@ -235,11 +279,18 @@
                       matInput
                       formControlName="language"
                       placeholder="Language"
+                      maxlength="2"
+                      pattern="[a-zA-Z ]*"
                     />
                     <mat-error
                       *ngIf="desc.get('language')?.hasError('required')"
                     >
                       Language is required
+                    </mat-error>
+                    <mat-error
+                      *ngIf="desc.get('language')?.hasError('pattern')"
+                    >
+                      Only letters are allowed
                     </mat-error>
                   </mat-form-field>
                   <div class="desc-text">
@@ -341,7 +392,10 @@
                         <div class="row-action">
                           <mat-form-field appearance="outline">
                             <mat-label>Left Operand</mat-label>
-                            <mat-select formControlName="leftOperand">
+                            <mat-select
+                              formControlName="leftOperand"
+                              (selectionChange)="onLeftOperandChange(i, j, k)"
+                            >
                               <mat-option
                                 *ngFor="let operand of leftOperandOptions"
                                 [value]="operand"
@@ -357,21 +411,7 @@
                               Left Operand is required
                             </mat-error>
                           </mat-form-field>
-                          <mat-form-field appearance="outline">
-                            <mat-label>Right Operand</mat-label>
-                            <input
-                              matInput
-                              formControlName="rightOperand"
-                              placeholder="Right Operand"
-                            />
-                            <mat-error
-                              *ngIf="
-                                cons.get('rightOperand')?.hasError('required')
-                              "
-                            >
-                              Right Operand is required
-                            </mat-error>
-                          </mat-form-field>
+
                           <mat-form-field appearance="outline">
                             <mat-label>Operator</mat-label>
                             <mat-select formControlName="operator">
@@ -388,6 +428,153 @@
                               Operator is required
                             </mat-error>
                           </mat-form-field>
+
+                          <!-- Dynamic Right Operand input based on Left Operand selection -->
+                          <ng-container
+                            *ngIf="
+                              getLeftOperandType(i, j, k) ||
+                              cons.get('leftOperand')?.value
+                            "
+                          >
+                            <ng-container
+                              [ngSwitch]="
+                                getLeftOperandType(i, j, k) ||
+                                cons.get('leftOperand')?.value
+                              "
+                            >
+                              <!-- For COUNT - Number input -->
+                              <mat-form-field
+                                appearance="outline"
+                                *ngSwitchCase="'COUNT'"
+                              >
+                                <mat-label>Count Value</mat-label>
+                                <input
+                                  matInput
+                                  type="number"
+                                  formControlName="rightOperand"
+                                  placeholder="Enter number"
+                                />
+                                <mat-error
+                                  *ngIf="
+                                    cons
+                                      .get('rightOperand')
+                                      ?.hasError('required')
+                                  "
+                                >
+                                  Count value is required
+                                </mat-error>
+                              </mat-form-field>
+
+                              <!-- For DATE_TIME - Date picker -->
+                              <mat-form-field
+                                appearance="outline"
+                                *ngSwitchCase="'DATE_TIME'"
+                              >
+                                <mat-label>Select Date</mat-label>
+                                <input
+                                  matInput
+                                  [matDatepicker]="picker"
+                                  formControlName="rightOperand"
+                                />
+                                <mat-datepicker-toggle
+                                  matIconSuffix
+                                  [for]="picker"
+                                ></mat-datepicker-toggle>
+                                <mat-datepicker #picker></mat-datepicker>
+                                <mat-error
+                                  *ngIf="
+                                    cons
+                                      .get('rightOperand')
+                                      ?.hasError('required')
+                                  "
+                                >
+                                  Date is required
+                                </mat-error>
+                              </mat-form-field>
+
+                              <!-- Time input for DATE_TIME -->
+                              <mat-form-field
+                                appearance="outline"
+                                *ngSwitchCase="'DATE_TIME'"
+                                class="time-input"
+                              >
+                                <mat-label>Select Time</mat-label>
+                                <input
+                                  matInput
+                                  type="time"
+                                  [value]="getTimeValue(i, j, k)"
+                                  (input)="onTimeChange($event, i, j, k)"
+                                />
+                              </mat-form-field>
+
+                              <!-- For PURPOSE - Text input -->
+                              <mat-form-field
+                                appearance="outline"
+                                *ngSwitchCase="'PURPOSE'"
+                              >
+                                <mat-label>Purpose</mat-label>
+                                <input
+                                  matInput
+                                  formControlName="rightOperand"
+                                  placeholder="Enter purpose"
+                                />
+                                <mat-error
+                                  *ngIf="
+                                    cons
+                                      .get('rightOperand')
+                                      ?.hasError('required')
+                                  "
+                                >
+                                  Purpose is required
+                                </mat-error>
+                              </mat-form-field>
+
+                              <!-- For SPATIAL - Text input -->
+                              <mat-form-field
+                                appearance="outline"
+                                *ngSwitchCase="'SPATIAL'"
+                              >
+                                <mat-label>Spatial Information</mat-label>
+                                <input
+                                  matInput
+                                  formControlName="rightOperand"
+                                  placeholder="Enter spatial info"
+                                />
+                                <mat-error
+                                  *ngIf="
+                                    cons
+                                      .get('rightOperand')
+                                      ?.hasError('required')
+                                  "
+                                >
+                                  Spatial information is required
+                                </mat-error>
+                              </mat-form-field>
+
+                              <!-- Default case for any other constraint types -->
+                              <mat-form-field
+                                appearance="outline"
+                                *ngSwitchDefault
+                              >
+                                <mat-label>Right Operand</mat-label>
+                                <input
+                                  matInput
+                                  formControlName="rightOperand"
+                                  placeholder="Right Operand"
+                                />
+                                <mat-error
+                                  *ngIf="
+                                    cons
+                                      .get('rightOperand')
+                                      ?.hasError('required')
+                                  "
+                                >
+                                  Right Operand is required
+                                </mat-error>
+                              </mat-form-field>
+                            </ng-container>
+                          </ng-container>
+
                           <button
                             mat-icon-button
                             (click)="removeConstraint(i, j, k)"
@@ -437,7 +624,7 @@
             </mat-form-field>
 
             <p><strong>Keyword:</strong></p>
-            <div formArrayName="keyword">
+            <div formArrayName="keyword" class="key">
               <div *ngFor="let keyword of keywordControls; let i = index">
                 <mat-form-field appearance="outline">
                   <input matInput [formControlName]="i" placeholder="Keyword" />
@@ -460,7 +647,7 @@
             </button>
 
             <p><strong>Theme:</strong></p>
-            <div formArrayName="theme">
+            <div formArrayName="theme" class="key">
               <div *ngFor="let theme of themeControls; let i = index">
                 <mat-form-field appearance="outline">
                   <input matInput [formControlName]="i" placeholder="Theme" />
