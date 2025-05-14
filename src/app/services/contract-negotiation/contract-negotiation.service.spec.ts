@@ -1,7 +1,4 @@
-import {
-  HttpClientTestingModule,
-  HttpTestingController,
-} from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { environment } from '../../../environments/environment';
 import { ContractNegotiation } from '../../models/contractNegotiation';
@@ -18,6 +15,7 @@ import {
 } from '../../test-utils/test-utils';
 import { SnackbarService } from '../snackbar/snackbar.service';
 import { ContractNegotiationService } from './contract-negotiation.service';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('ContractNegotiationService', () => {
   let service: ContractNegotiationService;
@@ -30,12 +28,14 @@ describe('ContractNegotiationService', () => {
     ]);
 
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [
+    imports: [],
+    providers: [
         ContractNegotiationService,
         { provide: SnackbarService, useValue: snackbarSpy },
-      ],
-    });
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+    ]
+});
 
     service = TestBed.inject(ContractNegotiationService);
     httpMock = TestBed.inject(HttpTestingController);

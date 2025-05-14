@@ -1,7 +1,4 @@
-import {
-  HttpClientTestingModule,
-  HttpTestingController,
-} from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { environment } from '../../../environments/environment';
 import { DataService } from '../../models/dataService';
@@ -9,6 +6,7 @@ import { GenericApiResponse } from '../../models/genericApiResponse';
 import { MOCK_DATA_SERVICE } from '../../test-utils/test-utils';
 import { SnackbarService } from '../snackbar/snackbar.service';
 import { DataServiceService } from './data-service.service';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('DataServiceService', () => {
   let service: DataServiceService;
@@ -22,12 +20,14 @@ describe('DataServiceService', () => {
     ]);
 
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [
+    imports: [],
+    providers: [
         DataServiceService,
         { provide: SnackbarService, useValue: snackbarSpy },
-      ],
-    });
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+    ]
+});
 
     service = TestBed.inject(DataServiceService);
     httpMock = TestBed.inject(HttpTestingController);

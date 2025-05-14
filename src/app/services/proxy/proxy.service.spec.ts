@@ -1,7 +1,4 @@
-import {
-  HttpClientTestingModule,
-  HttpTestingController,
-} from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -11,6 +8,7 @@ import { MOCK_CATALOG } from '../../test-utils/test-utils';
 import { ErrorHandlerService } from '../error-handler/error-handler.service';
 import { SnackbarService } from '../snackbar/snackbar.service';
 import { ProxyService } from './proxy.service';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('ProxyService', () => {
   let service: ProxyService;
@@ -30,13 +28,15 @@ describe('ProxyService', () => {
     );
 
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [
+    imports: [],
+    providers: [
         ProxyService,
         { provide: SnackbarService, useValue: snackbarSpy },
         { provide: ErrorHandlerService, useValue: errorHandlerSpy },
-      ],
-    });
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+    ]
+});
 
     service = TestBed.inject(ProxyService);
     httpMock = TestBed.inject(HttpTestingController);

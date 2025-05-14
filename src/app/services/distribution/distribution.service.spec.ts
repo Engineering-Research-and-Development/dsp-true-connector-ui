@@ -1,7 +1,4 @@
-import {
-  HttpClientTestingModule,
-  HttpTestingController,
-} from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { environment } from '../../../environments/environment';
 import { Distribution } from '../../models/distribution';
@@ -9,6 +6,7 @@ import { GenericApiResponse } from '../../models/genericApiResponse';
 import { MOCK_DISTRIBUTION } from '../../test-utils/test-utils';
 import { SnackbarService } from '../snackbar/snackbar.service';
 import { DistributionService } from './distribution.service';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('DistributionService', () => {
   let service: DistributionService;
@@ -22,12 +20,14 @@ describe('DistributionService', () => {
     ]);
 
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [
+    imports: [],
+    providers: [
         DistributionService,
         { provide: SnackbarService, useValue: snackbarSpy },
-      ],
-    });
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+    ]
+});
 
     service = TestBed.inject(DistributionService);
     httpMock = TestBed.inject(HttpTestingController);
