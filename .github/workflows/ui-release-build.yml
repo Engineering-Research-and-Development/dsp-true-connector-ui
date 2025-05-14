@@ -1,0 +1,218 @@
+name: UI Release New Version
+on:
+  workflow_dispatch:
+    inputs:
+      releaseVersion:
+        description: "Release and tag version (e.g., 1.5.0)"
+        required: true
+        pattern: "^\\d+\\.\\d+\\.\\d+$"
+
+jobs:
+  release_version:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      packages: write
+      attestations: write
+      id-token: write
+      pull-requests: write
+
+    env:
+      REGISTRY: ghcr.io
+      IMAGE_NAME: engineering-research-and-development/dsp-true-connector-ui
+      GITHUB_USERNAME: ${{ github.actor }}
+      TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate release version
+        run: |
+          if ! [[ ${{ github.event.inputs.releaseVersion }} =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Error: Release version must follow semantic versioning (x.y.z)"
+            exit 1
+          fi
+          echo "Release version ${{ github.event.inputs.releaseVersion }} is valid"
+
+      - name: Determine default branch
+        id: default-branch
+        run: |
+          DEFAULT_BRANCH=$(git remote show origin | grep "HEAD branch" | cut -d ":" -f 2 | xargs)
+          echo "Default branch is: $DEFAULT_BRANCH"
+          echo "name=$DEFAULT_BRANCH" >> $GITHUB_OUTPUT
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Setup Git credentials
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email noreply@github.com
+
+      - name: Calculate next development version
+        id: calc-version
+        run: |
+          # Parse release version
+          IFS='.' read -ra VERSION_PARTS <<< "${{ github.event.inputs.releaseVersion }}"
+          MAJOR=${VERSION_PARTS[0]}
+          MINOR=${VERSION_PARTS[1]}
+          PATCH=${VERSION_PARTS[2]}
+
+          # Increment patch version for development
+          NEXT_PATCH=$((PATCH + 1))
+          NEXT_DEV_VERSION="${MAJOR}.${MINOR}.${NEXT_PATCH}-dev"
+
+          echo "Next development version will be: $NEXT_DEV_VERSION"
+          echo "next_dev_version=${NEXT_DEV_VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Update version in package.json and environment files
+        run: |
+          # Update version in package.json
+          npm version ${{ github.event.inputs.releaseVersion }} --no-git-tag-version
+          echo "Updated package.json version to ${{ github.event.inputs.releaseVersion }}"
+
+          # Update APP_VERSION in all environment files
+          ENV_FILES=(
+            "src/environments/environment.ts"
+            "src/environments/environment.development.ts"
+            "src/environments/environment.connectorA.ts"
+            "src/environments/environment.connectorB.ts"
+          )
+
+          for ENV_FILE in "${ENV_FILES[@]}"; do
+            if [[ -f "$ENV_FILE" ]]; then
+              sed -i "s/APP_VERSION: '.*'/APP_VERSION: '${{ github.event.inputs.releaseVersion }}'/g" "$ENV_FILE"
+              echo "Updated version in $ENV_FILE"
+            else
+              echo "Warning: $ENV_FILE does not exist, skipping"
+            fi
+          done
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build TC DSP UI app
+        run: npm run build --configuration=production
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ github.event.inputs.releaseVersion }}
+          path: dist/
+          retention-days: 30
+
+      - name: Commit release version
+        run: |
+          git add package.json package-lock.json src/environments/environment*.ts
+          git commit -m "Release ${{ github.event.inputs.releaseVersion }} [release]"
+          git push origin ${{ steps.default-branch.outputs.name }}
+
+      - name: Tag the project
+        run: |
+          git tag ${{ github.event.inputs.releaseVersion }} -m "Release ${{ github.event.inputs.releaseVersion }}"
+          git push origin ${{ github.event.inputs.releaseVersion }}
+          echo "Created and pushed tag: ${{ github.event.inputs.releaseVersion }}"
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ env.TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=${{ github.event.inputs.releaseVersion }}
+            type=raw,value=latest
+
+      - name: Build and push Docker image
+        id: push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          no-cache: true
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: "${{ github.event.inputs.releaseVersion }}"
+          tag_name: ${{ github.event.inputs.releaseVersion }}
+          body: "Release version ${{ github.event.inputs.releaseVersion }}"
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ env.TOKEN }}
+
+      - name: Checkout develop branch and update to next version
+        run: |
+          # Checkout develop branch
+          echo "Checking out develop branch..."
+          git fetch origin develop
+          git checkout develop
+
+          # Merge changes from default branch to bring in the release
+          echo "Merging changes from ${{ steps.default-branch.outputs.name }} to develop..."
+          if ! git merge -m "Merge release ${{ github.event.inputs.releaseVersion }} from ${{ steps.default-branch.outputs.name }}" origin/${{ steps.default-branch.outputs.name }}; then
+            echo "Merge failed. There might be conflicts that need manual resolution."
+            echo "Rolling back to previous state..."
+            git merge --abort
+            git checkout ${{ steps.default-branch.outputs.name }}
+            exit 1
+          fi
+
+          # Use the automatically calculated next development version
+          DEV_VERSION="${{ steps.calc-version.outputs.next_dev_version }}"
+          echo "Updating to next development version: $DEV_VERSION"
+
+          # Update version in package.json
+          npm version ${DEV_VERSION} --no-git-tag-version
+
+          # Update APP_VERSION in all environment files
+          ENV_FILES=(
+            "src/environments/environment.ts"
+            "src/environments/environment.development.ts"
+            "src/environments/environment.connectorA.ts"
+            "src/environments/environment.connectorB.ts"
+          )
+
+          for ENV_FILE in "${ENV_FILES[@]}"; do
+            if [[ -f "$ENV_FILE" ]]; then
+              sed -i "s/APP_VERSION: '.*'/APP_VERSION: '${DEV_VERSION}'/g" "$ENV_FILE"
+              echo "Updated development version in $ENV_FILE"
+            else
+              echo "Warning: $ENV_FILE does not exist, skipping"
+            fi
+          done
+
+          # Commit all changes to develop
+          git add package.json package-lock.json src/environments/environment*.ts
+          git commit -m "Next development version is ${DEV_VERSION}"
+          git push origin develop
+          echo "Successfully updated develop branch to version $DEV_VERSION"
+
+      - name: Summary
+        run: |
+          echo "=== Release Process Complete ==="
+          echo "✅ Released version: ${{ github.event.inputs.releaseVersion }}"
+          echo "✅ Next development version: ${{ steps.calc-version.outputs.next_dev_version }}"
+          echo "✅ Docker images tagged: "
+          echo "   - ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.releaseVersion }}"
+          echo "   - ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+          echo "✅ GitHub release created"
+          echo "✅ Develop branch updated"

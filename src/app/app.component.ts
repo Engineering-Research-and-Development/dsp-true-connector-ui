@@ -15,6 +15,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { Router, RouterModule, RouterOutlet } from '@angular/router';
+import { environment } from '../environments/environment';
 import { AuthService } from './services/auth/auth.service';
 
 @Component({
@@ -42,7 +43,7 @@ import { AuthService } from './services/auth/auth.service';
 })
 export class AppComponent implements OnInit {
   title = 'TRUE Connector UI';
-
+  appVersion = environment.APP_VERSION;
   isExpanded = true;
   isUserLoggedIn = true;
 

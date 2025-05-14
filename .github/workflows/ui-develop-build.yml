@@ -1,12 +1,13 @@
-name: Feature or hotfix build UI
+name: UI Develop Build
+
 on:
   push:
-    branches: ["feature/*", "hotfix/*", "develop", "master"]
+    branches: ["develop"]
 
 jobs:
-  build-and-push-image:
-    if: "!contains(github.event.head_commit.message, '[release]')"
-    runs-on: ubuntu-22.04
+  build-and-push-develop-image:
+    if: "!contains(github.event.head_commit.message, '[release]') && !contains(github.event.head_commit.message, '[skip ci]')"
+    runs-on: ubuntu-latest
 
     permissions:
       contents: read
@@ -25,7 +26,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: "npm"
 
       - name: Install dependencies
@@ -46,6 +47,9 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=develop
+            type=sha,format=short
 
       - name: Build and push Docker image
         id: push
@@ -55,5 +59,17 @@ jobs:
           file: ./Dockerfile
           no-cache: true
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:test
+          tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Summary
+        run: |
+          echo "=== Develop Build Complete ==="
+          echo "✅ Branch: develop"
+          echo "✅ Commit: $(git rev-parse --short HEAD)"
+          echo "✅ Docker images tagged: "
+          echo "   - ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:develop"
+          echo "   - ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$(git rev-parse --short HEAD)"
+          echo "✅ Application built with configuration: production"
+          echo ""
+          echo "This image can now be used in the integration environment for testing."
