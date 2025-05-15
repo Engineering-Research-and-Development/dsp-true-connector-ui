@@ -15,31 +15,29 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
 import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
 import { DataServiceService } from '../../services/data-service/data-service.service';
-import { SnackbarService } from '../../services/snackbar/snackbar.service';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
 import { DataService } from './../../models/dataService';
 
 @Component({
-  selector: 'app-service-management',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatCardModule,
-    MatDividerModule,
-    MatListModule,
-    MatExpansionModule,
-    MatIconModule,
-    NgxSkeletonLoaderModule,
-    MatInputModule,
-    MatToolbarModule,
-    MatFormFieldModule,
-    FormsModule,
-    ReactiveFormsModule,
-    MatTooltipModule,
-    MatButtonModule,
-  ],
-  templateUrl: './service-management.component.html',
-  styleUrl: './service-management.component.css',
+    selector: 'app-service-management',
+    imports: [
+        CommonModule,
+        MatCardModule,
+        MatDividerModule,
+        MatListModule,
+        MatExpansionModule,
+        MatIconModule,
+        NgxSkeletonLoaderModule,
+        MatInputModule,
+        MatToolbarModule,
+        MatFormFieldModule,
+        FormsModule,
+        ReactiveFormsModule,
+        MatTooltipModule,
+        MatButtonModule,
+    ],
+    templateUrl: './service-management.component.html',
+    styleUrl: './service-management.component.css'
 })
 export class ServiceManagementComponent implements OnInit {
   dataServices: DataService[] = [];
@@ -51,8 +49,7 @@ export class ServiceManagementComponent implements OnInit {
     public dialog: MatDialog,
     private dataServiceService: DataServiceService,
     private router: Router,
-    private dataService: DataServiceService,
-    private snackBarService: SnackbarService
+    private dataService: DataServiceService
   ) {}
 
   /**
@@ -76,13 +73,13 @@ export class ServiceManagementComponent implements OnInit {
   getAllDataServices(): void {
     this.dataServiceService.getAllDataServices().subscribe({
       next: (data) => {
-        console.log('Data services:', data);
         this.dataServices = data;
         this.filteredDataServices = [...this.dataServices];
         this.loading = false;
       },
       error: (error) => {
         console.error('Error:', error);
+        this.loading = false;
       },
     });
   }

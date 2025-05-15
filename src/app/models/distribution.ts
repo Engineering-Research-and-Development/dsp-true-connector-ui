@@ -13,4 +13,5 @@ export interface Distribution {
   accessService: DataService[];
   hasPolicy?: any[];
   type?: string;
+  format?: any;
 }

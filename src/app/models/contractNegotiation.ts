@@ -10,4 +10,10 @@ export interface ContractNegotiation {
   providerPid: string;
   state: ContractNegotiationState;
   type?: string;
+  agreement: any;
+  created: string;
+  createdBy: string;
+  lastModifiedBy: string;
+  modified: string;
+  role: string;
 }

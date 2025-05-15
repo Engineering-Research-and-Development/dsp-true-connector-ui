@@ -55,8 +55,9 @@ mat-divider {
 }
 
 p {
-  margin: 10px 0;
+  margin: 16px 0px 10px;
   color: #333333;
+  font-size: 16px;
 }
 
 p strong {
@@ -79,9 +80,7 @@ mat-list-item:hover {
 }
 
 button[mat-button] {
-  background-color: #f0f0f0;
   padding: 10px 15px;
-
   font-size: 1em;
   font-weight: 300;
   border: none;
@@ -151,11 +150,39 @@ h1 {
   flex-wrap: wrap;
   flex-direction: row;
 }
+.key > div {
+  display: flex;
+  align-items: center;
+  margin-right: 10px;
+  margin-bottom: 10px;
+}
+.key mat-form-field {
+  width: auto;
+  min-width: 200px;
+  margin-right: 5px;
+  margin-bottom: 0;
+}
+.key button[mat-icon-button] {
+  height: 40px;
+  width: 40px;
+  padding: 0;
+  margin-top: 4px;
+  align-self: flex-start;
+}
+.key .mat-icon {
+  vertical-align: middle;
+}
 .table-info {
   display: flex;
   justify-content: space-around;
   flex-wrap: wrap;
   width: 70%;
+}
+.table-info div {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  width: 100%;
 }
 strong {
   color: #000000;
@@ -182,4 +209,12 @@ span {
   background-color: #ffffff;
   border-radius: 10px;
   padding: 0 15px;
+}
+.help-icon {
+  font-size: 1.1em;
+  margin-left: 8px;
+  vertical-align: middle;
+  color: grey;
+  cursor: help;
+  margin-top: 20px;
 }

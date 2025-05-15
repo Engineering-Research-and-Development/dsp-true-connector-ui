@@ -1,9 +1,10 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, catchError, map, throwError } from 'rxjs';
+import { Observable, catchError, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Catalog } from '../../models/catalog';
 import { GenericApiResponse } from '../../models/genericApiResponse';
+import { ErrorHandlerService } from '../error-handler/error-handler.service';
 import { SnackbarService } from '../snackbar/snackbar.service';
 
 /**
@@ -15,11 +16,14 @@ export class CatalogService {
 
   /**
    * Constructor in order to use the HttpClient and set the httpOptions
-   * @param http
+   * @param http - HttpClient
+   * @param snackBarService - service to show snack bar messages
+   * @param errorHandlerService - service to handle errors
    * */
   constructor(
     private http: HttpClient,
-    private snackBarService: SnackbarService
+    private snackBarService: SnackbarService,
+    private errorHandlerService: ErrorHandlerService
   ) {}
   httpOptions = {
     headers: new HttpHeaders({
@@ -42,7 +46,7 @@ export class CatalogService {
       )
       .pipe(
         map((response: GenericApiResponse<Catalog>) => {
-          if (response.success) {
+          if (response.success && response.data) {
             this.snackBarService.openSnackBar(
               response.message,
               'OK',
@@ -52,17 +56,10 @@ export class CatalogService {
             );
             return response.data;
           } else {
-            this.snackBarService.openSnackBar(
-              response.message,
-              'OK',
-              'center',
-              'bottom',
-              'snackbar-error'
-            );
             throw new Error(response.message);
           }
         }),
-        catchError(this.errorHandler.bind(this))
+        catchError((error) => this.errorHandlerService.handleError(error))
       );
   }
 
@@ -76,20 +73,13 @@ export class CatalogService {
       .get<GenericApiResponse<Catalog[]>>(this.catalogApiUrl, this.httpOptions)
       .pipe(
         map((response: GenericApiResponse<Catalog[]>) => {
-          if (response.success) {
+          if (response.success && response.data) {
             return response.data;
           } else {
-            this.snackBarService.openSnackBar(
-              response.message,
-              'OK',
-              'center',
-              'bottom',
-              'snackbar-error'
-            );
             throw new Error(response.message);
           }
         }),
-        catchError(this.errorHandler.bind(this))
+        catchError((error) => this.errorHandlerService.handleError(error))
       );
   }
 
@@ -103,20 +93,13 @@ export class CatalogService {
       .get<GenericApiResponse<Catalog>>(this.catalogApiUrl, this.httpOptions)
       .pipe(
         map((response: GenericApiResponse<Catalog>) => {
-          if (response.success) {
+          if (response.success && response.data) {
             return response.data;
           } else {
-            this.snackBarService.openSnackBar(
-              response.message,
-              'OK',
-              'center',
-              'bottom',
-              'snackbar-error'
-            );
             throw new Error(response.message);
           }
         }),
-        catchError(this.errorHandler.bind(this))
+        catchError((error) => this.errorHandlerService.handleError(error))
       );
   }
 
@@ -134,20 +117,13 @@ export class CatalogService {
       )
       .pipe(
         map((response: GenericApiResponse<Catalog>) => {
-          if (response.success) {
+          if (response.success && response.data) {
             return response.data;
           } else {
-            this.snackBarService.openSnackBar(
-              response.message,
-              'OK',
-              'center',
-              'bottom',
-              'snackbar-error'
-            );
             throw new Error(response.message);
           }
         }),
-        catchError(this.errorHandler.bind(this))
+        catchError((error) => this.errorHandlerService.handleError(error))
       );
   }
 
@@ -166,7 +142,7 @@ export class CatalogService {
       )
       .pipe(
         map((response: GenericApiResponse<Catalog>) => {
-          if (response.success) {
+          if (response.success && response.data) {
             this.snackBarService.openSnackBar(
               response.message,
               'OK',
@@ -176,17 +152,10 @@ export class CatalogService {
             );
             return response.data;
           } else {
-            this.snackBarService.openSnackBar(
-              response.message,
-              'OK',
-              'center',
-              'bottom',
-              'snackbar-error'
-            );
             throw new Error(response.message);
           }
         }),
-        catchError(this.errorHandler.bind(this))
+        catchError((error) => this.errorHandlerService.handleError(error))
       );
   }
 
@@ -214,17 +183,10 @@ export class CatalogService {
             );
             return response.message;
           } else {
-            this.snackBarService.openSnackBar(
-              response.message,
-              'OK',
-              'center',
-              'bottom',
-              'snackbar-error'
-            );
             throw new Error(response.message);
           }
         }),
-        catchError(this.errorHandler.bind(this))
+        catchError((error) => this.errorHandlerService.handleError(error))
       );
   }
 
@@ -243,33 +205,7 @@ export class CatalogService {
         map((response: any) => {
           return response;
         }),
-        catchError(this.errorHandler.bind(this))
+        catchError((error) => this.errorHandlerService.handleError(error))
       );
-  }
-
-  /**
-   * Handle errors
-   * @param error
-   * @returns throwError
-   * */
-  errorHandler(error: any) {
-    console.log('ERR', error);
-    let errorMessage = '';
-    if (error.error instanceof ErrorEvent) {
-      errorMessage = error.error.message;
-    } else {
-      errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
-    }
-    this.snackBarService.openSnackBar(
-      'An error occurred: ' + errorMessage,
-      'OK',
-      'center',
-      'bottom',
-      'snackbar-error'
-    );
-    console.log(errorMessage);
-    return throwError(() => {
-      return errorMessage;
-    });
   }
 }

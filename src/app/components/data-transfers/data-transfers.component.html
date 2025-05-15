@@ -1,0 +1,215 @@
+<div *ngIf="loading" class="item">
+  <mat-card class="service-card">
+    <ngx-skeleton-loader count="15" appearance="line" animation="pulse" />
+  </mat-card>
+</div>
+
+<div *ngIf="!loading">
+  <mat-card class="service-card">
+    <mat-card-title class="service-title"> </mat-card-title>
+    <mat-card-content>
+      <div class="headtitle">
+        <div class="back">
+          <h1 *ngIf="userType === 'provider'">
+            Manage data transfers as provider
+          </h1>
+          <h1 *ngIf="userType === 'consumer'">
+            Manage data transfers as consumer
+          </h1>
+          <mat-icon
+            *ngIf="userType === 'provider'"
+            class="help-icon"
+            matTooltip="Here you can view all data transfers where you act as a provider. You can filter them by state, and respond differently based on current state to other consumer who requested artifacts from you."
+            aria-label="Help regarding data transfer management"
+            >help_outline</mat-icon
+          >
+          <mat-icon
+            *ngIf="userType === 'consumer'"
+            class="help-icon"
+            matTooltip="Here you can view all data transfers where you act as a consumer. You can filter them by state, and respond differently based on current state to other providers, and in the end download and view artifacts."
+            aria-label="Help regarding data transfer management"
+            >help_outline</mat-icon
+          >
+        </div>
+        <div class="buttons">
+          <button
+            *ngIf="userType === 'provider'"
+            mat-button
+            matTooltip="Refresh data"
+            (click)="getProviderDataTransfers()"
+          >
+            <mat-icon>cached</mat-icon>
+          </button>
+          <button
+            *ngIf="userType === 'consumer'"
+            mat-button
+            matTooltip="Refresh data"
+            (click)="getConsumerDataTransfers()"
+          >
+            <mat-icon>cached</mat-icon>
+          </button>
+        </div>
+      </div>
+      <div class="filter-div">
+        <section class="filter-section">
+          <h3>Filter by State</h3>
+          <mat-chip-listbox
+            multiple
+            aria-label="Data Transfer state selection"
+            class="transfer-state-chips"
+          >
+            <mat-chip-option
+              *ngFor="let state of dataTransferStates"
+              [selected]="selectedStates.includes(state)"
+              (click)="toggleStateSelection(state)"
+              color="primary"
+            >
+              {{ getStateDisplayName(state) }}
+            </mat-chip-option>
+          </mat-chip-listbox>
+        </section>
+      </div>
+      <div class="space-card">
+        <div *ngFor="let dataTransfer of filteredDataTransfers">
+          <div class="card">
+            <div class="title">
+              {{ dataTransfer["@id"] }}
+            </div>
+            <div class="subtitle">
+              {{ dataTransfer.type }}
+            </div>
+            <div class="content">
+              <p>
+                <strong>Agreement ID:</strong>
+                {{ dataTransfer.agreementId }}
+              </p>
+              <p>
+                <strong>Callback address:</strong>
+                {{ dataTransfer.callbackAddress }}
+              </p>
+              <p>
+                <strong>Dataset ID:</strong>
+                {{ dataTransfer.datasetId }}
+              </p>
+              <p>
+                <strong>Provider PID:</strong>
+                {{ dataTransfer.providerPid }}
+              </p>
+              <p>
+                <strong>Consumer PID:</strong>
+                {{ dataTransfer.consumerPid }}
+              </p>
+              <!-- <p>
+                <strong>Data address:</strong>
+                {{ dataTransfer.dataAddress }}
+              </p> -->
+              <p>
+                <strong>Format:</strong>
+                {{ dataTransfer.format }}
+              </p>
+              <p>
+                <strong>Created:</strong>
+                {{ dataTransfer.created | date : "d MMMM y, HH:mm:ss" }}
+              </p>
+              <p>
+                <strong>Modified:</strong>
+                {{ dataTransfer.modified | date : "d MMMM y, HH:mm:ss" }}
+              </p>
+              <p>
+                <strong>State:</strong>
+                {{ dataTransfer.state }}
+              </p>
+            </div>
+
+            <div class="btn-action">
+              <button
+                mat-button
+                matTooltip="Request data transfer"
+                *ngIf="
+                  dataTransfer.state === dataTransferState.INITIALIZED &&
+                  userType === 'consumer'
+                "
+                (click)="onRequest(dataTransfer, 'HttpData-PULL')"
+              >
+                <mat-icon>check</mat-icon>
+                <p>Request</p>
+              </button>
+              <button
+                mat-button
+                matTooltip="Start data transfer"
+                *ngIf="
+                  (dataTransfer.state === dataTransferState.REQUESTED ||
+                    dataTransfer.state === dataTransferState.SUSPENDED) &&
+                  userType === 'provider'
+                "
+                (click)="onStart(dataTransfer)"
+              >
+                <mat-icon>play_arrow</mat-icon>
+                <p>Start</p>
+              </button>
+              <button
+                mat-button
+                matTooltip="Download artifact"
+                *ngIf="
+                  dataTransfer.state === dataTransferState.STARTED &&
+                  userType === 'consumer' &&
+                  dataTransfer.downloaded === false
+                "
+                (click)="onDownload(dataTransfer)"
+              >
+                <mat-icon>download</mat-icon>
+                <p>Download</p>
+              </button>
+              <button
+                mat-button
+                matTooltip="View artifact"
+                *ngIf="
+                  dataTransfer.state === dataTransferState.STARTED &&
+                  userType === 'consumer' &&
+                  dataTransfer.downloaded === true
+                "
+                (click)="onView(dataTransfer)"
+              >
+                <mat-icon>pageview</mat-icon>
+                <p>View</p>
+              </button>
+              <button
+                mat-button
+                matTooltip="Complete data transfer"
+                *ngIf="dataTransfer.state === dataTransferState.STARTED"
+                (click)="onComplete(dataTransfer)"
+              >
+                <mat-icon>verified</mat-icon>
+                <p>Complete</p>
+              </button>
+              <button
+                mat-button
+                matTooltip="Suspend data transfer"
+                *ngIf="
+                  dataTransfer.state === dataTransferState.STARTED &&
+                  !(userType === 'consumer' && dataTransfer.downloaded === true)
+                "
+                (click)="onSuspend(dataTransfer)"
+              >
+                <mat-icon>pause</mat-icon>
+                <p>Suspend</p>
+              </button>
+              <button
+                mat-button
+                matTooltip="Terminate data transfer"
+                *ngIf="
+                  dataTransfer.state !== dataTransferState.COMPLETED &&
+                  dataTransfer.state !== dataTransferState.TERMINATED
+                "
+                (click)="onTerminate(dataTransfer)"
+              >
+                <mat-icon>cancel</mat-icon>
+                <p>Terminate</p>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -12,7 +12,6 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
 import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
-import { environment } from '../../../../environments/environment';
 import { Catalog } from '../../../models/catalog';
 import { Distribution } from '../../../models/distribution';
 import { Action } from '../../../models/enums/action.enum';
@@ -25,24 +24,23 @@ import { SnackbarService } from '../../../services/snackbar/snackbar.service';
 import { CnDetailsDialogComponent } from './cn-details-dialog/cn-details-dialog.component';
 
 @Component({
-  selector: 'app-catalog-browser-details',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatTooltipModule,
-    MatTabsModule,
-    MatCardModule,
-    NgxSkeletonLoaderModule,
-    MatIconModule,
-    FormsModule,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatExpansionModule,
-    MatCheckboxModule,
-  ],
-  templateUrl: './catalog-browser-details.component.html',
-  styleUrl: './catalog-browser-details.component.css',
+    selector: 'app-catalog-browser-details',
+    imports: [
+        CommonModule,
+        MatTooltipModule,
+        MatTabsModule,
+        MatCardModule,
+        NgxSkeletonLoaderModule,
+        MatIconModule,
+        FormsModule,
+        ReactiveFormsModule,
+        MatFormFieldModule,
+        MatSelectModule,
+        MatExpansionModule,
+        MatCheckboxModule,
+    ],
+    templateUrl: './catalog-browser-details.component.html',
+    styleUrl: './catalog-browser-details.component.css'
 })
 export class CatalogBrowserDetailsComponent {
   catalogData!: Catalog | undefined;
@@ -65,8 +63,6 @@ export class CatalogBrowserDetailsComponent {
     if (navigation?.extras.state) {
       this.catalogData = navigation.extras.state['catalog'];
       this.languages = this.extractLanguages(this.catalogData!.description);
-      console.log('Languages:', this.languages);
-      console.log('DAtasets:', this.catalogData?.dataset);
       this.loading = false;
     } else {
       this.goBack();
@@ -137,21 +133,18 @@ export class CatalogBrowserDetailsComponent {
    * */
   constructOfferNegotiationRequest(
     offer: Offer,
-    distribution: Distribution
+    distribution: Distribution,
+    datasetId: string
   ): any {
-    console.log('Dist:', distribution);
-    // Base structure of the negotiation request
-    const forwardTo =
-      distribution.accessService[0].endpointURL +
-      environment.CONTRACT_NEGOTIATION_FORWARD_TO() +
-      '/request';
-
-    console.log('ForwardTo:', forwardTo);
+    const endpointURL = distribution.accessService[0].endpointURL;
+    const baseEndpoint = endpointURL.endsWith('/')
+      ? endpointURL
+      : endpointURL + '/';
     const negotiationRequest = {
-      'Forward-To': forwardTo,
+      'Forward-To': baseEndpoint,
       offer: {
         '@id': offer['@id'],
-        target: distribution['@id'],
+        target: datasetId,
         assigner: 'urn:uuid:ASSIGNER_PROVIDER',
         permission: [] as any[],
       },
@@ -181,11 +174,12 @@ export class CatalogBrowserDetailsComponent {
   /**
    * Starts the contract negotiation process.
    */
-  startContractNegotiation(): void {
+  startContractNegotiation(datasetId: string): void {
     if (this.selectedOffer && this.selectedDistribution) {
       const negotiationRequest = this.constructOfferNegotiationRequest(
         this.selectedOffer,
-        this.selectedDistribution
+        this.selectedDistribution,
+        datasetId
       );
 
       this.contractNegotiationService

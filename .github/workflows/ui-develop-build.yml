@@ -1,0 +1,75 @@
+name: UI Develop Build
+
+on:
+  push:
+    branches: ["develop"]
+
+jobs:
+  build-and-push-develop-image:
+    if: "!contains(github.event.head_commit.message, '[release]') && !contains(github.event.head_commit.message, '[skip ci]')"
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+
+    env:
+      REGISTRY: ghcr.io
+      IMAGE_NAME: engineering-research-and-development/dsp-true-connector-ui
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build TC DSP UI app
+        run: npm run build --configuration=production
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=develop
+            type=sha,format=short
+
+      - name: Build and push Docker image
+        id: push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          no-cache: true
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Summary
+        run: |
+          echo "=== Develop Build Complete ==="
+          echo "✅ Branch: develop"
+          echo "✅ Commit: $(git rev-parse --short HEAD)"
+          echo "✅ Docker images tagged: "
+          echo "   - ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:develop"
+          echo "   - ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$(git rev-parse --short HEAD)"
+          echo "✅ Application built with configuration: production"
+          echo ""
+          echo "This image can now be used in the integration environment for testing."

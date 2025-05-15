@@ -26,32 +26,30 @@ import { Multilanguage } from '../../../models/multilanguage';
 import { Offer } from '../../../models/offer';
 import { DataServiceService } from '../../../services/data-service/data-service.service';
 import { DistributionService } from '../../../services/distribution/distribution.service';
-import { SnackbarService } from '../../../services/snackbar/snackbar.service';
 import { ConfirmationDialogComponent } from '../../confirmation-dialog/confirmation-dialog.component';
 import { Distribution } from './../../../models/distribution';
 
 @Component({
-  selector: 'app-distribution-details',
-  standalone: true,
-  imports: [
-    CommonModule,
-    RouterModule,
-    MatCardModule,
-    MatButtonModule,
-    MatExpansionModule,
-    MatToolbarModule,
-    NgxSkeletonLoaderModule,
-    MatIconModule,
-    FormsModule,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatInputModule,
-    MatTooltipModule,
-    MatTabsModule,
-  ],
-  templateUrl: './distribution-details.component.html',
-  styleUrl: './distribution-details.component.css',
+    selector: 'app-distribution-details',
+    imports: [
+        CommonModule,
+        RouterModule,
+        MatCardModule,
+        MatButtonModule,
+        MatExpansionModule,
+        MatToolbarModule,
+        NgxSkeletonLoaderModule,
+        MatIconModule,
+        FormsModule,
+        ReactiveFormsModule,
+        MatFormFieldModule,
+        MatSelectModule,
+        MatInputModule,
+        MatTooltipModule,
+        MatTabsModule,
+    ],
+    templateUrl: './distribution-details.component.html',
+    styleUrl: './distribution-details.component.css'
 })
 export class DistributionDetailsComponent implements OnInit {
   distributionForm!: FormGroup;
@@ -71,13 +69,11 @@ export class DistributionDetailsComponent implements OnInit {
     private location: Location,
     private distributionService: DistributionService,
     private fb: FormBuilder,
-    private snackBarService: SnackbarService,
     private dataServiceService: DataServiceService
   ) {
     const navigation = this.router.getCurrentNavigation();
     if (navigation?.extras.state) {
       this.distribution = navigation.extras.state['distribution'];
-      console.log('Distribution:', this.distribution);
 
       if (navigation.extras.state['editMode']) {
         this.editMode = navigation.extras.state['editMode'];
@@ -103,7 +99,7 @@ export class DistributionDetailsComponent implements OnInit {
   getAllServices(): void {
     this.dataServiceService.getAllDataServices().subscribe({
       next: (data) => {
-        console.log('Data services:', data);
+        console.log('Data services fetched');
         this.allServices = data;
         this.loading = false;
         if (this.distribution) {
@@ -133,7 +129,6 @@ export class DistributionDetailsComponent implements OnInit {
     descriptions.forEach((desc: Multilanguage) => {
       languagesSet.add(desc.language);
     });
-    console.log('Languages set:', languagesSet);
     return Array.from(languagesSet);
   }
 
@@ -226,7 +221,7 @@ export class DistributionDetailsComponent implements OnInit {
       )
       .subscribe({
         next: (data) => {
-          console.log('Distribution updated successfully', data);
+          console.log('Distribution updated successfully');
           this.distribution = data;
           this.languages = this.extractLanguages(this.distribution.description);
           this.onLanguageSelected();
@@ -353,8 +348,8 @@ export class DistributionDetailsComponent implements OnInit {
         version: distribution.version,
         issued: distribution.issued,
         modified: distribution.modified,
-        // accessService: distribution.accessService.map((service) => service.id), // Adjusted to set multiple values
       });
+
       this.distributionForm
         .get('accessService')
         ?.setValue(
@@ -362,8 +357,12 @@ export class DistributionDetailsComponent implements OnInit {
             this.allServices.find((s) => s['@id'] === service['@id'])
           )
         );
-      this.setFormArray('description', distribution.description);
       this.setFormArray('hasPolicy', distribution.hasPolicy || []);
+      if (distribution.description.length === 0) {
+        this.addDescription();
+      } else {
+        this.setFormArray('description', distribution.description);
+      }
     }
   }
 
@@ -418,7 +417,6 @@ export class DistributionDetailsComponent implements OnInit {
       }
     });
 
-    console.log('Cleaned data:', cleanedData);
     return cleanedData;
   }
 }

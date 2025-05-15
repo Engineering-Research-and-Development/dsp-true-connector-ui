@@ -21,6 +21,8 @@ mat-divider {
   background-color: #ffffff;
   border-radius: 15px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .service-title h2 {
@@ -38,23 +40,32 @@ mat-divider {
 .resource-section {
   margin-top: 15px;
 }
+
 .resource-section div {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+}
+
+.resource-section p {
+  margin: 2px 0;
+}
+
+.resource-section p strong {
+  display: inline-block;
+  min-width: 80px;
+}
+.resource-section hr {
+  margin: 10px 0;
 }
 .expansion-panel {
   margin-top: 15px;
-  background-color: #fafafa;
+  background-color: #fbfbfbc2;
   border-radius: 10px;
   transition: box-shadow 0.3s;
 }
 
-.expansion-panel:hover {
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
 .mat-expansion-panel-header {
-  background-color: #eeeeee;
+  background-color: #fbfbfbc2;
   border-radius: 10px;
   padding: 0 15px;
 }
@@ -90,9 +101,7 @@ mat-list-item:hover {
 }
 
 button[mat-button] {
-  background-color: #f0f0f0;
   padding: 10px 15px;
-
   font-size: 1em;
   font-weight: 300;
   border: none;
@@ -107,22 +116,27 @@ button[mat-button] {
 button[mat-button]:hover {
   background-color: #8a9eed5c;
 }
+
 .headtitle {
   display: flex;
   justify-content: space-between;
 }
+
 .headtitle .buttons {
   display: flex;
   width: 50%;
   justify-content: flex-end;
   align-items: center;
 }
+
 .headtitle .buttons button {
   margin: 3px;
 }
+
 .back {
   display: inline-flex;
 }
+
 .back button {
   margin: 0;
   background: transparent;
@@ -130,43 +144,151 @@ button[mat-button]:hover {
   font-size: 0.7em;
   margin-right: 15px;
 }
+
 .back button[mat-button] mat-icon {
   margin-right: 0px;
 }
+
 .expansion-panel[_ngcontent-ng-c1553755739] {
   box-shadow: unset;
 }
+
 h1 {
   margin: 10px 0;
 }
+
 .expansion-panel[_ngcontent-ng-c1553755739] hr {
   color: rgb(162, 162, 162);
 }
+
 .space-card {
-  display: flex;
-  flex-wrap: wrap;
-  align-content: center;
-  align-items: center;
-  justify-content: flex-start;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  padding: 10px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
+
 .space-card .card {
-  padding: 20px;
-  border: 1px solid #c7c5c5;
-  border-radius: 6px;
-  margin: 10px;
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 25px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
 }
+
+.space-card .card:hover {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
 .space-card .card .title {
   color: #383838;
   font-weight: bold;
   font-size: 18px;
   font-family: Arial, Helvetica, sans-serif;
 }
+
 .space-card .card .subtitle {
   color: rgb(155, 155, 155);
+}
+
+.space-card .card .content {
+  margin-bottom: 20px;
+}
+
+.space-card .card .content p {
+  margin: 10px 0;
+  color: #333333;
+  word-break: break-word;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+.space-card .card .content p strong {
+  color: #383838;
+  margin-right: 5px;
 }
 
 .space-card .card .btn-action {
   margin-top: 25px;
   display: flex;
+  gap: 15px;
   justify-content: space-around;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.mat-card-content {
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.mat-mdc-chip-option.mdc-evolution-chip {
+  background-color: #fbfbfbc2 !important;
+}
+
+.mat-mdc-chip-option.mdc-evolution-chip--selected {
+  background-color: #8a9eed5c !important;
+}
+
+/* Responsive breakpoints */
+@media (max-width: 1400px) {
+  .space-card {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .space-card {
+    grid-template-columns: 1fr;
+  }
+}
+.filter-div {
+  margin: 0px 10px 10px;
+}
+.filter-section {
+  display: flex;
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px 25px 0px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+.filter-section h3 {
+  font-size: 14px;
+  color: #707070;
+  line-height: 2.8;
+  margin-right: 20px;
+}
+@media (max-width: 900px) {
+  .filter-section {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  .filter-section h3 {
+    width: 100%;
+    line-height: 3;
+  }
+}
+
+.help-icon {
+  font-size: 1.1em;
+  margin-left: 8px;
+  vertical-align: middle;
+  color: grey;
+  cursor: help;
+  margin-top: 20px;
 }

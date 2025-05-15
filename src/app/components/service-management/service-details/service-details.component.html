@@ -18,6 +18,12 @@
             Back
           </button>
           <h1>Service Details</h1>
+          <mat-icon
+            class="help-icon"
+            matTooltip="Here you can view all information, edit or delete the chosen service.  Use the tabs and buttons to navigate and manage the data. "
+            aria-label="Help regarding service details"
+            >help_outline</mat-icon
+          >
         </div>
 
         <div class="buttons">
@@ -224,6 +230,7 @@
                       formControlName="language"
                       placeholder="Language"
                       maxlength="2"
+                      pattern="[a-zA-Z ]*"
                     />
                     <mat-error
                       *ngIf="desc.get('language')?.hasError('required')"

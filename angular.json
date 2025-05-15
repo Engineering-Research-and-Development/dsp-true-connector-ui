@@ -51,6 +51,28 @@
                   "with": "src/environments/environment.development.ts"
                 }
               ]
+            },
+            "connectorA": {
+              "sourceMap": true,
+              "optimization": false,
+              "extractLicenses": false,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.connectorA.ts"
+                }
+              ]
+            },
+            "connectorB": {
+              "sourceMap": true,
+              "optimization": false,
+              "extractLicenses": false,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.connectorB.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -63,6 +85,14 @@
             },
             "development": {
               "buildTarget": "tc_dsp_ui:build:development"
+            },
+            "connectorA": {
+              "buildTarget": "tc_dsp_ui:build:connectorA",
+              "port": 4200
+            },
+            "connectorB": {
+              "buildTarget": "tc_dsp_ui:build:connectorB",
+              "port": 4300
             }
           },
           "defaultConfiguration": "development"
@@ -88,5 +118,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": false
   }
 }

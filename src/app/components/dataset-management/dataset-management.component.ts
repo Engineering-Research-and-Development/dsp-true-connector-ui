@@ -15,31 +15,31 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
 import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
 import { Dataset } from '../../models/dataset';
+import { ArtifactService } from '../../services/artifact/artifact.service';
 import { DatasetService } from '../../services/dataset/dataset.service';
 import { SnackbarService } from '../../services/snackbar/snackbar.service';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
 
 @Component({
-  selector: 'app-dataset-management',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatCardModule,
-    MatDividerModule,
-    MatListModule,
-    MatExpansionModule,
-    MatIconModule,
-    MatButtonModule,
-    NgxSkeletonLoaderModule,
-    MatInputModule,
-    MatToolbarModule,
-    MatFormFieldModule,
-    FormsModule,
-    ReactiveFormsModule,
-    MatTooltipModule,
-  ],
-  templateUrl: './dataset-management.component.html',
-  styleUrl: './dataset-management.component.css',
+    selector: 'app-dataset-management',
+    imports: [
+        CommonModule,
+        MatCardModule,
+        MatDividerModule,
+        MatListModule,
+        MatExpansionModule,
+        MatIconModule,
+        MatButtonModule,
+        NgxSkeletonLoaderModule,
+        MatInputModule,
+        MatToolbarModule,
+        MatFormFieldModule,
+        FormsModule,
+        ReactiveFormsModule,
+        MatTooltipModule,
+    ],
+    templateUrl: './dataset-management.component.html',
+    styleUrl: './dataset-management.component.css'
 })
 export class DatasetManagementComponent implements OnInit {
   datasets: Dataset[] = [];
@@ -50,7 +50,8 @@ export class DatasetManagementComponent implements OnInit {
     public dialog: MatDialog,
     private datasetService: DatasetService,
     private router: Router,
-    private snackBarService: SnackbarService
+    private snackBarService: SnackbarService,
+    private artifactService: ArtifactService
   ) {}
 
   /**
@@ -75,7 +76,6 @@ export class DatasetManagementComponent implements OnInit {
   getAllDatasets(): void {
     this.datasetService.getAllDatasets().subscribe({
       next: (data) => {
-        console.log('Data services:', data);
         this.datasets = data;
         this.filteredDatasets = [...this.datasets];
         this.loading = false;
@@ -88,7 +88,7 @@ export class DatasetManagementComponent implements OnInit {
   }
 
   /**
-   * Navigates to the dataset details page with the selected dataset.
+   * Fetches the artifact by id and navigates to the dataset details page.
    * @param dataset The selected dataset to view details for.
    */
   navigateToDatasetDetails(dataset: Dataset): void {
@@ -103,7 +103,11 @@ export class DatasetManagementComponent implements OnInit {
    */
   onEdit(dataset: Dataset): void {
     this.router.navigate(['/catalog-management/dataset-management/details'], {
-      state: { dataset: dataset, editMode: true },
+      state: {
+        dataset: dataset,
+        datasetArtifact: dataset.artifact,
+        editMode: true,
+      },
     });
   }
 
@@ -117,6 +121,7 @@ export class DatasetManagementComponent implements OnInit {
       conformsTo: '',
       creator: '',
       description: [],
+      value: '',
       identifier: '',
       title: '',
       endpointDescription: '',

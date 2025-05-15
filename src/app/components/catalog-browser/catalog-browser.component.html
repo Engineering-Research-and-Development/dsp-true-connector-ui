@@ -11,15 +11,29 @@
       <div class="headtitle">
         <div class="back">
           <h1>Catalog browser</h1>
+          <mat-icon
+            class="help-icon"
+            matTooltip="Here you can fetch catalog data from another connector by inserting the URL of the connector and clicking on exchange button next to input."
+            aria-label="Help regarding catalog browser"
+            >help_outline</mat-icon
+          >
         </div>
         <div class="buttons">
           <mat-form-field>
             <input
               matInput
-              [formControl]="searchControl"
-              placeholder="Search by title"
+              [formControl]="urlControl"
+              placeholder="Insert connector URL"
             />
           </mat-form-field>
+
+          <button
+            mat-button
+            matTooltip="Fetch catalog data"
+            (click)="onFetch()"
+          >
+            <mat-icon>compare_arrows</mat-icon>
+          </button>
         </div>
       </div>
       <div class="space-card">

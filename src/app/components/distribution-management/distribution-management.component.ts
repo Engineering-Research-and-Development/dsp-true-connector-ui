@@ -20,26 +20,25 @@ import { SnackbarService } from '../../services/snackbar/snackbar.service';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
 
 @Component({
-  selector: 'app-distribution-management',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatCardModule,
-    MatDividerModule,
-    MatListModule,
-    MatExpansionModule,
-    MatIconModule,
-    MatButtonModule,
-    NgxSkeletonLoaderModule,
-    MatInputModule,
-    MatToolbarModule,
-    MatFormFieldModule,
-    FormsModule,
-    ReactiveFormsModule,
-    MatTooltipModule,
-  ],
-  templateUrl: './distribution-management.component.html',
-  styleUrl: './distribution-management.component.css',
+    selector: 'app-distribution-management',
+    imports: [
+        CommonModule,
+        MatCardModule,
+        MatDividerModule,
+        MatListModule,
+        MatExpansionModule,
+        MatIconModule,
+        MatButtonModule,
+        NgxSkeletonLoaderModule,
+        MatInputModule,
+        MatToolbarModule,
+        MatFormFieldModule,
+        FormsModule,
+        ReactiveFormsModule,
+        MatTooltipModule,
+    ],
+    templateUrl: './distribution-management.component.html',
+    styleUrl: './distribution-management.component.css'
 })
 export class DistributionManagementComponent implements OnInit {
   distributions: Distribution[] = [];
@@ -74,13 +73,14 @@ export class DistributionManagementComponent implements OnInit {
   getAllDistributions(): void {
     this.distributionService.getAllDistributions().subscribe({
       next: (data) => {
-        console.log('Data services:', data);
+        console.log('Datistributions fetched');
         this.distributions = data;
         this.filteredDistributions = [...this.distributions];
         this.loading = false;
       },
       error: (error) => {
         console.error('Error:', error);
+        this.loading = false;
       },
     });
   }

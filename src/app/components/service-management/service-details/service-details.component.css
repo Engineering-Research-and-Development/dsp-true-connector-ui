@@ -55,8 +55,9 @@ mat-divider {
 }
 
 p {
-  margin: 10px 0;
+  margin: 16px 0px 10px;
   color: #333333;
+  font-size: 16px;
 }
 
 p strong {
@@ -79,9 +80,7 @@ mat-list-item:hover {
 }
 
 button[mat-button] {
-  background-color: #f0f0f0;
   padding: 10px 15px;
-
   font-size: 1em;
   font-weight: 300;
   border: none;
@@ -172,4 +171,12 @@ span {
   display: flex;
   transition: height 500ms cubic-bezier(0.35, 0, 0.25, 1);
   min-height: 260px !important;
+}
+.help-icon {
+  font-size: 1.1em;
+  margin-left: 8px;
+  vertical-align: middle;
+  color: grey;
+  cursor: help;
+  margin-top: 20px;
 }

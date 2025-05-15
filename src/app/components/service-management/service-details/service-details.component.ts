@@ -26,31 +26,29 @@ import { Dataset } from '../../../models/dataset';
 import { Multilanguage } from '../../../models/multilanguage';
 import { DataServiceService } from '../../../services/data-service/data-service.service';
 import { DatasetService } from '../../../services/dataset/dataset.service';
-import { SnackbarService } from '../../../services/snackbar/snackbar.service';
 import { ConfirmationDialogComponent } from '../../confirmation-dialog/confirmation-dialog.component';
 
 @Component({
-  selector: 'app-service-details',
-  standalone: true,
-  imports: [
-    CommonModule,
-    RouterModule,
-    MatCardModule,
-    MatButtonModule,
-    MatExpansionModule,
-    MatToolbarModule,
-    NgxSkeletonLoaderModule,
-    MatIconModule,
-    FormsModule,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatInputModule,
-    MatTooltipModule,
-    MatTabsModule,
-  ],
-  templateUrl: './service-details.component.html',
-  styleUrls: ['./service-details.component.css'],
+    selector: 'app-service-details',
+    imports: [
+        CommonModule,
+        RouterModule,
+        MatCardModule,
+        MatButtonModule,
+        MatExpansionModule,
+        MatToolbarModule,
+        NgxSkeletonLoaderModule,
+        MatIconModule,
+        FormsModule,
+        ReactiveFormsModule,
+        MatFormFieldModule,
+        MatSelectModule,
+        MatInputModule,
+        MatTooltipModule,
+        MatTabsModule,
+    ],
+    templateUrl: './service-details.component.html',
+    styleUrls: ['./service-details.component.css']
 })
 export class ServiceDetailsComponent implements OnInit {
   serviceForm!: FormGroup;
@@ -70,20 +68,17 @@ export class ServiceDetailsComponent implements OnInit {
     private location: Location,
     private dataService: DataServiceService,
     private fb: FormBuilder,
-    private snackBarService: SnackbarService,
     private datasetService: DatasetService
   ) {
     const navigation = this.router.getCurrentNavigation();
     if (navigation?.extras.state) {
       this.service = navigation.extras.state['service'];
-      console.log('Service:', this.service);
       if (navigation.extras.state['editMode']) {
         this.editMode = navigation.extras.state['editMode'];
         this.directEdit = navigation.extras.state['editMode'];
         this.originalService = { ...this.service };
       }
       this.languages = this.extractLanguages(this.service.description);
-      console.log('Languages:', this.languages);
     } else {
       this.goBack();
     }
@@ -103,7 +98,6 @@ export class ServiceDetailsComponent implements OnInit {
   getAllDataSets(): void {
     this.datasetService.getAllDatasets().subscribe({
       next: (data) => {
-        console.log('Datasets:', data);
         this.allDatasets = data;
         if (this.service) {
           this.updateForm(this.service);
@@ -132,7 +126,6 @@ export class ServiceDetailsComponent implements OnInit {
     descriptions.forEach((desc: Multilanguage) => {
       languagesSet.add(desc.language);
     });
-    console.log('Languages set:', languagesSet);
     return Array.from(languagesSet);
   }
 
@@ -191,13 +184,13 @@ export class ServiceDetailsComponent implements OnInit {
    * from the descriptions, updates the form with the service data, and sets the loading flag to false.
    * */
   saveServiceData() {
-    console.log('Saving service data:', this.cleanFormData(this.serviceForm));
+    console.log('Saving service data');
     this.loading = true;
     this.dataService
       .createDataService(this.cleanFormData(this.serviceForm))
       .subscribe({
         next: (data) => {
-          console.log('Service data saved:', data);
+          console.log('Service data saved');
           this.service = data;
           this.languages = this.extractLanguages(this.service.description);
           this.onLanguageSelected();
@@ -219,7 +212,7 @@ export class ServiceDetailsComponent implements OnInit {
    * */
   updateServiceData() {
     this.loading = true;
-    console.log('Updating service data:', this.cleanFormData(this.serviceForm));
+    console.log('Updating service data');
     this.dataService
       .updateDataService(
         this.service['@id']!,
@@ -227,7 +220,7 @@ export class ServiceDetailsComponent implements OnInit {
       )
       .subscribe({
         next: (data) => {
-          console.log('Service data updated successfully', data);
+          console.log('Service data updated successfully');
           this.service = data;
           this.languages = this.extractLanguages(this.service.description);
           this.onLanguageSelected();
@@ -375,8 +368,8 @@ export class ServiceDetailsComponent implements OnInit {
       title: [null, Validators.required],
       identifier: null,
       description: this.fb.array([]),
-      keyword: this.fb.array([]),
-      theme: this.fb.array([]),
+      keyword: this.fb.array([], Validators.required),
+      theme: this.fb.array([], Validators.required),
       creator: null,
       conformsTo: null,
       endpointDescription: ['', Validators.required],
@@ -395,7 +388,6 @@ export class ServiceDetailsComponent implements OnInit {
    * @param service The service data to update the form with.
    */
   updateForm(service: DataService): void {
-    console.log('Updating form with service:', service);
     if (service) {
       this.serviceForm.patchValue({
         '@id': service['@id'],
@@ -412,16 +404,19 @@ export class ServiceDetailsComponent implements OnInit {
         modified: service.modified,
       });
 
-      this.setFormArray('description', service.description);
-      this.setFormArray('keyword', service.keyword);
-      this.setFormArray('theme', service.theme);
-      this.serviceForm
-        .get('servesDataset')
-        ?.setValue(
-          service.servesDataset!.map((dataset) =>
-            this.allDatasets.find((ds) => ds['@id'] === dataset['@id'])
-          )
-        );
+      if (
+        service.description.length === 0 &&
+        service.keyword.length === 0 &&
+        service.theme.length === 0
+      ) {
+        this.addDescription();
+        this.addKeyword();
+        this.addTheme();
+      } else {
+        this.setFormArray('description', service.description);
+        this.setFormArray('keyword', service.keyword);
+        this.setFormArray('theme', service.theme);
+      }
     }
   }
 
@@ -476,7 +471,6 @@ export class ServiceDetailsComponent implements OnInit {
       }
     });
 
-    console.log('Cleaned data:', cleanedData);
     return cleanedData;
   }
 }

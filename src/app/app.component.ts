@@ -15,34 +15,34 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { Router, RouterModule, RouterOutlet } from '@angular/router';
+import { environment } from '../environments/environment';
 import { AuthService } from './services/auth/auth.service';
 
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatToolbarModule,
-    MatIconModule,
-    MatButtonModule,
-    MatSidenavModule,
-    MatListModule,
-    RouterModule,
-    MatExpansionModule,
-    RouterOutlet,
-    MatDialogModule,
-    MatMenuModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    FormsModule,
-    ReactiveFormsModule,
-  ],
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css'],
+    selector: 'app-root',
+    imports: [
+        CommonModule,
+        MatToolbarModule,
+        MatIconModule,
+        MatButtonModule,
+        MatSidenavModule,
+        MatListModule,
+        RouterModule,
+        MatExpansionModule,
+        RouterOutlet,
+        MatDialogModule,
+        MatMenuModule,
+        MatFormFieldModule,
+        MatSelectModule,
+        FormsModule,
+        ReactiveFormsModule,
+    ],
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
   title = 'TRUE Connector UI';
-
+  appVersion = environment.APP_VERSION;
   isExpanded = true;
   isUserLoggedIn = true;
 
@@ -149,6 +149,30 @@ export class AppComponent implements OnInit {
   goToConsumerContractNegotiation() {
     console.log('Navigating to contract negotiation page for consumers');
     this.forceReload('/contract-negotiation', { userType: 'consumer' });
+  }
+
+  /**
+   * Navigates to the contract negotiation page for providers and forces a refresh.
+   */
+  goToProviderDataTransfers() {
+    console.log('Navigating to data transfers page for providers');
+    this.forceReload('/data-transfer', { userType: 'provider' });
+  }
+
+  /**
+   * Navigates to the contract negotiation page for consumers and forces a refresh.
+   */
+  goToConsumerDataTransfers() {
+    console.log('Navigating to data transfers  page for consumers');
+    this.forceReload('/data-transfer', { userType: 'consumer' });
+  }
+
+  /**
+   * Navigates to the data consumption page
+   * */
+  goToDataConsumption() {
+    console.log('Navigating to data consumption page');
+    this.router.navigate(['/data-consumption']);
   }
 
   /**

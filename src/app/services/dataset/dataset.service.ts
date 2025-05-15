@@ -1,28 +1,25 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, catchError, map, throwError } from 'rxjs';
+import { Observable, catchError, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { Artifact } from '../../models/artifact';
 import { Dataset } from '../../models/dataset';
+import { GenericApiResponse } from '../../models/genericApiResponse';
+import { ErrorHandlerService } from '../error-handler/error-handler.service';
 import { SnackbarService } from '../snackbar/snackbar.service';
-import { GenericApiResponse } from './../../models/genericApiResponse';
 
-/**
- * Dataset Service to manage the dataset data
- * */
 @Injectable({
   providedIn: 'root',
 })
 export class DatasetService {
   datasetApiUrl = environment.DATASET_API_URL();
 
-  /**
-   * Constructor in order to use the HttpClient and set the httpOptions
-   * @param http
-   * */
   constructor(
     private http: HttpClient,
-    private snackBarService: SnackbarService
+    private snackBarService: SnackbarService,
+    private errorHandlerService: ErrorHandlerService
   ) {}
+
   httpOptions = {
     headers: new HttpHeaders({
       'Content-Type': 'application/json',
@@ -30,21 +27,39 @@ export class DatasetService {
   };
 
   /**
-   * Create a new dataset
-   * @param dataset
+   * Create a new dataset with mandatory artifact
+   * @param dataset Dataset object
+   * @param file Optional file to upload (required if externalURL not provided)
+   * @param externalURL Optional external URL (required if file not provided)
+   * @param authorization Optional authorization for external URL
    * @returns Observable<Dataset>
-   * @example datasetService.createDataset(dataset).subscribe({ next: console.log, error: console.error, complete: () => console.log('completed') });
-   * */
-  createDataset(dataset: Dataset): Observable<Dataset> {
+   */
+  createDataset(
+    dataset: Dataset,
+    file?: File,
+    externalURL?: string,
+    authorization?: string
+  ): Observable<Dataset> {
+    const formData = new FormData();
+    formData.append('dataset', JSON.stringify(dataset));
+
+    // Add file or external URL if provided
+    if (file) {
+      formData.append('file', file);
+    } else if (externalURL) {
+      formData.append('url', externalURL);
+      if (authorization) {
+        console.log('authorization', authorization);
+        formData.append('authorization', authorization);
+      }
+    }
+
+    console.log('formData', formData.getAll('dataset'));
     return this.http
-      .post<GenericApiResponse<Dataset>>(
-        this.datasetApiUrl,
-        dataset,
-        this.httpOptions
-      )
+      .post<GenericApiResponse<Dataset>>(this.datasetApiUrl, formData)
       .pipe(
         map((response: GenericApiResponse<Dataset>) => {
-          if (response.success) {
+          if (response.success && response.data) {
             this.snackBarService.openSnackBar(
               response.message,
               'OK',
@@ -54,52 +69,37 @@ export class DatasetService {
             );
             return response.data;
           } else {
-            this.snackBarService.openSnackBar(
-              response.message,
-              'OK',
-              'center',
-              'bottom',
-              'snackbar-error'
-            );
             throw new Error(response.message);
           }
         }),
-        catchError(this.errorHandler.bind(this))
+        catchError((error) => this.errorHandlerService.handleError(error))
       );
   }
 
   /**
    * Get all datasets
    * @returns Observable<Dataset[]>
-   * @example datasetService.getAllDatasets().subscribe({ next: console.log, error: console.error, complete: () => console.log('completed') });
-   * */
+   */
   getAllDatasets(): Observable<Dataset[]> {
     return this.http
       .get<GenericApiResponse<Dataset[]>>(this.datasetApiUrl, this.httpOptions)
       .pipe(
         map((response: GenericApiResponse<Dataset[]>) => {
-          if (response.success) {
+          if (response.success && response.data) {
             return response.data;
           } else {
-            this.snackBarService.openSnackBar(
-              response.message,
-              'OK',
-              'center',
-              'bottom',
-              'snackbar-error'
-            );
             throw new Error(response.message);
           }
         }),
-        catchError(this.errorHandler.bind(this))
+        catchError((error) => this.errorHandlerService.handleError(error))
       );
   }
 
   /**
-   * Get a dataset
+   * Get a dataset by ID
+   * @param id Dataset ID
    * @returns Observable<Dataset>
-   * @example datasetService.getDataset(id).subscribe({ next: console.log, error: console.error, complete: () => console.log('completed') });
-   * */
+   */
   getDatasetById(id: string): Observable<Dataset> {
     return this.http
       .get<GenericApiResponse<Dataset>>(
@@ -108,40 +108,54 @@ export class DatasetService {
       )
       .pipe(
         map((response: GenericApiResponse<Dataset>) => {
-          if (response.success) {
+          if (response.success && response.data) {
             return response.data;
           } else {
-            this.snackBarService.openSnackBar(
-              response.message,
-              'OK',
-              'center',
-              'bottom',
-              'snackbar-error'
-            );
             throw new Error(response.message);
           }
         }),
-        catchError(this.errorHandler.bind(this))
+        catchError((error) => this.errorHandlerService.handleError(error))
       );
   }
 
   /**
-   * Update a dataset
-   * @param id
-   * @param dataset
+   * Update a dataset with optional new artifact
+   * @param id Dataset ID
+   * @param dataset Dataset object with updated data
+   * @param file Optional new file to upload
+   * @param externalURL Optional new external URL
+   * @param authorization Optional authorization for new external URL
    * @returns Observable<Dataset>
-   * @example datasetService.updateDataset(id, dataset).subscribe({ next: console.log, error: console.error, complete: () => console.log('completed') });
-   * */
-  updateDataset(id: string, dataset: Dataset): Observable<Dataset> {
+   */
+  updateDataset(
+    id: string,
+    dataset: Dataset,
+    file?: File,
+    externalURL?: string,
+    authorization?: string
+  ): Observable<Dataset> {
+    const formData = new FormData();
+    formData.append('dataset', JSON.stringify(dataset));
+
+    console.log('dataset', dataset);
+    console.log('file', file);
+    console.log('externalURL', externalURL);
+    console.log('authorization', authorization);
+    console.log('formData', formData.getAll('dataset'));
+    // Add file or external URL if provided
+    if (file) {
+      formData.append('file', file);
+    } else if (externalURL) {
+      formData.append('url', externalURL);
+      if (authorization) {
+        formData.append('authorization', authorization);
+      }
+    }
     return this.http
-      .put<GenericApiResponse<Dataset>>(
-        this.datasetApiUrl + '/' + id,
-        dataset,
-        this.httpOptions
-      )
+      .put<GenericApiResponse<Dataset>>(this.datasetApiUrl + '/' + id, formData)
       .pipe(
         map((response: GenericApiResponse<Dataset>) => {
-          if (response.success) {
+          if (response.success && response.data) {
             this.snackBarService.openSnackBar(
               response.message,
               'OK',
@@ -151,26 +165,18 @@ export class DatasetService {
             );
             return response.data;
           } else {
-            this.snackBarService.openSnackBar(
-              response.message,
-              'OK',
-              'center',
-              'bottom',
-              'snackbar-error'
-            );
             throw new Error(response.message);
           }
         }),
-        catchError(this.errorHandler.bind(this))
+        catchError((error) => this.errorHandlerService.handleError(error))
       );
   }
 
   /**
    * Delete a dataset
-   * @param id
-   * @returns Observable<Dataset>
-   * @example datasetService.deleteDataset(id).subscribe({ next: console.log, error: console.error, complete: () => console.log('completed') });
-   * */
+   * @param id Dataset ID
+   * @returns Observable<string>
+   */
   deleteDataset(id: string): Observable<string> {
     return this.http
       .delete<GenericApiResponse<Dataset>>(
@@ -189,43 +195,56 @@ export class DatasetService {
             );
             return response.message;
           } else {
-            this.snackBarService.openSnackBar(
-              response.message,
-              'OK',
-              'center',
-              'bottom',
-              'snackbar-error'
-            );
             throw new Error(response.message);
           }
         }),
-        catchError(this.errorHandler.bind(this))
+        catchError((error) => this.errorHandlerService.handleError(error))
       );
   }
 
   /**
-   * Handle the error
-   * @param error
-   * @returns throwError
-   * */
-  errorHandler(error: any) {
-    console.log('ERR', error);
-    let errorMessage = '';
-    if (error.error instanceof ErrorEvent) {
-      errorMessage = error.error.message;
-    } else {
-      errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
-    }
-    this.snackBarService.openSnackBar(
-      'An error occurred: ' + errorMessage,
-      'OK',
-      'center',
-      'bottom',
-      'snackbar-error'
-    );
-    console.log(errorMessage);
-    return throwError(() => {
-      return errorMessage;
-    });
+   * Get all formats from dataset
+   * @param id Dataset ID
+   * @returns Observable<string[]>
+   */
+  getAllFormats(id: string): Observable<string[]> {
+    return this.http
+      .get<GenericApiResponse<string[]>>(
+        this.datasetApiUrl + '/' + id + '/formats',
+        this.httpOptions
+      )
+      .pipe(
+        map((response: GenericApiResponse<string[]>) => {
+          if (response.success && response.data) {
+            return response.data;
+          } else {
+            throw new Error(response.message);
+          }
+        }),
+        catchError((error) => this.errorHandlerService.handleError(error))
+      );
+  }
+
+  /**
+   * Get artifact from dataset
+   * @param id Dataset ID
+   * @returns Observable<Artifact[]>
+   */
+  getArtifact(id: string): Observable<Artifact[]> {
+    return this.http
+      .get<GenericApiResponse<Artifact[]>>(
+        this.datasetApiUrl + '/' + id + '/artifact',
+        this.httpOptions
+      )
+      .pipe(
+        map((response: GenericApiResponse<Artifact[]>) => {
+          if (response.success && response.data) {
+            return response.data;
+          } else {
+            throw new Error(response.message);
+          }
+        }),
+        catchError((error) => this.errorHandlerService.handleError(error))
+      );
   }
 }

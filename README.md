@@ -13,6 +13,25 @@ DSP TRUE ('TRU'sted 'E'ngineering) Connector UI for the IDS (International Data 
 
 The DSP TRUE Connector UI is a frontend application developed by Engineering, a leading digital transformation company based in Italy. This UI is part of the DSP TRUE Connector suite, designed to facilitate self-determined data sharing while ensuring compliance with regulations such as GDPR. The application provides user-friendly interfaces for managing catalog data, services, datasets, distributions, and contract negotiations within the IDS ecosystem based on the DSP protocol.
 
+For information on how to start connector with all modules, go to [user manual](/USER_MANUAL.md).
+
+## Table of Contents
+
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Catalog Browser](#catalog-browser)
+  - [Catalog Management](#catalog-management)
+  - [Service Management](#service-management)
+  - [Dataset Management](#dataset-management)
+  - [Distribution Management](#distribution-management)
+  - [Contract Negotiation](#contract-negotiation)
+  - [Data transfers](#data-transfers)
+- [Contributing](#contributing)
+- [License](#license)
+- [More Information](#more-information)
+
 ## Features
 
 - **Catalog Browser**: View provider catalog data and initiate contract negotiations.
@@ -21,6 +40,7 @@ The DSP TRUE Connector UI is a frontend application developed by Engineering, a 
 - **Dataset Management**: Create, update, view, and delete dataset data of the connector.
 - **Distribution Management**: Create, update, view, and delete distribution data of the connector.
 - **Contract Negotiation**: Complete the entire contract negotiation process: start, accept, validate, finalize, or terminate.
+- **Data Transfer**: Complete the entire data transfer process: request, start, download, complete, suspend, or terminate.
 
 ## Prerequisites
 
@@ -44,17 +64,25 @@ The DSP TRUE Connector UI is a frontend application developed by Engineering, a 
 
 3. **Run the application:**
 
+   For a full demonstration in a local environment, 2 instances of TRUE Connector should be running. After starting 2 Backend instances, run the following command to start Connector A:
+
    ```
-   ng serve
+   ng s --configuration connectorA
    ```
 
-   The application will be available at `http://localhost:4200`.
+   Use the same command for Connector B.
+
+   ```
+   ng s --configuration connectorB
+   ```
+
+   The application will be available at `http://localhost:4200` for Connector A, and at `http://localhost:4300` for Connector B.
 
 ## Usage
 
 ### Catalog Browser
 
-The **Catalog Browser** section provides an overview of all provider catalogs. By clicking the eye icon, detailed information about the provider catalog, such as identifier, description, participant ID, etc. is displayed. In the Datasets tab, all available datasets offered by the provider are shown. Selecting an offer and distribution from a specific catalog and clicking the "Start Negotiation" button initiates the contract negotiation process, after which the user will be redirected to the Contract Negotiation page for further details.
+The **Catalog Browser** section provides an overview of provider catalog. In order to get catalog data, correct endpoint address should be inserted in input field. By clicking on the arrow exchange icon, connector catalog data will be fetched. By clicking the eye icon, detailed information about the provider catalog, such as identifier, description, participant ID, etc. is displayed. In the Datasets tab, all available datasets offered by the provider are shown. Selecting an offer and format from a specific catalog and clicking the "Start Negotiation" button initiates the contract negotiation process, after which the user will be redirected to the Contract Negotiation page for further details.
 
 ### Catalog Management
 
@@ -80,6 +108,15 @@ The **Contract Negotiation** section in the side menu includes two subsections:
 - **Contract Negotiations as Consumer**: A list of contract negotiations for datasets you have requested from other providers.
 
 In both subsections, contract negotiations can be filtered by state by clicking the desired option. All information about a contract negotiation is displayed in a card, showing details such as the assigner, callback address, state, offer details, permissions, etc. Depending on the current state of the negotiation, the user can respond and change its status.
+
+### Data transfers
+
+The **Data transfers** section in the side menu includes two subsections:
+
+- **Data transfers as Provider**: A list of Data transfers that you're offering after successful contract negotiation to other consumers.
+- **Data transfers as Consumer**: A list of Data transfers that you're offering after successful contract negotiation from other providers.
+
+In both subsections, data transfers can be filtered by state by clicking the desired option. All information about a data transfers is displayed in a card, showing details such as the agreement id, callback address, state, dataset id, format, etc. Depending on the current state of the data transfer, the user can respond and change its status and in the end download the artifact.
 
 ## Contributing
 

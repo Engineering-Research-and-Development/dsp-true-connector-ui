@@ -1,9 +1,10 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, map, Observable, throwError } from 'rxjs';
-import { environment } from '../../../environments/environment.development';
+import { catchError, map, Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import { ContractNegotiation } from '../../models/contractNegotiation';
 import { GenericApiResponse } from '../../models/genericApiResponse';
+import { ErrorHandlerService } from '../error-handler/error-handler.service';
 import { SnackbarService } from '../snackbar/snackbar.service';
 
 const headers = new HttpHeaders({
@@ -20,11 +21,14 @@ export class ContractNegotiationService {
 
   /**
    * Constructor in order to use the HttpClient and set the httpOptions
-   * @param http
+   * @param http - HttpClient
+   * @param snackBarService - service to show snack bar messages
+   * @param errorHandlerService - service to handle errors
    * */
   constructor(
     private http: HttpClient,
-    private snackBarService: SnackbarService
+    private snackBarService: SnackbarService,
+    private errorHandlerService: ErrorHandlerService
   ) {}
   httpOptions = {
     headers: new HttpHeaders({
@@ -39,6 +43,7 @@ export class ContractNegotiationService {
    * @example contractNegotiationService.startNegotiation(negotiation).subscribe({ next: console.log, error: console.error, complete: () => console.log('completed') });
    * */
   startNegotiation(negotiation: any): Observable<ContractNegotiation> {
+    console.log('negotiation', negotiation);
     return this.http
       .post<GenericApiResponse<ContractNegotiation>>(
         this.apiUrl,
@@ -47,7 +52,7 @@ export class ContractNegotiationService {
       )
       .pipe(
         map((response: GenericApiResponse<ContractNegotiation>) => {
-          if (response.success) {
+          if (response.success && response.data) {
             this.snackBarService.openSnackBar(
               response.message,
               'OK',
@@ -57,17 +62,10 @@ export class ContractNegotiationService {
             );
             return response.data;
           } else {
-            this.snackBarService.openSnackBar(
-              response.message,
-              'OK',
-              'center',
-              'bottom',
-              'snackbar-error'
-            );
             throw new Error(response.message);
           }
         }),
-        catchError(this.errorHandler.bind(this))
+        catchError((error) => this.errorHandlerService.handleError(error))
       );
   }
 
@@ -85,20 +83,13 @@ export class ContractNegotiationService {
       )
       .pipe(
         map((response: GenericApiResponse<ContractNegotiation[]>) => {
-          if (response.success) {
+          if (response.success && response.data) {
             return response.data;
           } else {
-            this.snackBarService.openSnackBar(
-              response.message,
-              'OK',
-              'center',
-              'bottom',
-              'snackbar-error'
-            );
             throw new Error(response.message);
           }
         }),
-        catchError(this.errorHandler.bind(this))
+        catchError((error) => this.errorHandlerService.handleError(error))
       );
   }
 
@@ -111,25 +102,50 @@ export class ContractNegotiationService {
   getAllNegotiationsAsConsumer(): Observable<ContractNegotiation[]> {
     return this.http
       .get<GenericApiResponse<ContractNegotiation[]>>(
-        this.apiUrl + '?role=provider',
+        this.apiUrl + '?role=consumer',
         this.httpOptions
       )
       .pipe(
         map((response: GenericApiResponse<ContractNegotiation[]>) => {
-          if (response.success) {
+          if (response.success && response.data) {
             return response.data;
           } else {
+            throw new Error(response.message);
+          }
+        }),
+        catchError((error) => this.errorHandlerService.handleError(error))
+      );
+  }
+
+  /**
+   * Accept offered contract negotiation
+   * @param negotiationId
+   * @returns Observable<ContractNegotiation>
+   * @example contractNegotiationService.acceptNegotiation(negotiationId).subscribe({ next: console.log, error: console.error, complete: () => console.log('completed') });
+   * */
+  acceptNegotiation(negotiationId: string): Observable<ContractNegotiation> {
+    return this.http
+      .put<GenericApiResponse<ContractNegotiation>>(
+        this.apiUrl + '/' + negotiationId + '/accept',
+        null,
+        this.httpOptions
+      )
+      .pipe(
+        map((response: GenericApiResponse<ContractNegotiation>) => {
+          if (response.success && response.data) {
             this.snackBarService.openSnackBar(
               response.message,
               'OK',
               'center',
               'bottom',
-              'snackbar-error'
+              'snackbar-success'
             );
+            return response.data;
+          } else {
             throw new Error(response.message);
           }
         }),
-        catchError(this.errorHandler.bind(this))
+        catchError((error) => this.errorHandlerService.handleError(error))
       );
   }
 
@@ -141,6 +157,7 @@ export class ContractNegotiationService {
    *
    * */
   approveNegotiation(negotiationId: string): Observable<ContractNegotiation> {
+    console.log('negotiationId', negotiationId);
     return this.http
       .put<GenericApiResponse<ContractNegotiation>>(
         this.apiUrl + '/' + negotiationId + '/approve',
@@ -149,7 +166,7 @@ export class ContractNegotiationService {
       )
       .pipe(
         map((response: GenericApiResponse<ContractNegotiation>) => {
-          if (response.success) {
+          if (response.success && response.data) {
             this.snackBarService.openSnackBar(
               response.message,
               'OK',
@@ -159,17 +176,10 @@ export class ContractNegotiationService {
             );
             return response.data;
           } else {
-            this.snackBarService.openSnackBar(
-              response.message,
-              'OK',
-              'center',
-              'bottom',
-              'snackbar-error'
-            );
             throw new Error(response.message);
           }
         }),
-        catchError(this.errorHandler.bind(this))
+        catchError((error) => this.errorHandlerService.handleError(error))
       );
   }
 
@@ -180,7 +190,7 @@ export class ContractNegotiationService {
    * @example contractNegotiationService.verifyNegotiation(negotiationId).subscribe({ next: console.log, error: console.error, complete: () => console.log('completed') });
    *
    * */
-  verifyNegotiation(negotiationId: string): Observable<ContractNegotiation> {
+  verifyNegotiation(negotiationId: string): Observable<boolean> {
     return this.http
       .put<GenericApiResponse<ContractNegotiation>>(
         this.apiUrl + '/' + negotiationId + '/verify',
@@ -197,19 +207,12 @@ export class ContractNegotiationService {
               'bottom',
               'snackbar-success'
             );
-            return response.data;
+            return true;
           } else {
-            this.snackBarService.openSnackBar(
-              response.message,
-              'OK',
-              'center',
-              'bottom',
-              'snackbar-error'
-            );
             throw new Error(response.message);
           }
         }),
-        catchError(this.errorHandler.bind(this))
+        catchError((error) => this.errorHandlerService.handleError(error))
       );
   }
 
@@ -220,7 +223,7 @@ export class ContractNegotiationService {
    * @example contractNegotiationService.finalizeNegotiation(negotiationId).subscribe({ next: console.log, error: console.error, complete: () => console.log('completed') });
    *
    */
-  finalizeNegotiation(negotiationId: string): Observable<ContractNegotiation> {
+  finalizeNegotiation(negotiationId: string): Observable<boolean> {
     return this.http
       .put<GenericApiResponse<ContractNegotiation>>(
         this.apiUrl + '/' + negotiationId + '/finalize',
@@ -237,19 +240,12 @@ export class ContractNegotiationService {
               'bottom',
               'snackbar-success'
             );
-            return response.data;
+            return true;
           } else {
-            this.snackBarService.openSnackBar(
-              response.message,
-              'OK',
-              'center',
-              'bottom',
-              'snackbar-error'
-            );
             throw new Error(response.message);
           }
         }),
-        catchError(this.errorHandler.bind(this))
+        catchError((error) => this.errorHandlerService.handleError(error))
       );
   }
 
@@ -269,7 +265,7 @@ export class ContractNegotiationService {
       )
       .pipe(
         map((response: GenericApiResponse<ContractNegotiation>) => {
-          if (response.success) {
+          if (response.success && response.data) {
             this.snackBarService.openSnackBar(
               response.message,
               'OK',
@@ -279,17 +275,10 @@ export class ContractNegotiationService {
             );
             return response.data;
           } else {
-            this.snackBarService.openSnackBar(
-              response.message,
-              'OK',
-              'center',
-              'bottom',
-              'snackbar-error'
-            );
             throw new Error(response.message);
           }
         }),
-        catchError(this.errorHandler.bind(this))
+        catchError((error) => this.errorHandlerService.handleError(error))
       );
   }
 
@@ -305,31 +294,5 @@ export class ContractNegotiationService {
       this.apiUrl + '/check/' + negotiationId,
       this.httpOptions
     );
-  }
-
-  /**
-   * Handle errors
-   * @param error
-   * @returns throwError
-   * */
-  errorHandler(error: any) {
-    console.log('ERR', error);
-    let errorMessage = '';
-    if (error.error instanceof ErrorEvent) {
-      errorMessage = error.error.message;
-    } else {
-      errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
-    }
-    this.snackBarService.openSnackBar(
-      'An error occurred: ' + errorMessage,
-      'OK',
-      'center',
-      'bottom',
-      'snackbar-error'
-    );
-    console.log(errorMessage);
-    return throwError(() => {
-      return errorMessage;
-    });
   }
 }

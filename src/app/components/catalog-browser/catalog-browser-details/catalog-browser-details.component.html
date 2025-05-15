@@ -129,22 +129,24 @@
                                 *ngFor="let offer of dataset.hasPolicy"
                                 class="resource-section"
                               >
-                                <div>
-                                  <mat-checkbox
-                                    [checked]="isSelectedOffer(offer)"
-                                    (change)="onOfferSelected(offer)"
+                                <div class="offer-row">
+                                  <div class="offer-info">
+                                    <mat-checkbox
+                                      [checked]="isSelectedOffer(offer)"
+                                      (change)="onOfferSelected(offer)"
+                                    >
+                                      <p>{{ offer["@id"] }}</p>
+                                    </mat-checkbox>
+                                  </div>
+                                  <button
+                                    class="view-btn"
+                                    mat-button
+                                    matTooltip="View details"
+                                    (click)="showMoreDetails(offer, 'offer')"
                                   >
-                                    <p>{{ offer["@id"] }}</p>
-                                  </mat-checkbox>
+                                    <mat-icon>visibility</mat-icon>
+                                  </button>
                                 </div>
-                                <button
-                                  class="view-btn"
-                                  mat-button
-                                  matTooltip="View details"
-                                  (click)="showMoreDetails(offer, 'offer')"
-                                >
-                                  <mat-icon>visibility</mat-icon>
-                                </button>
                                 <hr />
                               </div>
                             </mat-expansion-panel>
@@ -154,7 +156,7 @@
                               *ngIf="dataset.distribution.length > 0"
                             >
                               <mat-expansion-panel-header>
-                                <mat-panel-title>Distributions</mat-panel-title>
+                                <mat-panel-title>Distribution</mat-panel-title>
                               </mat-expansion-panel-header>
                               <div
                                 *ngFor="
@@ -182,8 +184,7 @@
                           <div class="btn-action">
                             <button
                               mat-button
-                              matTooltip="View details"
-                              (click)="startContractNegotiation()"
+                              (click)="startContractNegotiation(dataset['@id'])"
                             >
                               <mat-icon>gavel</mat-icon>
                               Start negotiation
@@ -199,71 +200,6 @@
           >
         </mat-tab-group>
       </div>
-
-      <!-- <div class="sdd">
-        <mat-expansion-panel
-          class="expansion-panel"
-          *ngIf="catalogData.service.length > 0"
-        >
-          <mat-expansion-panel-header>
-            <mat-panel-title>Services</mat-panel-title>
-          </mat-expansion-panel-header>
-          <div
-            *ngFor="let service of catalogData.service"
-            class="resource-section"
-          >
-            <div>
-              <p>{{ service.title }}</p>
-              <button mat-button matTooltip="View details">
-                <mat-icon>visibility</mat-icon>
-              </button>
-            </div>
-            <hr />
-          </div>
-        </mat-expansion-panel>
-
-        <mat-expansion-panel
-          class="expansion-panel"
-          *ngIf="catalogData.dataset.length > 0"
-        >
-          <mat-expansion-panel-header>
-            <mat-panel-title>Datasets</mat-panel-title>
-          </mat-expansion-panel-header>
-          <div
-            *ngFor="let dataset of catalogData.dataset"
-            class="resource-section"
-          >
-            <div>
-              <p>{{ dataset.title }}</p>
-              <button mat-button matTooltip="View details">
-                <mat-icon>visibility</mat-icon>
-              </button>
-            </div>
-            <hr />
-          </div>
-        </mat-expansion-panel>
-
-        <mat-expansion-panel
-          class="expansion-panel"
-          *ngIf="catalogData.distribution.length > 0"
-        >
-          <mat-expansion-panel-header>
-            <mat-panel-title>Distributions</mat-panel-title>
-          </mat-expansion-panel-header>
-          <div
-            *ngFor="let distribution of catalogData.distribution"
-            class="resource-section"
-          >
-            <div>
-              <p>{{ distribution.title }}</p>
-              <button mat-button matTooltip="View details">
-                <mat-icon>visibility</mat-icon>
-              </button>
-            </div>
-            <hr />
-          </div>
-        </mat-expansion-panel>
-      </div> -->
     </mat-card-content>
   </mat-card>
 </div>

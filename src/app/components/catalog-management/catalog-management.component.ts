@@ -32,28 +32,27 @@ import { SnackbarService } from '../../services/snackbar/snackbar.service';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
 
 @Component({
-  selector: 'app-catalog-management',
-  standalone: true,
-  imports: [
-    CommonModule,
-    RouterModule,
-    MatCardModule,
-    MatButtonModule,
-    MatExpansionModule,
-    MatToolbarModule,
-    NgxSkeletonLoaderModule,
-    MatIconModule,
-    FormsModule,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatInputModule,
-    MatTooltipModule,
-    MatTabsModule,
-  ],
-  providers: [CatalogService],
-  templateUrl: './catalog-management.component.html',
-  styleUrls: ['./catalog-management.component.css'],
+    selector: 'app-catalog-management',
+    imports: [
+        CommonModule,
+        RouterModule,
+        MatCardModule,
+        MatButtonModule,
+        MatExpansionModule,
+        MatToolbarModule,
+        NgxSkeletonLoaderModule,
+        MatIconModule,
+        FormsModule,
+        ReactiveFormsModule,
+        MatFormFieldModule,
+        MatSelectModule,
+        MatInputModule,
+        MatTooltipModule,
+        MatTabsModule,
+    ],
+    providers: [CatalogService],
+    templateUrl: './catalog-management.component.html',
+    styleUrls: ['./catalog-management.component.css']
 })
 export class CatalogManagementComponent implements OnInit {
   panelOpenState = false;
@@ -78,9 +77,7 @@ export class CatalogManagementComponent implements OnInit {
     private location: Location,
     private fb: FormBuilder,
     private snackBarService: SnackbarService
-  ) {
-    console.log('CatalogManagementComponent constructor called');
-  }
+  ) {}
 
   /**
    * Initializes the component.
@@ -97,11 +94,11 @@ export class CatalogManagementComponent implements OnInit {
   getCatalogData(): void {
     this.catalogService.getCatalog().subscribe({
       next: (data) => {
-        console.log('Catalog data:', data);
+        console.log('Catalog data fetched');
+
         this.catalogData = data;
         this.languages = this.extractLanguages(this.catalogData.description);
         this.updateForm(this.catalogData);
-        console.log('Languages:', this.languages);
         this.loading = false;
       },
       error: (error) => {
@@ -397,7 +394,7 @@ export class CatalogManagementComponent implements OnInit {
   uploadCatalogFile(file: File): void {
     this.catalogService.uploadCatalogFile(file).subscribe(
       (response) => {
-        console.log('File uploaded successfully:', response);
+        console.log('File uploaded successfully');
       },
       (error) => {
         console.error('File upload failed:', error);
@@ -471,7 +468,6 @@ export class CatalogManagementComponent implements OnInit {
    * @param catalogData The catalog data to update the form with.
    */
   updateForm(catalogData: Catalog | undefined): void {
-    console.log('Updating form with catalog data:', catalogData);
     if (catalogData) {
       this.catalogForm.patchValue({
         '@id': catalogData['@id'],
@@ -497,7 +493,6 @@ export class CatalogManagementComponent implements OnInit {
       this.setFormArray('dataset', catalogData.dataset);
       this.setFormArray('service', catalogData.service);
     }
-    console.log('Form updated:', this.catalogForm.value);
   }
 
   /**
@@ -551,7 +546,6 @@ export class CatalogManagementComponent implements OnInit {
       }
     });
 
-    console.log('Cleaned data:', cleanedData);
     return cleanedData;
   }
 }

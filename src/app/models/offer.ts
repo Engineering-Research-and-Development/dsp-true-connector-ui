@@ -1,7 +1,7 @@
 import { Permission } from './permission';
 
 export interface Offer {
-  '@id': number;
+  '@id': string;
   target?: string;
   assigner: string;
   assignee: string;

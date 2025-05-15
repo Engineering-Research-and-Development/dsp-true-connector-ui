@@ -8,20 +8,38 @@
   </mat-card>
 </div>
 <div *ngIf="!loading && catalogData === undefined" class="buttons">
-  <h1>There is no catalog, please create one</h1>
-  <button mat-button (click)="onAdd()">Add New Catalog</button>
+  <mat-card class="catalog-card">
+    <mat-card-title class="catalog-title"></mat-card-title>
+    <mat-card-content>
+      <div class="headtitle">
+        <div class="back">
+          <h1>Manage Catalog data</h1>
+          <mat-icon
+            class="help-icon"
+            matTooltip="Here you can view, edit, download, or delete the existing catalog. Use the tabs and buttons to navigate and manage the data."
+            aria-label="Help regarding catalog management"
+            >help_outline</mat-icon
+          >
+        </div>
+      </div>
+      <div>
+        <h2>There is no catalog, please create one</h2>
+        <button mat-button (click)="onAdd()">Add New Catalog</button>
 
-  <input
-    type="file"
-    (change)="onFileSelected($event)"
-    accept=".json"
-    style="display: none"
-    #fileInput
-  />
+        <input
+          type="file"
+          (change)="onFileSelected($event)"
+          accept=".json"
+          style="display: none"
+          #fileInput
+        />
 
-  <button mat-button (click)="fileInput.click()">
-    Upload catalog from file
-  </button>
+        <button mat-button (click)="fileInput.click()">
+          Upload catalog from file
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
 </div>
 <div *ngIf="!loading && catalogData != undefined">
   <form [formGroup]="catalogForm">
@@ -31,6 +49,13 @@
         <div class="headtitle">
           <div class="back">
             <h1>Manage Catalog data</h1>
+            <mat-icon
+              class="help-icon"
+              matTooltip="Catalog data is consisted out of crucial data for functioning catalog such are metadata, services, datasets and distributions. 
+              Here you can view, edit, download, or delete the existing catalog. Use the tabs and buttons to navigate and manage the data."
+              aria-label="Help regarding catalog management"
+              >help_outline</mat-icon
+            >
           </div>
 
           <div class="buttons">
@@ -259,11 +284,17 @@
                         formControlName="language"
                         placeholder="Language"
                         maxlength="2"
+                        pattern="[a-zA-Z ]*"
                       />
                       <mat-error
                         *ngIf="desc.get('language')?.hasError('required')"
                       >
                         Language is required
+                      </mat-error>
+                      <mat-error
+                        *ngIf="desc.get('language')?.hasError('pattern')"
+                      >
+                        Only letters are allowed
                       </mat-error>
                     </mat-form-field>
                     <div class="desc-text">
