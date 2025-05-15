@@ -21,29 +21,28 @@ import { DataTransferState } from '../../models/enums/dataTransferState';
 import { DataTransferService } from '../../services/data-transfer/data-transfer.service';
 
 @Component({
-  selector: 'app-data-transfers',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatCardModule,
-    MatDividerModule,
-    MatListModule,
-    MatExpansionModule,
-    MatIconModule,
-    MatButtonModule,
-    NgxSkeletonLoaderModule,
-    MatInputModule,
-    MatToolbarModule,
-    MatFormFieldModule,
-    FormsModule,
-    ReactiveFormsModule,
-    MatTooltipModule,
-    MatButtonToggleModule,
-    MatCheckboxModule,
-    MatChipsModule,
-  ],
-  templateUrl: './data-transfers.component.html',
-  styleUrl: './data-transfers.component.css',
+    selector: 'app-data-transfers',
+    imports: [
+        CommonModule,
+        MatCardModule,
+        MatDividerModule,
+        MatListModule,
+        MatExpansionModule,
+        MatIconModule,
+        MatButtonModule,
+        NgxSkeletonLoaderModule,
+        MatInputModule,
+        MatToolbarModule,
+        MatFormFieldModule,
+        FormsModule,
+        ReactiveFormsModule,
+        MatTooltipModule,
+        MatButtonToggleModule,
+        MatCheckboxModule,
+        MatChipsModule,
+    ],
+    templateUrl: './data-transfers.component.html',
+    styleUrl: './data-transfers.component.css'
 })
 export class DataTransfersComponent {
   userType!: string;

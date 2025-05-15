@@ -17,25 +17,24 @@ import { CatalogService } from '../../services/catalog/catalog.service';
 import { ProxyService } from '../../services/proxy/proxy.service';
 
 @Component({
-  selector: 'app-catalog-browser',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatExpansionModule,
-    MatInputModule,
-    MatToolbarModule,
-    MatFormFieldModule,
-    FormsModule,
-    ReactiveFormsModule,
-    NgxSkeletonLoaderModule,
-    MatTooltipModule,
-  ],
-  providers: [CatalogService],
-  templateUrl: './catalog-browser.component.html',
-  styleUrls: ['./catalog-browser.component.css'],
+    selector: 'app-catalog-browser',
+    imports: [
+        CommonModule,
+        MatCardModule,
+        MatButtonModule,
+        MatIconModule,
+        MatExpansionModule,
+        MatInputModule,
+        MatToolbarModule,
+        MatFormFieldModule,
+        FormsModule,
+        ReactiveFormsModule,
+        NgxSkeletonLoaderModule,
+        MatTooltipModule,
+    ],
+    providers: [CatalogService],
+    templateUrl: './catalog-browser.component.html',
+    styleUrls: ['./catalog-browser.component.css']
 })
 export class CatalogBrowserComponent implements OnInit {
   loading: boolean = false;

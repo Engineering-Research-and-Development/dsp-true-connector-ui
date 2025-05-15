@@ -30,27 +30,26 @@ import { ConfirmationDialogComponent } from '../../confirmation-dialog/confirmat
 import { Distribution } from './../../../models/distribution';
 
 @Component({
-  selector: 'app-distribution-details',
-  standalone: true,
-  imports: [
-    CommonModule,
-    RouterModule,
-    MatCardModule,
-    MatButtonModule,
-    MatExpansionModule,
-    MatToolbarModule,
-    NgxSkeletonLoaderModule,
-    MatIconModule,
-    FormsModule,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatInputModule,
-    MatTooltipModule,
-    MatTabsModule,
-  ],
-  templateUrl: './distribution-details.component.html',
-  styleUrl: './distribution-details.component.css',
+    selector: 'app-distribution-details',
+    imports: [
+        CommonModule,
+        RouterModule,
+        MatCardModule,
+        MatButtonModule,
+        MatExpansionModule,
+        MatToolbarModule,
+        NgxSkeletonLoaderModule,
+        MatIconModule,
+        FormsModule,
+        ReactiveFormsModule,
+        MatFormFieldModule,
+        MatSelectModule,
+        MatInputModule,
+        MatTooltipModule,
+        MatTabsModule,
+    ],
+    templateUrl: './distribution-details.component.html',
+    styleUrl: './distribution-details.component.css'
 })
 export class DistributionDetailsComponent implements OnInit {
   distributionForm!: FormGroup;

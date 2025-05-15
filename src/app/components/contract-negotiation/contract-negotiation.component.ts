@@ -21,29 +21,28 @@ import { ContractNegotiationState } from '../../models/enums/contractNegotiation
 import { ContractNegotiationService } from '../../services/contract-negotiation/contract-negotiation.service';
 
 @Component({
-  selector: 'app-contract-negotiation',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatCardModule,
-    MatDividerModule,
-    MatListModule,
-    MatExpansionModule,
-    MatIconModule,
-    MatButtonModule,
-    NgxSkeletonLoaderModule,
-    MatInputModule,
-    MatToolbarModule,
-    MatFormFieldModule,
-    FormsModule,
-    ReactiveFormsModule,
-    MatTooltipModule,
-    MatButtonToggleModule,
-    MatCheckboxModule,
-    MatChipsModule,
-  ],
-  templateUrl: './contract-negotiation.component.html',
-  styleUrls: ['./contract-negotiation.component.css'],
+    selector: 'app-contract-negotiation',
+    imports: [
+        CommonModule,
+        MatCardModule,
+        MatDividerModule,
+        MatListModule,
+        MatExpansionModule,
+        MatIconModule,
+        MatButtonModule,
+        NgxSkeletonLoaderModule,
+        MatInputModule,
+        MatToolbarModule,
+        MatFormFieldModule,
+        FormsModule,
+        ReactiveFormsModule,
+        MatTooltipModule,
+        MatButtonToggleModule,
+        MatCheckboxModule,
+        MatChipsModule,
+    ],
+    templateUrl: './contract-negotiation.component.html',
+    styleUrls: ['./contract-negotiation.component.css']
 })
 export class ContractNegotiationComponent implements OnInit {
   userType!: string;

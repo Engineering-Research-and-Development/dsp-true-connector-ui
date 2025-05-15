@@ -22,24 +22,23 @@ export interface ArtifactDialogData {
 }
 
 @Component({
-  selector: 'app-artifact-dialog',
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    MatDialogModule,
-    MatTabsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatButtonModule,
-    MatIconModule,
-    MatDividerModule,
-    ReactiveFormsModule,
-    MatRadioModule,
-  ],
-  templateUrl: './artifact-dialog.component.html',
-  styleUrls: ['./artifact-dialog.component.css'],
+    selector: 'app-artifact-dialog',
+    imports: [
+        CommonModule,
+        FormsModule,
+        MatDialogModule,
+        MatTabsModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatSelectModule,
+        MatButtonModule,
+        MatIconModule,
+        MatDividerModule,
+        ReactiveFormsModule,
+        MatRadioModule,
+    ],
+    templateUrl: './artifact-dialog.component.html',
+    styleUrls: ['./artifact-dialog.component.css']
 })
 export class ArtifactDialogComponent {
   selectedFile: File | undefined;

@@ -24,24 +24,23 @@ import { SnackbarService } from '../../../services/snackbar/snackbar.service';
 import { CnDetailsDialogComponent } from './cn-details-dialog/cn-details-dialog.component';
 
 @Component({
-  selector: 'app-catalog-browser-details',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatTooltipModule,
-    MatTabsModule,
-    MatCardModule,
-    NgxSkeletonLoaderModule,
-    MatIconModule,
-    FormsModule,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatExpansionModule,
-    MatCheckboxModule,
-  ],
-  templateUrl: './catalog-browser-details.component.html',
-  styleUrl: './catalog-browser-details.component.css',
+    selector: 'app-catalog-browser-details',
+    imports: [
+        CommonModule,
+        MatTooltipModule,
+        MatTabsModule,
+        MatCardModule,
+        NgxSkeletonLoaderModule,
+        MatIconModule,
+        FormsModule,
+        ReactiveFormsModule,
+        MatFormFieldModule,
+        MatSelectModule,
+        MatExpansionModule,
+        MatCheckboxModule,
+    ],
+    templateUrl: './catalog-browser-details.component.html',
+    styleUrl: './catalog-browser-details.component.css'
 })
 export class CatalogBrowserDetailsComponent {
   catalogData!: Catalog | undefined;
