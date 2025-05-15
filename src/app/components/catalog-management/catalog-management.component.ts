@@ -32,28 +32,27 @@ import { SnackbarService } from '../../services/snackbar/snackbar.service';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
 
 @Component({
-  selector: 'app-catalog-management',
-  standalone: true,
-  imports: [
-    CommonModule,
-    RouterModule,
-    MatCardModule,
-    MatButtonModule,
-    MatExpansionModule,
-    MatToolbarModule,
-    NgxSkeletonLoaderModule,
-    MatIconModule,
-    FormsModule,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatInputModule,
-    MatTooltipModule,
-    MatTabsModule,
-  ],
-  providers: [CatalogService],
-  templateUrl: './catalog-management.component.html',
-  styleUrls: ['./catalog-management.component.css'],
+    selector: 'app-catalog-management',
+    imports: [
+        CommonModule,
+        RouterModule,
+        MatCardModule,
+        MatButtonModule,
+        MatExpansionModule,
+        MatToolbarModule,
+        NgxSkeletonLoaderModule,
+        MatIconModule,
+        FormsModule,
+        ReactiveFormsModule,
+        MatFormFieldModule,
+        MatSelectModule,
+        MatInputModule,
+        MatTooltipModule,
+        MatTabsModule,
+    ],
+    providers: [CatalogService],
+    templateUrl: './catalog-management.component.html',
+    styleUrls: ['./catalog-management.component.css']
 })
 export class CatalogManagementComponent implements OnInit {
   panelOpenState = false;

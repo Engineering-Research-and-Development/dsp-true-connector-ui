@@ -1,7 +1,4 @@
-import {
-  HttpClientTestingModule,
-  HttpTestingController,
-} from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { throwError } from 'rxjs'; // <--- ADD THIS LINE
 import { environment } from '../../../environments/environment';
@@ -12,6 +9,7 @@ import { MOCK_ARTIFACT, MOCK_DATASET } from '../../test-utils/test-utils';
 import { ErrorHandlerService } from '../error-handler/error-handler.service'; // Import ErrorHandlerService
 import { SnackbarService } from '../snackbar/snackbar.service';
 import { DatasetService } from './dataset.service';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('DatasetService', () => {
   let service: DatasetService;
@@ -31,13 +29,15 @@ describe('DatasetService', () => {
     ]);
 
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [
+    imports: [],
+    providers: [
         DatasetService,
         { provide: SnackbarService, useValue: snackbarSpy },
-        { provide: ErrorHandlerService, useValue: errorHandlerSpy }, // Provide the mock
-      ],
-    });
+        { provide: ErrorHandlerService, useValue: errorHandlerSpy },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+    ]
+});
 
     service = TestBed.inject(DatasetService);
     httpMock = TestBed.inject(HttpTestingController);

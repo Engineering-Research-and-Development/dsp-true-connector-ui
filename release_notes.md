@@ -1,3 +1,14 @@
+[0.1.0] - 15-05-2025
+
+### Added
+
+- Drag and drop for adding artifacts files
+- Adding external artifact (URL and authorization)
+- New constraint support and input (Purpose, Spatial)
+- Tooltips
+- View downloaded artifact
+- Cosmetic UI changes
+
 [0.0.1] - 24-04-2025
 
 ### Added

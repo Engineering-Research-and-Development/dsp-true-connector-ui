@@ -39,29 +39,28 @@ import { Distribution } from './../../../models/distribution';
 import { ArtifactDialogComponent } from './artifact-dialog/artifact-dialog.component';
 
 @Component({
-  selector: 'app-dataset-details',
-  standalone: true,
-  imports: [
-    CommonModule,
-    RouterModule,
-    MatCardModule,
-    MatButtonModule,
-    MatExpansionModule,
-    MatToolbarModule,
-    NgxSkeletonLoaderModule,
-    MatIconModule,
-    FormsModule,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatInputModule,
-    MatTooltipModule,
-    MatTabsModule,
-    MatDatepickerModule,
-    MatNativeDateModule,
-  ],
-  templateUrl: './dataset-details.component.html',
-  styleUrls: ['./dataset-details.component.css'],
+    selector: 'app-dataset-details',
+    imports: [
+        CommonModule,
+        RouterModule,
+        MatCardModule,
+        MatButtonModule,
+        MatExpansionModule,
+        MatToolbarModule,
+        NgxSkeletonLoaderModule,
+        MatIconModule,
+        FormsModule,
+        ReactiveFormsModule,
+        MatFormFieldModule,
+        MatSelectModule,
+        MatInputModule,
+        MatTooltipModule,
+        MatTabsModule,
+        MatDatepickerModule,
+        MatNativeDateModule,
+    ],
+    templateUrl: './dataset-details.component.html',
+    styleUrls: ['./dataset-details.component.css']
 })
 export class DatasetDetailsComponent {
   datasetForm!: FormGroup;

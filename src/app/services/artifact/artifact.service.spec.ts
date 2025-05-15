@@ -1,11 +1,9 @@
-import {
-  HttpClientTestingModule,
-  HttpTestingController,
-} from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { throwError } from 'rxjs';
 import { ErrorHandlerService } from '../error-handler/error-handler.service';
 import { ArtifactService } from './artifact.service';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('ArtifactService', () => {
   let service: ArtifactService;
@@ -21,12 +19,14 @@ describe('ArtifactService', () => {
     );
 
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [
+    imports: [],
+    providers: [
         ArtifactService,
         { provide: ErrorHandlerService, useValue: errorHandlerSpy },
-      ],
-    });
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+    ]
+});
 
     service = TestBed.inject(ArtifactService);
     httpMock = TestBed.inject(HttpTestingController);

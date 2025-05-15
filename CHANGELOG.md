@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+[0.1.0] - 15-05-2025
+
+### Added
+
+- GHA for PR build, develop and release
+- Test coverage for all services
+- Drag and drop for adding artifacts files
+- Adding external artifact (URL and authorization)
+- New constraint support and input (Purpose, Spatial)
+- Tooltips
+- View downloaded artifact
+- Cosmetic UI changes
+
+### Changed
+
+- Upgrade to Angular 19 from 17
+- Upgrade 3rd party libraries
+
 [0.0.1] - 24-04-2025
 
 ### Added

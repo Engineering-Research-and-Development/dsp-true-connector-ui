@@ -1,7 +1,4 @@
-import {
-  HttpClientTestingModule,
-  HttpTestingController,
-} from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { environment } from '../../../environments/environment';
 import { Catalog } from '../../models/catalog';
@@ -9,6 +6,7 @@ import { GenericApiResponse } from '../../models/genericApiResponse';
 import { MOCK_CATALOG } from '../../test-utils/test-utils';
 import { SnackbarService } from '../snackbar/snackbar.service';
 import { CatalogService } from './catalog.service';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('CatalogService', () => {
   let service: CatalogService;
@@ -22,12 +20,14 @@ describe('CatalogService', () => {
     ]);
 
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [
+    imports: [],
+    providers: [
         CatalogService,
         { provide: SnackbarService, useValue: snackbarSpy },
-      ],
-    });
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+    ]
+});
 
     service = TestBed.inject(CatalogService);
     httpMock = TestBed.inject(HttpTestingController);

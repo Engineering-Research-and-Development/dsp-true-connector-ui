@@ -19,26 +19,25 @@ import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation
 import { DataService } from './../../models/dataService';
 
 @Component({
-  selector: 'app-service-management',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatCardModule,
-    MatDividerModule,
-    MatListModule,
-    MatExpansionModule,
-    MatIconModule,
-    NgxSkeletonLoaderModule,
-    MatInputModule,
-    MatToolbarModule,
-    MatFormFieldModule,
-    FormsModule,
-    ReactiveFormsModule,
-    MatTooltipModule,
-    MatButtonModule,
-  ],
-  templateUrl: './service-management.component.html',
-  styleUrl: './service-management.component.css',
+    selector: 'app-service-management',
+    imports: [
+        CommonModule,
+        MatCardModule,
+        MatDividerModule,
+        MatListModule,
+        MatExpansionModule,
+        MatIconModule,
+        NgxSkeletonLoaderModule,
+        MatInputModule,
+        MatToolbarModule,
+        MatFormFieldModule,
+        FormsModule,
+        ReactiveFormsModule,
+        MatTooltipModule,
+        MatButtonModule,
+    ],
+    templateUrl: './service-management.component.html',
+    styleUrl: './service-management.component.css'
 })
 export class ServiceManagementComponent implements OnInit {
   dataServices: DataService[] = [];

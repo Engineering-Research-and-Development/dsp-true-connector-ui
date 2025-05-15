@@ -8,19 +8,18 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router, RouterModule } from '@angular/router';
 
 @Component({
-  selector: 'app-policy-details',
-  standalone: true,
-  imports: [
-    CommonModule,
-    RouterModule,
-    MatCardModule,
-    MatButtonModule,
-    MatExpansionModule,
-    MatIcon,
-    MatTooltipModule,
-  ],
-  templateUrl: './policy-details.component.html',
-  styleUrl: './policy-details.component.css',
+    selector: 'app-policy-details',
+    imports: [
+        CommonModule,
+        RouterModule,
+        MatCardModule,
+        MatButtonModule,
+        MatExpansionModule,
+        MatIcon,
+        MatTooltipModule,
+    ],
+    templateUrl: './policy-details.component.html',
+    styleUrl: './policy-details.component.css'
 })
 export class PolicyDetailsComponent implements OnInit {
   policy!: any;

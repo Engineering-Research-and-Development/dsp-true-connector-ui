@@ -4,11 +4,10 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatExpansionModule } from '@angular/material/expansion';
 
 @Component({
-  selector: 'app-cn-details-dialog',
-  standalone: true,
-  imports: [CommonModule, MatExpansionModule],
-  templateUrl: './cn-details-dialog.component.html',
-  styleUrl: './cn-details-dialog.component.css',
+    selector: 'app-cn-details-dialog',
+    imports: [CommonModule, MatExpansionModule],
+    templateUrl: './cn-details-dialog.component.html',
+    styleUrl: './cn-details-dialog.component.css'
 })
 export class CnDetailsDialogComponent {
   type: string = '';

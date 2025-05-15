@@ -21,26 +21,25 @@ import { SnackbarService } from '../../services/snackbar/snackbar.service';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
 
 @Component({
-  selector: 'app-dataset-management',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatCardModule,
-    MatDividerModule,
-    MatListModule,
-    MatExpansionModule,
-    MatIconModule,
-    MatButtonModule,
-    NgxSkeletonLoaderModule,
-    MatInputModule,
-    MatToolbarModule,
-    MatFormFieldModule,
-    FormsModule,
-    ReactiveFormsModule,
-    MatTooltipModule,
-  ],
-  templateUrl: './dataset-management.component.html',
-  styleUrl: './dataset-management.component.css',
+    selector: 'app-dataset-management',
+    imports: [
+        CommonModule,
+        MatCardModule,
+        MatDividerModule,
+        MatListModule,
+        MatExpansionModule,
+        MatIconModule,
+        MatButtonModule,
+        NgxSkeletonLoaderModule,
+        MatInputModule,
+        MatToolbarModule,
+        MatFormFieldModule,
+        FormsModule,
+        ReactiveFormsModule,
+        MatTooltipModule,
+    ],
+    templateUrl: './dataset-management.component.html',
+    styleUrl: './dataset-management.component.css'
 })
 export class DatasetManagementComponent implements OnInit {
   datasets: Dataset[] = [];
