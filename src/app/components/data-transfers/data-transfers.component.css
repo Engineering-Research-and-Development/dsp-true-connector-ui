@@ -204,6 +204,10 @@ button[mat-button]:hover {
   line-height: normal;
 }
 
+.space-card .card .btn-action button {
+  margin-top: 20px;
+}
+
 .mat-card-content {
   width: 100%;
   box-sizing: border-box;

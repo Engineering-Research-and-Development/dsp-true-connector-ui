@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 
 - Upgrade to Angular 19 from 17
 - Upgrade 3rd party libraries
+- Fix actions if data transfer is in suspend state
 
 [0.0.1] - 24-04-2025
 
