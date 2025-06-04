@@ -156,9 +156,22 @@
                   dataTransfer.downloaded === false
                 "
                 (click)="onDownload(dataTransfer)"
+                [disabled]="isDownloading(dataTransfer['@id'])"
               >
-                <mat-icon>download</mat-icon>
-                <p>Download</p>
+                <mat-progress-spinner
+                  *ngIf="isDownloading(dataTransfer['@id'])"
+                  diameter="20"
+                  mode="indeterminate"
+                >
+                </mat-progress-spinner>
+
+                <mat-icon *ngIf="!isDownloading(dataTransfer['@id'])"
+                  >download</mat-icon
+                >
+
+                <p>
+                  {{ isDownloading(dataTransfer["@id"]) ? "" : "Download" }}
+                </p>
               </button>
               <button
                 mat-button

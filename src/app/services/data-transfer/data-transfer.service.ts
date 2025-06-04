@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, map, Observable } from 'rxjs';
+import { catchError, map, Observable, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { DataTransfer } from '../../models/dataTransfer';
 import { GenericApiResponse } from '../../models/genericApiResponse';
@@ -12,6 +12,7 @@ import { SnackbarService } from '../snackbar/snackbar.service';
 })
 export class DataTransferService {
   private apiUrl = environment.DATA_TRANSFER_API_URL();
+  private downloadingTransfers = new Set<string>();
 
   /**
    * Constructor in order to use the HttpClient and set the httpOptions
@@ -29,6 +30,47 @@ export class DataTransferService {
       'Content-Type': 'application/json',
     }),
   };
+
+  /**
+   * Check if a transfer is currently being downloaded
+   * @param transferId - The id of the transfer
+   * @returns boolean - true if the transfer is being downloaded, false otherwise
+   * @example dataTransferService.isDownloading('1234');
+   */
+  isDownloading(transferId: string): boolean {
+    return this.downloadingTransfers.has(transferId);
+  }
+
+  /**
+   * Mark a transfer as downloading
+   * @param transferId - The id of the transfer
+   * @example dataTransferService.markAsDownloading('1234');
+   */
+  private markAsDownloading(transferId: string): void {
+    this.downloadingTransfers.add(transferId);
+  }
+
+  /**
+   * Mark a transfer as completed
+   * @param transferId - The id of the transfer
+   * @example dataTransferService.markAsCompleted('1234');
+   */
+  private markAsCompleted(transferId: string): void {
+    this.downloadingTransfers.delete(transferId);
+  }
+
+  /**
+   * Cleanup completed data transfers
+   * @param dataTransfers - The list of data transfers to check
+   * @example dataTransferService.cleanupCompleted(dataTransfers);
+   */
+  cleanupCompleted(dataTransfers: DataTransfer[]): void {
+    dataTransfers.forEach((transfer) => {
+      if (transfer.downloaded === true) {
+        this.downloadingTransfers.delete(transfer['@id']);
+      }
+    });
+  }
 
   /**
    * Request for a new data transfer to be created
@@ -247,6 +289,8 @@ export class DataTransferService {
    * @param transactionId Base64.urlEncoded(consumerPid|providerPid) from TransferProcess message
    */
   downloadArtifact(transferProcessId: string): Observable<boolean> {
+    this.markAsDownloading(transferProcessId);
+
     return this.http
       .get<GenericApiResponse<any[]>>(
         this.apiUrl + '/' + transferProcessId + '/download',
@@ -255,6 +299,7 @@ export class DataTransferService {
       .pipe(
         map((response: GenericApiResponse<any[]>) => {
           if (response.success) {
+            this.markAsCompleted(transferProcessId);
             this.snackBarService.openSnackBar(
               response.message,
               'OK',
@@ -263,6 +308,52 @@ export class DataTransferService {
               'snackbar-success'
             );
             return true;
+          } else {
+            this.markAsCompleted(transferProcessId);
+            throw new Error(response.message);
+          }
+        }),
+        catchError((error) => {
+          const isTimeout =
+            error.status === 504 ||
+            error.status === 408 ||
+            error.status === 0 ||
+            error.name === 'TimeoutError' ||
+            error.error?.includes?.('timeout') ||
+            error.message?.toLowerCase().includes('timeout');
+
+          if (isTimeout) {
+            this.snackBarService.openSnackBar(
+              'Download is taking longer than expected. Please refresh to check status.',
+              'OK',
+              'center',
+              'bottom',
+              'snackbar-info'
+            );
+            return of(false);
+          } else {
+            this.markAsCompleted(transferProcessId);
+            return this.errorHandlerService.handleError(error);
+          }
+        })
+      );
+  }
+
+  /**
+   * Get presigned URL for artifact download
+   * @param transferProcessId Base64.urlEncoded(consumerPid|providerPid) from TransferProcess message
+   * @returns Observable<string>
+   */
+  getPresignedUrl(transferProcessId: string): Observable<string> {
+    return this.http
+      .get<GenericApiResponse<string>>(
+        this.apiUrl + '/' + transferProcessId + '/view',
+        this.httpOptions
+      )
+      .pipe(
+        map((response: GenericApiResponse<string>) => {
+          if (response.success && response.data) {
+            return response.data;
           } else {
             throw new Error(response.message);
           }
@@ -273,13 +364,13 @@ export class DataTransferService {
 
   /**
    * View artifact after it has been downloaded
-   * @param transactionId Base64.urlEncoded(consumerPid|providerPid) from TransferProcess message
+   * @param presignedUrl
    * @returns   Observable<any>
    */
-  viewArtifact(transferProcessId: string): Observable<any> {
-    console.log('Downloading artifact for process id:', transferProcessId);
+  viewArtifact(presignedUrl: string): Observable<any> {
+    console.log('Downloading artifact for process id:', presignedUrl);
     return this.http
-      .get(this.apiUrl + '/' + transferProcessId + '/view', {
+      .get(presignedUrl, {
         responseType: 'blob',
         observe: 'response',
       })
