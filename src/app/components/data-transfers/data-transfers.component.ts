@@ -12,6 +12,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
@@ -21,28 +22,29 @@ import { DataTransferState } from '../../models/enums/dataTransferState';
 import { DataTransferService } from '../../services/data-transfer/data-transfer.service';
 
 @Component({
-    selector: 'app-data-transfers',
-    imports: [
-        CommonModule,
-        MatCardModule,
-        MatDividerModule,
-        MatListModule,
-        MatExpansionModule,
-        MatIconModule,
-        MatButtonModule,
-        NgxSkeletonLoaderModule,
-        MatInputModule,
-        MatToolbarModule,
-        MatFormFieldModule,
-        FormsModule,
-        ReactiveFormsModule,
-        MatTooltipModule,
-        MatButtonToggleModule,
-        MatCheckboxModule,
-        MatChipsModule,
-    ],
-    templateUrl: './data-transfers.component.html',
-    styleUrl: './data-transfers.component.css'
+  selector: 'app-data-transfers',
+  imports: [
+    CommonModule,
+    MatCardModule,
+    MatDividerModule,
+    MatListModule,
+    MatExpansionModule,
+    MatIconModule,
+    MatButtonModule,
+    NgxSkeletonLoaderModule,
+    MatInputModule,
+    MatToolbarModule,
+    MatFormFieldModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MatTooltipModule,
+    MatButtonToggleModule,
+    MatCheckboxModule,
+    MatChipsModule,
+    MatProgressSpinnerModule,
+  ],
+  templateUrl: './data-transfers.component.html',
+  styleUrl: './data-transfers.component.css',
 })
 export class DataTransfersComponent {
   userType!: string;
@@ -53,6 +55,7 @@ export class DataTransfersComponent {
   dataTransferStates = Object.values(DataTransferState);
 
   dataTransferState = DataTransferState;
+  downloadingId: string | null = null;
 
   constructor(
     private router: Router,
@@ -90,6 +93,15 @@ export class DataTransfersComponent {
   }
 
   /**
+   * Check if the data transfer is downloading
+   * @param transferId The ID of the data transfer
+   * @returns True if the data transfer is downloading, false otherwise
+   * */
+  isDownloading(transferId: string): boolean {
+    return this.dataTransferService.isDownloading(transferId);
+  }
+
+  /**
    * Fetch all Data Transfers for the provider
    */
   getProviderDataTransfers() {
@@ -98,6 +110,7 @@ export class DataTransfersComponent {
         console.log('Data Transfers fetched');
 
         this.dataTransfers = data;
+        this.dataTransferService.cleanupCompleted(data);
         this.filterDataTransfers();
         this.loading = false;
       },
@@ -115,6 +128,7 @@ export class DataTransfersComponent {
     this.dataTransferService.getAllConsumerDataTransfers().subscribe({
       next: (data) => {
         this.dataTransfers = data;
+        this.dataTransferService.cleanupCompleted(data);
         this.filterDataTransfers();
         this.loading = false;
       },
@@ -198,11 +212,14 @@ export class DataTransfersComponent {
    * @param dataTransfer The data transfer object
    * */
   onDownload(dataTransfer: DataTransfer) {
+    this.downloadingId = dataTransfer['@id'];
     this.dataTransferService.downloadArtifact(dataTransfer['@id']).subscribe({
       next: () => {
+        this.downloadingId = null;
         this.fetchDataTransfersByRole();
       },
       error: (error) => {
+        this.downloadingId = null;
         console.error('Error downloading artifact:', error);
       },
     });
@@ -213,12 +230,19 @@ export class DataTransfersComponent {
    * @param dataTransfer The data transfer object
    * */
   onView(dataTransfer: DataTransfer) {
-    this.dataTransferService.viewArtifact(dataTransfer['@id']).subscribe({
-      next: () => {
-        this.fetchDataTransfersByRole();
+    this.dataTransferService.getPresignedUrl(dataTransfer['@id']).subscribe({
+      next: (presignedUrl) => {
+        this.dataTransferService.viewArtifact(presignedUrl).subscribe({
+          next: () => {
+            this.fetchDataTransfersByRole();
+          },
+          error: (error) => {
+            console.error('Error viewing data transfer:', error);
+          },
+        });
       },
       error: (error) => {
-        console.error('Error viewing data transfer:', error);
+        console.error('Error getting presigned URL:', error);
       },
     });
   }

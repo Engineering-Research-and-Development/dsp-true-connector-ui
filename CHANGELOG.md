@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+[0.1.2] - 04-06-2025
+
+### Added
+
+- Data transfer state tracking to determine downloading spinner
+- Notify user that download took longer time than expected, and it will continue in background
+
+### Changed
+
+- Datatransfer download uses presigned S3 URL
+- GHA Action for building develop to trigger after merge with master branch
+- Fix "/" error when browsing remote catalogs
+
+[0.1.1] - 15-05-2025
+
+### Changed
+
+- Develop branch aligned with master
+
 [0.1.0] - 15-05-2025
 
 ### Added

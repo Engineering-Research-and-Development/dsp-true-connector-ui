@@ -1,3 +1,16 @@
+[0.1.2] - 04-06-2025
+
+### Added
+
+- Spinner for downloading process
+- User notification for larger download and running in background
+
+[0.1.1] - 15-05-2025
+
+### Added
+
+- Bug fixing
+
 [0.1.0] - 15-05-2025
 
 ### Added

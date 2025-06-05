@@ -282,3 +282,15 @@ button[mat-button]:hover {
   cursor: help;
   margin-top: 10px;
 }
+.download-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.download-spinner p {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+}
