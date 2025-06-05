@@ -324,7 +324,7 @@ export class DataTransferService {
 
           if (isTimeout) {
             this.snackBarService.openSnackBar(
-              'Download is taking longer than expected. Please refresh to check status.',
+              'Download is taking longer than expected. The process is still running in the background.',
               'OK',
               'center',
               'bottom',
