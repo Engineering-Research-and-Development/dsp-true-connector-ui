@@ -1,6 +1,7 @@
 // src/app/test-utils/test-utils.ts
 
 // --- Existing Mocks (Keep these) ---
+import { ApplicationProperty } from '../models/applicationProperty';
 import { Artifact } from '../models/artifact';
 import { Catalog } from '../models/catalog';
 import { ContractNegotiation } from '../models/contractNegotiation';
@@ -406,3 +407,44 @@ export const MOCK_EXTERNAL_ARTIFACT_OTHER_AUTH: Artifact = {
   lastModifiedDate: new Date().toISOString(),
   version: 1,
 };
+
+// --- Application Property Mocks ---
+
+export const MOCK_APPLICATION_PROPERTY_DAPS: ApplicationProperty = {
+  key: 'daps.url',
+  value: 'https://daps.example.com',
+  sampleValue: 'https://daps.example.com',
+  mandatory: true,
+  group: 'DAPS',
+  label: 'DAPS URL',
+  tooltip: 'The URL of the DAPS (Dynamic Attribute Provisioning Service)',
+  type: 'string',
+};
+
+export const MOCK_APPLICATION_PROPERTY_SECURITY: ApplicationProperty = {
+  key: 'security.authentication.enabled',
+  value: 'true',
+  sampleValue: 'true',
+  mandatory: false,
+  group: 'Security',
+  label: 'Authentication Enabled',
+  tooltip: 'Enable or disable authentication for the connector',
+  type: 'boolean',
+};
+
+export const MOCK_APPLICATION_PROPERTY_GENERAL: ApplicationProperty = {
+  key: 'connector.name',
+  value: 'Test Connector',
+  sampleValue: 'My Connector',
+  mandatory: true,
+  group: 'General',
+  label: 'Connector Name',
+  tooltip: 'The display name for this connector instance',
+  type: 'string',
+};
+
+export const MOCK_APPLICATION_PROPERTIES = [
+  MOCK_APPLICATION_PROPERTY_DAPS,
+  MOCK_APPLICATION_PROPERTY_SECURITY,
+  MOCK_APPLICATION_PROPERTY_GENERAL,
+];
