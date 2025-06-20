@@ -201,6 +201,7 @@ CONNECTOR_B_TC_ROOT_API_URL= --> URL of exposed endpoint of Connector B for comm
 - Catalog Browser
 - Contract Negotiation
 - Data Transfer
+- Connector Configuration
 
 ### Catalog Management
 
@@ -403,3 +404,26 @@ For more information, flow, states, etc. about Data Transfers, please check [her
 - Manage transfer status
 - Download artifacts
 - View artifacts
+
+### Connector Configuration
+
+The Connector Configuration section allows for viewing and modifying various connector settings. These application properties control the connector's behavior and are grouped by functionality.
+
+![Connector Configuration](/screenshots/connector_configuration_overview.png)
+
+<p align="center">Connector Configuration</p>
+
+#### Overview
+
+This page displays connector properties loaded from the backend, organized into expandable groups (e.g., DAPS, Security). Each property shows its label, configuration key, and an input control (toggle for boolean, text field for other types). Mandatory properties are marked with a star icon (`star`).
+
+#### Available Actions
+
+- **View Properties**: Browse properties by group. Hover over help icons for details and identify mandatory fields.
+- **Modify Properties**:
+  - Toggle switches for boolean (true/false) settings.
+  - Enter values in text fields for other property types.
+- **Manage Changes**:
+  - **Save**: Persist modifications.
+  - **Cancel**: Revert unsaved changes.
+  - **Refresh**: Reload properties from the server.

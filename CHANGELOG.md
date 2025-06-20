@@ -2,7 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
-[0.1.2] - 04-06-2025
+# [0.1.3] - 20-06-2025
+
+### Added
+
+- Connector configuration - related component and service to handle application properties management from UI
+
+### Changed
+
+- Routing now supports lazy loading
+- Angular.json optimization tweaking
+
+### Removed
+
+- ConnectorDetails component - ConnectorConfiguration use instead
+
+# [0.1.2] - 04-06-2025
 
 ### Added
 
@@ -15,13 +30,13 @@ All notable changes to this project will be documented in this file.
 - GHA Action for building develop to trigger after merge with master branch
 - Fix "/" error when browsing remote catalogs
 
-[0.1.1] - 15-05-2025
+# [0.1.1] - 15-05-2025
 
 ### Changed
 
 - Develop branch aligned with master
 
-[0.1.0] - 15-05-2025
+# [0.1.0] - 15-05-2025
 
 ### Added
 
@@ -40,7 +55,7 @@ All notable changes to this project will be documented in this file.
 - Upgrade 3rd party libraries
 - Fix actions if data transfer is in suspend state
 
-[0.0.1] - 24-04-2025
+# [0.0.1] - 24-04-2025
 
 ### Added
 
