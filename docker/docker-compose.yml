@@ -126,7 +126,23 @@ services:
     volumes:
       - mongodb-data_b:/data/db
       - mongodb-configdb_b:/data/configdb
-      
+
+  minio:
+    image: minio/minio
+    networks:
+      - network-a
+      - network-b
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    command: server /data --console-address ":9001"
+
 networks:
   network-a: { }
   network-b: { }
@@ -138,3 +154,4 @@ volumes:
   tc_b_log: { }
   mongodb-data_b: { }
   mongodb-configdb_b: { }
+  minio_data: { }

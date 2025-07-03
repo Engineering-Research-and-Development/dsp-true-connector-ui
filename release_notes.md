@@ -1,17 +1,23 @@
-[0.1.2] - 04-06-2025
+# [0.1.3] - 20-06-2025
+
+### Added
+
+- Connector configuration - manage all available connector properties from UI
+
+# [0.1.2] - 04-06-2025
 
 ### Added
 
 - Spinner for downloading process
 - User notification for larger download and running in background
 
-[0.1.1] - 15-05-2025
+# [0.1.1] - 15-05-2025
 
 ### Added
 
 - Bug fixing
 
-[0.1.0] - 15-05-2025
+# [0.1.0] - 15-05-2025
 
 ### Added
 
@@ -22,7 +28,7 @@
 - View downloaded artifact
 - Cosmetic UI changes
 
-[0.0.1] - 24-04-2025
+# [0.0.1] - 24-04-2025
 
 ### Added
 
