@@ -157,6 +157,61 @@ export class DataTransferService {
   }
 
   /**
+   * Get all data transfers with advanced filtering options
+   * @param role optional role to filter transfer processes by (e.g., 'consumer' or 'provider')
+   * @param state optional state to filter transfer processes by
+   * @param datasetId optional dataset identifier to filter transfer processes by
+   * @param providerPid optional provider PID to filter transfer processes by
+   * @param consumerPid optional consumer PID to filter transfer processes by
+   * @returns Observable<DataTransfer[]>
+   * @example dataTransferService.getAllDataTransfersWithFilters('consumer', 'STARTED', 'dataset123').subscribe({ next: console.log, error: console.error });
+   */
+  getAllDataTransfersWithFilters(
+    role?: string,
+    state?: string,
+    datasetId?: string,
+    providerPid?: string,
+    consumerPid?: string
+  ): Observable<DataTransfer[]> {
+    const queryParams: string[] = [];
+
+    if (role) {
+      queryParams.push(`role=${encodeURIComponent(role)}`);
+    }
+    if (state) {
+      queryParams.push(`state=${encodeURIComponent(state)}`);
+    }
+    if (datasetId) {
+      queryParams.push(`datasetId=${encodeURIComponent(datasetId)}`);
+    }
+    if (providerPid) {
+      queryParams.push(`providerPid=${encodeURIComponent(providerPid)}`);
+    }
+    if (consumerPid) {
+      queryParams.push(`consumerPid=${encodeURIComponent(consumerPid)}`);
+    }
+
+    const queryString =
+      queryParams.length > 0 ? '?' + queryParams.join('&') : '';
+
+    return this.http
+      .get<GenericApiResponse<any[]>>(
+        this.apiUrl + queryString,
+        this.httpOptions
+      )
+      .pipe(
+        map((response: GenericApiResponse<DataTransfer[]>) => {
+          if (response.success && response.data) {
+            return response.data;
+          } else {
+            throw new Error(response.message);
+          }
+        }),
+        catchError((error) => this.errorHandlerService.handleError(error))
+      );
+  }
+
+  /**
    * Start the data transfer
    * @param transferProcessId - The id of the transfer process
    * @returns Observable<DataTransfer>
