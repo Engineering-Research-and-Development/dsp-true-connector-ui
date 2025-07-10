@@ -1,8 +1,9 @@
-# [0.1.3] - 20-06-2025
+# [0.1.3] - 07-07-2025
 
 ### Added
 
 - Connector configuration - manage all available connector properties from UI
+- Advanced search of Data Transfers with multiple filter criteria
 
 # [0.1.2] - 04-06-2025
 

@@ -228,52 +228,139 @@ button[mat-button]:hover {
 }
 
 .filter-div {
-  margin: 0px 10px 10px;
+  margin: 20px 0;
 }
 
-.filter-section {
-  display: flex;
-  width: 100%;
-  background: #ffffff;
+.filter-expansion-panel {
+  background-color: #ffffff;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
-  padding: 16px 25px 0px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-  width: 100%;
-  box-sizing: border-box;
-  flex-wrap: wrap;
+}
+
+.filter-expansion-panel .mat-expansion-panel-header {
+  padding: 16px 24px;
+  background-color: #ffffff;
+}
+
+.filter-expansion-panel .mat-panel-title {
+  display: flex;
   align-items: center;
+  gap: 8px;
+  color: #6200ea;
+  font-weight: 600;
 }
 
-.filter-section h3 {
-  font-size: 14px;
-  color: #707070;
-  line-height: 2.8;
-  margin-right: 20px;
-  margin-bottom: 16px;
-  flex-shrink: 0;
+.filter-expansion-panel .mat-panel-title mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
 }
 
-.filter-section mat-chip-listbox {
-  margin-bottom: 16px;
+.filter-expansion-panel .mat-panel-description {
+  color: #666;
+  font-size: 0.9em;
 }
 
-@media (max-width: 900px) {
-  .filter-section {
-    padding-bottom: 16px;
+.filter-content {
+  padding: 0 24px 24px 24px;
+  background-color: #ffffff;
+}
+
+.filter-fields-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.filter-field {
+  flex: 1;
+  min-width: 180px;
+  max-width: 220px;
+}
+
+.filter-actions-inline {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  margin-left: 8px;
+  margin-top: 8px;
+}
+
+.filter-actions-inline button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 90px;
+  height: 40px;
+  font-size: 0.9em;
+}
+
+.filter-actions-inline button mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.filter-actions button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 130px;
+}
+
+.filter-actions button mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+@media (max-width: 1024px) {
+  .filter-fields-row {
+    flex-direction: column;
+    gap: 12px;
   }
-  .filter-section h3 {
-    width: 100%;
-    line-height: normal;
-    margin-bottom: 10px;
-    margin-right: 0;
+
+  .filter-field {
+    max-width: 100%;
+    min-width: 100%;
   }
-  .filter-section mat-chip-listbox {
-    width: 100%;
-    margin-bottom: 0;
+
+  .filter-actions-inline {
+    flex-direction: row;
+    margin-left: 0;
+    align-self: stretch;
+    justify-content: center;
+  }
+
+  .filter-actions-inline button {
+    flex: 1;
+    min-width: 120px;
   }
 }
+
+@media (max-width: 768px) {
+  .filter-content {
+    padding: 0 16px 16px 16px;
+  }
+
+  .filter-expansion-panel .mat-expansion-panel-header {
+    padding: 12px 16px;
+  }
+
+  .filter-actions-inline button {
+    min-width: 100px;
+  }
+}
+
 .help-icon {
   font-size: 1.1em;
   margin-left: 8px;

@@ -2,11 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
-# [0.1.3] - 20-06-2025
+# [0.1.3] - 07-07-2025
 
 ### Added
 
 - Connector configuration - related component and service to handle application properties management from UI
+- Advanced search of Data Transfers with multiple filter criteria - related component and service to handle BE changes
 
 ### Changed
 

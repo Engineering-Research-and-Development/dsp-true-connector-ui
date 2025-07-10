@@ -13,6 +13,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
@@ -42,6 +43,7 @@ import { DataTransferService } from '../../services/data-transfer/data-transfer.
     MatCheckboxModule,
     MatChipsModule,
     MatProgressSpinnerModule,
+    MatSelectModule,
   ],
   templateUrl: './data-transfers.component.html',
   styleUrl: './data-transfers.component.css',
@@ -51,8 +53,14 @@ export class DataTransfersComponent {
   loading = false;
   dataTransfers: DataTransfer[] = [];
   filteredDataTransfers: DataTransfer[] = [];
-  selectedStates: DataTransferState[] = [];
+  selectedState: DataTransferState | null = null;
   dataTransferStates = Object.values(DataTransferState);
+  datasetIdFilter: string = '';
+  providerPidFilter: string = '';
+  consumerPidFilter: string = '';
+
+  // Expansion panel state
+  filtersExpanded: boolean = false;
 
   dataTransferState = DataTransferState;
   downloadingId: string | null = null;
@@ -85,6 +93,105 @@ export class DataTransfersComponent {
       this.getConsumerDataTransfers();
     }
   }
+
+  /**
+   * Apply filters and fetch data transfers with filtering
+   */
+  applyFilters() {
+    // Keep the expansion panel open when applying filters
+    this.filtersExpanded = true;
+
+    // Check if any filters are applied
+    const hasFilters =
+      this.selectedState !== null ||
+      this.datasetIdFilter.trim() ||
+      this.providerPidFilter.trim() ||
+      this.consumerPidFilter.trim();
+
+    if (hasFilters) {
+      // Use filtering method when filters are applied
+      this.loading = true;
+      this.dataTransferService
+        .getAllDataTransfersWithFilters(
+          this.userType,
+          this.selectedState || undefined,
+          this.datasetIdFilter || undefined,
+          this.providerPidFilter || undefined,
+          this.consumerPidFilter || undefined
+        )
+        .subscribe({
+          next: (data) => {
+            console.log('Data Transfers fetched with filters');
+            this.dataTransfers = data;
+            this.filteredDataTransfers = data;
+            this.dataTransferService.cleanupCompleted(data);
+            this.loading = false;
+          },
+          error: (error) => {
+            console.error('Error fetching filtered dataTransfers:', error);
+            this.loading = false;
+          },
+        });
+    } else {
+      // No filters applied, use original method
+      this.fetchDataTransfersByRole();
+    }
+  }
+
+  /**
+   * Clear all filters and fetch all data transfers
+   */
+  clearFilters() {
+    // Keep the expansion panel open after clearing filters
+    this.filtersExpanded = true;
+
+    this.selectedState = null;
+    this.datasetIdFilter = '';
+    this.providerPidFilter = '';
+    this.consumerPidFilter = '';
+    this.fetchDataTransfersByRole();
+  }
+
+  /**
+   * Fetch all Data Transfers for the provider
+   */
+  getProviderDataTransfers() {
+    this.loading = true;
+    this.dataTransferService.getAllProviderDataTransfers().subscribe({
+      next: (data) => {
+        console.log('Provider Data Transfers fetched');
+        this.dataTransfers = data;
+        this.filteredDataTransfers = data;
+        this.dataTransferService.cleanupCompleted(data);
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error fetching provider dataTransfers:', error);
+        this.loading = false;
+      },
+    });
+  }
+
+  /**
+   * Fetch all Data Transfers for the consumer
+   * */
+  getConsumerDataTransfers() {
+    this.loading = true;
+    this.dataTransferService.getAllConsumerDataTransfers().subscribe({
+      next: (data) => {
+        console.log('Consumer Data Transfers fetched');
+        this.dataTransfers = data;
+        this.filteredDataTransfers = data;
+        this.dataTransferService.cleanupCompleted(data);
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error fetching consumer dataTransfers:', error);
+        this.loading = false;
+      },
+    });
+  }
+
   /**
    * Navigate back to the previous page
    * */
@@ -99,71 +206,6 @@ export class DataTransfersComponent {
    * */
   isDownloading(transferId: string): boolean {
     return this.dataTransferService.isDownloading(transferId);
-  }
-
-  /**
-   * Fetch all Data Transfers for the provider
-   */
-  getProviderDataTransfers() {
-    this.dataTransferService.getAllProviderDataTransfers().subscribe({
-      next: (data) => {
-        console.log('Data Transfers fetched');
-
-        this.dataTransfers = data;
-        this.dataTransferService.cleanupCompleted(data);
-        this.filterDataTransfers();
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error('Error fetching provider dataTransfers:', error);
-        this.loading = false;
-      },
-    });
-  }
-
-  /**
-   * Fetch all Data Transfers for the consumer
-   * */
-  getConsumerDataTransfers() {
-    this.dataTransferService.getAllConsumerDataTransfers().subscribe({
-      next: (data) => {
-        this.dataTransfers = data;
-        this.dataTransferService.cleanupCompleted(data);
-        this.filterDataTransfers();
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error('Error fetching consumer dataTransfers:', error);
-        this.loading = false;
-      },
-    });
-  }
-
-  /**
-   * Handle the change event of the Data Transfer states filter
-   * @param selected The selected Data Transfer states
-   */
-  toggleStateSelection(state: DataTransferState): void {
-    const index = this.selectedStates.indexOf(state);
-    if (index > -1) {
-      this.selectedStates.splice(index, 1);
-    } else {
-      this.selectedStates.push(state);
-    }
-    this.filterDataTransfers();
-  }
-
-  /**
-   * Filter the  Data Transfers based on the selected states
-   */
-  filterDataTransfers() {
-    if (this.selectedStates.length > 0) {
-      this.filteredDataTransfers = this.dataTransfers.filter((dataTransfer) =>
-        this.selectedStates.includes(dataTransfer.state)
-      );
-    } else {
-      this.filteredDataTransfers = this.dataTransfers;
-    }
   }
 
   /**
