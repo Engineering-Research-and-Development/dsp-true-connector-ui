@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, map, Observable, of } from 'rxjs';
+import { catchError, map, Observable, of, switchMap, tap, timer } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { DataTransfer } from '../../models/dataTransfer';
 import { GenericApiResponse } from '../../models/genericApiResponse';
@@ -13,6 +13,10 @@ import { SnackbarService } from '../snackbar/snackbar.service';
 export class DataTransferService {
   private apiUrl = environment.DATA_TRANSFER_API_URL();
   private downloadingTransfers = new Set<string>();
+
+  // Polling configuration
+  private readonly POLLING_INTERVALS = [3000, 6000, 12000, 30000, 60000]; // 3s, 6s, 12s, 30s, 60s
+  private readonly MAX_POLLING_ATTEMPTS = 20; // Maximum total polling attempts
 
   /**
    * Constructor in order to use the HttpClient and set the httpOptions
@@ -341,55 +345,58 @@ export class DataTransferService {
 
   /**
    * Download artifact
-   * @param transactionId Base64.urlEncoded(consumerPid|providerPid) from TransferProcess message
+   * @param transferProcessId Base64.urlEncoded(consumerPid|providerPid) from TransferProcess message
    */
   downloadArtifact(transferProcessId: string): Observable<boolean> {
     this.markAsDownloading(transferProcessId);
 
     return this.http
-      .get<GenericApiResponse<any[]>>(
+      .get<GenericApiResponse<string>>(
         this.apiUrl + '/' + transferProcessId + '/download',
         this.httpOptions
       )
       .pipe(
-        map((response: GenericApiResponse<any[]>) => {
+        switchMap((response: GenericApiResponse<string>) => {
           if (response.success) {
-            this.markAsCompleted(transferProcessId);
             this.snackBarService.openSnackBar(
-              response.message,
+              'Download started successfully. Please wait...',
               'OK',
               'center',
               'bottom',
               'snackbar-success'
             );
-            return true;
+
+            // Start polling for completion
+            return this.pollForDownloadCompletion(transferProcessId).pipe(
+              tap((completed: boolean) => {
+                this.markAsCompleted(transferProcessId);
+                if (completed) {
+                  this.snackBarService.openSnackBar(
+                    'Download completed successfully!',
+                    'OK',
+                    'center',
+                    'bottom',
+                    'snackbar-success'
+                  );
+                } else {
+                  this.snackBarService.openSnackBar(
+                    'Download is taking longer than expected. Please check the transfer status manually.',
+                    'OK',
+                    'center',
+                    'bottom',
+                    'snackbar-warning'
+                  );
+                }
+              })
+            );
           } else {
             this.markAsCompleted(transferProcessId);
             throw new Error(response.message);
           }
         }),
         catchError((error) => {
-          const isTimeout =
-            error.status === 504 ||
-            error.status === 408 ||
-            error.status === 0 ||
-            error.name === 'TimeoutError' ||
-            error.error?.includes?.('timeout') ||
-            error.message?.toLowerCase().includes('timeout');
-
-          if (isTimeout) {
-            this.snackBarService.openSnackBar(
-              'Download is taking longer than expected. The process is still running in the background.',
-              'OK',
-              'center',
-              'bottom',
-              'snackbar-info'
-            );
-            return of(false);
-          } else {
-            this.markAsCompleted(transferProcessId);
-            return this.errorHandlerService.handleError(error);
-          }
+          this.markAsCompleted(transferProcessId);
+          return this.errorHandlerService.handleError(error);
         })
       );
   }
@@ -401,19 +408,30 @@ export class DataTransferService {
    */
   getPresignedUrl(transferProcessId: string): Observable<string> {
     return this.http
-      .get<GenericApiResponse<string>>(
-        this.apiUrl + '/' + transferProcessId + '/view',
-        this.httpOptions
-      )
+      .get(this.apiUrl + '/' + transferProcessId + '/view', {
+        responseType: 'text',
+      })
       .pipe(
-        map((response: GenericApiResponse<string>) => {
-          if (response.success && response.data) {
-            return response.data;
-          } else {
-            throw new Error(response.message);
-          }
+        map((presignedUrl: string) => {
+          return presignedUrl;
         }),
-        catchError((error) => this.errorHandlerService.handleError(error))
+        catchError((error) => {
+          console.log('Error getting presigned URL:', error);
+
+          if (error.error && typeof error.error === 'string') {
+            try {
+              const parsedError = JSON.parse(error.error);
+              if (parsedError.message) {
+                const specificError = new Error(parsedError.message);
+                return this.errorHandlerService.handleError(specificError);
+              }
+            } catch (parseError) {
+              console.log('Could not parse error as JSON:', parseError);
+            }
+          }
+
+          return this.errorHandlerService.handleError(error);
+        })
       );
   }
 
@@ -456,5 +474,79 @@ export class DataTransferService {
         }),
         catchError((error) => this.errorHandlerService.handleError(error))
       );
+  }
+
+  /** TEMPORARY HELPER METHODS FOR CHECKING TRANSFER STATUS */
+  /**
+   * Get transfer status for polling
+   * @param transferProcessId - The id of the transfer process
+   * @returns Observable<DataTransfer | null>
+   */
+  private getTransferStatus(
+    transferProcessId: string
+  ): Observable<DataTransfer | null> {
+    return this.http
+      .get<GenericApiResponse<DataTransfer[]>>(this.apiUrl, this.httpOptions)
+      .pipe(
+        map((response: GenericApiResponse<DataTransfer[]>) => {
+          if (response.success && response.data) {
+            const transfer = response.data.find(
+              (t) => t['@id'] === transferProcessId
+            );
+            return transfer || null;
+          }
+          return null;
+        }),
+        catchError(() => of(null))
+      );
+  }
+
+  /**
+   * Poll for download completion
+   * @param transferProcessId - The id of the transfer process
+   * @returns Observable<boolean> - true when download completes, false on timeout/error
+   */
+  private pollForDownloadCompletion(
+    transferProcessId: string
+  ): Observable<boolean> {
+    let attemptCount = 0;
+
+    const checkStatus = (): Observable<boolean> => {
+      if (attemptCount >= this.MAX_POLLING_ATTEMPTS) {
+        return of(false);
+      }
+
+      // Calculate delay based on attempt count
+      const intervalIndex = Math.min(
+        attemptCount,
+        this.POLLING_INTERVALS.length - 1
+      );
+      const delayTime = this.POLLING_INTERVALS[intervalIndex];
+
+      attemptCount++;
+
+      return timer(delayTime).pipe(
+        switchMap(() => this.getTransferStatus(transferProcessId)),
+        switchMap((transfer: DataTransfer | null) => {
+          if (!transfer) {
+            // Transfer not found, continue polling or timeout
+            return attemptCount >= this.MAX_POLLING_ATTEMPTS
+              ? of(false)
+              : checkStatus();
+          }
+
+          if (transfer.downloaded === true) {
+            return of(true); // Download completed
+          }
+
+          // Continue polling
+          return attemptCount >= this.MAX_POLLING_ATTEMPTS
+            ? of(false)
+            : checkStatus();
+        })
+      );
+    };
+
+    return checkStatus();
   }
 }

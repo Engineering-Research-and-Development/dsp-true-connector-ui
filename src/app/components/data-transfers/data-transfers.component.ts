@@ -63,7 +63,6 @@ export class DataTransfersComponent {
   filtersExpanded: boolean = false;
 
   dataTransferState = DataTransferState;
-  downloadingId: string | null = null;
 
   constructor(
     private router: Router,
@@ -254,15 +253,22 @@ export class DataTransfersComponent {
    * @param dataTransfer The data transfer object
    * */
   onDownload(dataTransfer: DataTransfer) {
-    this.downloadingId = dataTransfer['@id'];
     this.dataTransferService.downloadArtifact(dataTransfer['@id']).subscribe({
-      next: () => {
-        this.downloadingId = null;
+      next: (completed: boolean) => {
+        // Refresh the transfer list to reflect any status changes
         this.fetchDataTransfersByRole();
+
+        if (!completed) {
+          console.warn(
+            'Download polling timed out for transfer:',
+            dataTransfer['@id']
+          );
+        }
       },
       error: (error) => {
-        this.downloadingId = null;
         console.error('Error downloading artifact:', error);
+        // Refresh the transfer list in case of error to sync UI state
+        this.fetchDataTransfersByRole();
       },
     });
   }
