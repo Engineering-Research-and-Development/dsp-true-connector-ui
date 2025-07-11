@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 
 - Routing now supports lazy loading
 - Angular.json optimization tweaking
+- Data-transfer-service and data-transfers-component to support async download on BE (added pooling to check the download status)
 
 ### Removed
 
