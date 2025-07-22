@@ -1,0 +1,302 @@
+<div *ngIf="loading" class="item">
+  <mat-card class="service-card">
+    <ngx-skeleton-loader count="15" appearance="line" animation="pulse" />
+  </mat-card>
+</div>
+
+<div *ngIf="!loading">
+  <mat-card class="service-card">
+    <mat-card-title class="service-title"> </mat-card-title>
+    <mat-card-content>
+      <div class="headtitle">
+        <div class="back">
+          <h1>Audit Trail Management</h1>
+          <mat-icon
+            class="help-icon"
+            matTooltip="Here you can view all audit events in the system. You can filter them by event type, username, date range, provider/consumer PID, and other criteria to track system activities and user actions."
+            aria-label="Help regarding audit trail management"
+            >help_outline</mat-icon
+          >
+        </div>
+        <div class="buttons">
+          <button
+            mat-button
+            matTooltip="Refresh data"
+            (click)="fetchAuditEvents()"
+          >
+            <mat-icon>cached</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Advanced Filters -->
+      <div class="filter-div">
+        <mat-expansion-panel
+          class="filter-expansion-panel"
+          [(expanded)]="filtersExpanded"
+        >
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <mat-icon>filter_list</mat-icon>
+              Advanced Filters
+            </mat-panel-title>
+            <mat-panel-description>
+              Filter audit events by type, user, date range, provider/consumer
+              PID, and other criteria
+            </mat-panel-description>
+          </mat-expansion-panel-header>
+
+          <div class="filter-content">
+            <div class="filter-fields-row">
+              <!-- Event Type Filter -->
+              <mat-form-field appearance="outline" class="filter-field">
+                <mat-label>Event Type</mat-label>
+                <mat-select
+                  [(value)]="selectedEventType"
+                  placeholder="Select event type"
+                  [disabled]="eventTypeFilterDisabled || loadingEventTypes"
+                >
+                  <mat-option [value]="null">All Event Types</mat-option>
+                  <mat-option
+                    *ngFor="let eventType of auditEventTypes"
+                    [value]="eventType"
+                  >
+                    {{ eventType.description }}
+                  </mat-option>
+                </mat-select>
+                <mat-hint *ngIf="eventTypeFilterDisabled">
+                  Event type filtering unavailable - API connection issue
+                </mat-hint>
+              </mat-form-field>
+              <mat-progress-spinner
+                *ngIf="loadingEventTypes"
+                diameter="20"
+                mode="indeterminate"
+                class="inline-spinner"
+              >
+              </mat-progress-spinner>
+
+              <!-- Username Filter -->
+              <mat-form-field appearance="outline" class="filter-field">
+                <mat-label>Username</mat-label>
+                <input
+                  matInput
+                  [(ngModel)]="usernameFilter"
+                  placeholder="Enter username"
+                />
+              </mat-form-field>
+
+              <!-- Source Filter -->
+              <mat-form-field appearance="outline" class="filter-field">
+                <mat-label>Source</mat-label>
+                <input
+                  matInput
+                  [(ngModel)]="sourceFilter"
+                  placeholder="Enter source component"
+                />
+              </mat-form-field>
+
+              <!-- IP Address Filter -->
+              <mat-form-field appearance="outline" class="filter-field">
+                <mat-label>IP Address</mat-label>
+                <input
+                  matInput
+                  [(ngModel)]="ipAddressFilter"
+                  placeholder="Enter IP address"
+                />
+              </mat-form-field>
+
+              <!-- Provider PID Filter -->
+              <mat-form-field appearance="outline" class="filter-field">
+                <mat-label>Provider PID</mat-label>
+                <input
+                  matInput
+                  [(ngModel)]="providerPidFilter"
+                  placeholder="Enter provider PID"
+                />
+              </mat-form-field>
+
+              <!-- Consumer PID Filter -->
+              <mat-form-field appearance="outline" class="filter-field">
+                <mat-label>Consumer PID</mat-label>
+                <input
+                  matInput
+                  [(ngModel)]="consumerPidFilter"
+                  placeholder="Enter consumer PID"
+                />
+              </mat-form-field>
+
+              <!-- From Date Filter -->
+              <mat-form-field
+                appearance="outline"
+                class="filter-field date-field"
+              >
+                <mat-label>From Date</mat-label>
+                <input
+                  matInput
+                  [matDatepicker]="fromPicker"
+                  [(ngModel)]="fromDateFilter"
+                  placeholder="Select start date"
+                  readonly
+                />
+                <mat-datepicker-toggle matSuffix [for]="fromPicker">
+                </mat-datepicker-toggle>
+                <mat-datepicker #fromPicker></mat-datepicker>
+              </mat-form-field>
+
+              <!-- To Date Filter -->
+              <mat-form-field
+                appearance="outline"
+                class="filter-field date-field"
+              >
+                <mat-label>To Date</mat-label>
+                <input
+                  matInput
+                  [matDatepicker]="toPicker"
+                  [(ngModel)]="toDateFilter"
+                  placeholder="Select end date"
+                  readonly
+                />
+                <mat-datepicker-toggle matSuffix [for]="toPicker">
+                </mat-datepicker-toggle>
+                <mat-datepicker #toPicker></mat-datepicker>
+              </mat-form-field>
+
+              <!-- Filter Action Buttons -->
+              <div class="filter-actions-inline">
+                <button
+                  mat-raised-button
+                  color="primary"
+                  (click)="applyFilters()"
+                >
+                  <mat-icon>search</mat-icon>
+                  Apply
+                </button>
+                <button mat-button (click)="clearFilters()">
+                  <mat-icon>clear</mat-icon>
+                  Clear
+                </button>
+              </div>
+            </div>
+          </div>
+        </mat-expansion-panel>
+      </div>
+
+      <!-- Audit Events Table -->
+      <div class="table-container">
+        <mat-table
+          [dataSource]="auditEvents"
+          matSort
+          (matSortChange)="onSortChange($event)"
+          class="audit-table"
+        >
+          <!-- Timestamp Column -->
+          <ng-container matColumnDef="timestamp">
+            <mat-header-cell *matHeaderCellDef mat-sort-header>
+              Timestamp
+            </mat-header-cell>
+            <mat-cell *matCellDef="let event">
+              {{ formatTimestamp(event.timestamp) }}
+            </mat-cell>
+          </ng-container>
+
+          <!-- Event Type Column -->
+          <ng-container matColumnDef="eventType">
+            <mat-header-cell *matHeaderCellDef mat-sort-header>
+              Event Type
+            </mat-header-cell>
+            <mat-cell *matCellDef="let event">
+              <div
+                class="custom-event-type-chip"
+                [ngClass]="'chip-' + getEventTypeChipColor(event.eventType)"
+              >
+                {{ getEventTypeDisplayName(event.eventType) }}
+              </div>
+            </mat-cell>
+          </ng-container>
+
+          <!-- Username Column -->
+          <ng-container matColumnDef="username">
+            <mat-header-cell *matHeaderCellDef mat-sort-header>
+              Username
+            </mat-header-cell>
+            <mat-cell *matCellDef="let event">
+              {{ event.username || "-" }}
+            </mat-cell>
+          </ng-container>
+
+          <!-- Description Column -->
+          <ng-container matColumnDef="description">
+            <mat-header-cell *matHeaderCellDef mat-sort-header>
+              Description
+            </mat-header-cell>
+            <mat-cell *matCellDef="let event" class="description-cell">
+              {{ event.description || "-" }}
+            </mat-cell>
+          </ng-container>
+
+          <!-- Source Column -->
+          <ng-container matColumnDef="source">
+            <mat-header-cell *matHeaderCellDef mat-sort-header>
+              Source
+            </mat-header-cell>
+            <mat-cell *matCellDef="let event">
+              {{ event.source || "-" }}
+            </mat-cell>
+          </ng-container>
+
+          <!-- IP Address Column -->
+          <ng-container matColumnDef="ipAddress">
+            <mat-header-cell *matHeaderCellDef mat-sort-header>
+              IP Address
+            </mat-header-cell>
+            <mat-cell *matCellDef="let event">
+              {{ event.ipAddress || "-" }}
+            </mat-cell>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <mat-header-cell *matHeaderCellDef>Actions</mat-header-cell>
+            <mat-cell *matCellDef="let event">
+              <button
+                mat-icon-button
+                matTooltip="View details"
+                (click)="openDetailsDialog(event)"
+                color="primary"
+                disableRipple="true"
+                class="action-button"
+              >
+                <mat-icon>visibility</mat-icon>
+              </button>
+            </mat-cell>
+          </ng-container>
+
+          <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+          <mat-row
+            *matRowDef="let row; columns: displayedColumns"
+            class="audit-row"
+          ></mat-row>
+        </mat-table>
+
+        <!-- Pagination -->
+        <mat-paginator
+          *ngIf="auditEvents.length > 0"
+          [length]="totalEvents"
+          [pageSize]="pageSize"
+          [pageIndex]="pageIndex"
+          [pageSizeOptions]="pageSizeOptions"
+          (page)="onPageChange($event)"
+          showFirstLastButtons
+        >
+        </mat-paginator>
+
+        <!-- No data message -->
+        <div *ngIf="auditEvents.length === 0 && !loading" class="no-data">
+          <mat-icon class="no-data-icon">search_off</mat-icon>
+          <p>No audit events found matching your criteria.</p>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
