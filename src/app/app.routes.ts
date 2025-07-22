@@ -128,4 +128,12 @@ export const routes: Routes = [
       ).then((m) => m.ConnectorConfigurationComponent),
     title: 'Connector Configuration',
   },
+  {
+    path: 'audit-trail',
+    loadComponent: () =>
+      import('./components/audit-trail/audit-trail.component').then(
+        (m) => m.AuditTrailComponent
+      ),
+    title: 'Audit Trail',
+  },
 ];
