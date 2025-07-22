@@ -11,4 +11,5 @@ export const environment = {
   CONTRACT_NEGOTIATION_FORWARD_TO: () => `negotiations`,
   PROXY_API_URL: () => `${environment.TC_ROOT_API_URL}/proxy`,
   PROPERTIES_API_URL: () => `${environment.TC_ROOT_API_URL}/properties`,
+  AUDIT_API_URL: () => `${environment.TC_ROOT_API_URL}/audit/v1`,
 };
