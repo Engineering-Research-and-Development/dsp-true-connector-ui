@@ -20,17 +20,25 @@
 }
 
 /* Main card styling - matching other components */
-.configuration-card {
+.item {
   margin: 20px;
-  padding: 20px;
-  background-color: #ffffff;
-  border-radius: 15px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-  max-width: 100%;
-  overflow: hidden;
 }
 
-.configuration-title h2 {
+.service-card {
+  margin: 20px;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.service-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.service-title h2 {
   margin: 0;
   color: #6200ea;
   font-weight: 700;
@@ -41,47 +49,40 @@
 .headtitle {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 20px;
-}
-
-.headtitle .buttons {
-  display: flex;
-  width: 50%;
-  justify-content: flex-end;
   align-items: center;
-}
-
-.headtitle .buttons button {
-  margin: 3px;
+  margin-bottom: 20px;
+  min-height: 40px;
 }
 
 .back {
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  gap: 10px;
 }
 
-.back h1 {
+h1 {
   margin: 10px 0;
-  color: #333;
-  font-size: 1.8em;
-  font-weight: 600;
 }
 
 .help-icon {
-  font-size: 1.1em;
-  margin-left: 8px;
-  margin-top: 14px;
-  vertical-align: middle;
-  color: #666;
+  color: #757575;
   cursor: help;
 }
 
-.help-icon-property {
-  font-size: 1.1em;
-  margin-top: 10px;
-  vertical-align: middle;
-  color: #666;
-  cursor: help;
+.buttons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  min-height: 40px;
+}
+
+.buttons button[mat-button] {
+  height: 36px !important;
+  min-height: 36px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 8px !important;
 }
 
 /* Changes Indicator */
@@ -320,32 +321,28 @@ button[mat-raised-button] mat-icon {
 }
 
 /* Responsive Design */
-@media (max-width: 1200px) {
+@media (max-width: 768px) {
   .headtitle {
     flex-direction: column;
-    gap: 15px;
+    align-items: flex-start;
+    gap: 16px;
   }
 
-  .headtitle .buttons {
+  .buttons {
     width: 100%;
     justify-content: center;
   }
 
-  .configuration-card {
+  .service-card {
     margin: 10px;
-    padding: 15px;
+    padding: 16px;
   }
 }
 
 @media (max-width: 768px) {
-  .configuration-card {
+  .service-card {
     margin: 10px;
-    padding: 15px;
-  }
-
-  .headtitle .buttons button {
-    width: auto;
-    margin: 2px;
+    padding: 16px;
   }
 
   .property-item {

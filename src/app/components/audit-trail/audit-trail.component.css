@@ -14,7 +14,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 /* Header styles */
@@ -23,6 +23,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  min-height: 40px;
 }
 
 .back {
@@ -43,6 +44,17 @@ h1 {
 .buttons {
   display: flex;
   gap: 10px;
+  align-items: center;
+  min-height: 40px;
+}
+
+.buttons button[mat-button] {
+  height: 36px !important;
+  min-height: 36px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 8px !important;
 }
 
 /* Filter styles */
@@ -338,7 +350,12 @@ button:not(.action-button):focus {
   color: white;
 }
 
-.custom-event-type-chip.chip- {
+.custom-event-type-chip.chip-user {
+  background-color: #ff9800;
+  color: white;
+}
+
+.custom-event-type-chip.chip-default {
   background-color: #e0e0e0;
   color: #424242;
 }

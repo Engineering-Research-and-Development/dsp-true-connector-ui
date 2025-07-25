@@ -33,7 +33,7 @@
       <div class="filter-div">
         <mat-expansion-panel
           class="filter-expansion-panel"
-          [(expanded)]="filtersExpanded"
+          [(expanded)]="filterExpansionState.filtersExpanded"
         >
           <mat-expansion-panel-header>
             <mat-panel-title>
@@ -282,10 +282,10 @@
         <!-- Pagination -->
         <mat-paginator
           *ngIf="auditEvents.length > 0"
-          [length]="totalEvents"
-          [pageSize]="pageSize"
-          [pageIndex]="pageIndex"
-          [pageSizeOptions]="pageSizeOptions"
+          [length]="paginationState.totalElements"
+          [pageSize]="paginationState.pageSize"
+          [pageIndex]="paginationState.pageIndex"
+          [pageSizeOptions]="paginationState.pageSizeOptions"
           (page)="onPageChange($event)"
           showFirstLastButtons
         >

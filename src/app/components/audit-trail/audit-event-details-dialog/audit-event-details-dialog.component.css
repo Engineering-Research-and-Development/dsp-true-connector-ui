@@ -127,7 +127,12 @@
   color: white;
 }
 
-.custom-event-type-chip.chip- {
+.custom-event-type-chip.chip-user {
+  background-color: #ff9800;
+  color: white;
+}
+
+.custom-event-type-chip.chip-default {
   background-color: #e0e0e0;
   color: #424242;
 }

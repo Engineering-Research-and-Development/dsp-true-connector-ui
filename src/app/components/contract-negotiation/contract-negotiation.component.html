@@ -6,6 +6,7 @@
 
 <div *ngIf="!loading">
   <mat-card class="service-card">
+    <mat-card-title class="service-title"> </mat-card-title>
     <mat-card-content>
       <div class="headtitle">
         <div class="back">
@@ -32,45 +33,100 @@
         </div>
         <div class="buttons">
           <button
-            *ngIf="userType === 'provider'"
             mat-button
             matTooltip="Refresh data"
-            (click)="getProviderContractNegotiations()"
-          >
-            <mat-icon>cached</mat-icon>
-          </button>
-
-          <button
-            *ngIf="userType === 'consumer'"
-            mat-button
-            matTooltip="Refresh data"
-            (click)="getConsumerContractNegotiations()"
+            (click)="fetchContractNegotiations()"
           >
             <mat-icon>cached</mat-icon>
           </button>
         </div>
       </div>
       <div class="filter-div">
-        <section class="filter-section">
-          <h3>Filter by State</h3>
-          <mat-chip-listbox
-            multiple
-            aria-label="Contract negotiation state selection"
-            class="contract-state-chips"
-          >
-            <mat-chip-option
-              *ngFor="let state of contractNegotiationStates"
-              [selected]="selectedStates.includes(state)"
-              (click)="toggleStateSelection(state)"
-              color="primary"
-            >
-              {{ getStateDisplayName(state) }}
-            </mat-chip-option>
-          </mat-chip-listbox>
-        </section>
+        <mat-expansion-panel
+          class="filter-expansion-panel"
+          [(expanded)]="filterExpansionState.filtersExpanded"
+        >
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <mat-icon>filter_list</mat-icon>
+              Advanced Filters
+            </mat-panel-title>
+            <mat-panel-description>
+              Filter contract negotiations by state, offer ID, provider PID, and
+              consumer PID
+            </mat-panel-description>
+          </mat-expansion-panel-header>
+
+          <div class="filter-content">
+            <div class="filter-fields-row">
+              <!-- State Filter - Dropdown with Single Selection -->
+              <mat-form-field appearance="outline" class="filter-field">
+                <mat-label>Filter by State</mat-label>
+                <mat-select
+                  [(value)]="selectedState"
+                  placeholder="Select state"
+                >
+                  <mat-option [value]="null">All States</mat-option>
+                  <mat-option
+                    *ngFor="let state of contractNegotiationStates"
+                    [value]="state"
+                  >
+                    {{ getStateDisplayName(state) }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <!-- Offer ID Filter -->
+              <mat-form-field appearance="outline" class="filter-field">
+                <mat-label>Offer ID</mat-label>
+                <input
+                  matInput
+                  [(ngModel)]="offerIdFilter"
+                  placeholder="Enter offer ID"
+                />
+              </mat-form-field>
+
+              <!-- Provider PID Filter -->
+              <mat-form-field appearance="outline" class="filter-field">
+                <mat-label>Provider PID</mat-label>
+                <input
+                  matInput
+                  [(ngModel)]="providerPidFilter"
+                  placeholder="Enter provider PID"
+                />
+              </mat-form-field>
+
+              <!-- Consumer PID Filter -->
+              <mat-form-field appearance="outline" class="filter-field">
+                <mat-label>Consumer PID</mat-label>
+                <input
+                  matInput
+                  [(ngModel)]="consumerPidFilter"
+                  placeholder="Enter consumer PID"
+                />
+              </mat-form-field>
+
+              <!-- Filter Action Buttons -->
+              <div class="filter-actions-inline">
+                <button
+                  mat-raised-button
+                  color="primary"
+                  (click)="applyFilters()"
+                >
+                  <mat-icon>search</mat-icon>
+                  Apply
+                </button>
+                <button mat-button (click)="clearFilters()">
+                  <mat-icon>clear</mat-icon>
+                  Clear
+                </button>
+              </div>
+            </div>
+          </div>
+        </mat-expansion-panel>
       </div>
       <div class="space-card">
-        <div *ngFor="let contractNegotiation of filteredContractNegotiations">
+        <div *ngFor="let contractNegotiation of contractNegotiations">
           <div class="card">
             <div class="title">
               {{ contractNegotiation["@id"] }}
@@ -261,6 +317,19 @@
           </div>
         </div>
       </div>
+
+      <!-- Pagination Controls -->
+      <mat-paginator
+        *ngIf="paginationState.totalElements > 0"
+        [length]="paginationState.totalElements"
+        [pageSize]="paginationState.pageSize"
+        [pageIndex]="paginationState.pageIndex"
+        [pageSizeOptions]="paginationState.pageSizeOptions"
+        (page)="onPageChange($event)"
+        showFirstLastButtons
+        aria-label="Select page of contract negotiations"
+      >
+      </mat-paginator>
     </mat-card-content>
   </mat-card>
 </div>

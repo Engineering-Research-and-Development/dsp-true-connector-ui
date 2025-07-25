@@ -25,6 +25,13 @@ mat-divider {
   overflow: hidden;
 }
 
+.service-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
 .service-title h2 {
   margin: 0;
   color: #6200ea;
@@ -120,33 +127,35 @@ button[mat-button]:hover {
 .headtitle {
   display: flex;
   justify-content: space-between;
-}
-
-.headtitle .buttons {
-  display: flex;
-  width: 50%;
-  justify-content: flex-end;
   align-items: center;
-}
-
-.headtitle .buttons button {
-  margin: 3px;
+  margin-bottom: 20px;
+  min-height: 40px;
 }
 
 .back {
-  display: inline-flex;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.back button {
-  margin: 0;
-  background: transparent;
-  padding: 0px;
-  font-size: 0.7em;
-  margin-right: 15px;
+.buttons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  min-height: 40px;
 }
 
-.back button[mat-button] mat-icon {
-  margin-right: 0px;
+.buttons button[mat-button] {
+  height: 36px !important;
+  min-height: 36px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 8px !important;
+}
+
+h1 {
+  margin: 10px 0;
 }
 
 .expansion-panel[_ngcontent-ng-c1553755739] {
@@ -230,14 +239,6 @@ h1 {
   overflow: hidden;
 }
 
-.mat-mdc-chip-option.mdc-evolution-chip {
-  background-color: #fbfbfbc2 !important;
-}
-
-.mat-mdc-chip-option.mdc-evolution-chip--selected {
-  background-color: #8a9eed5c !important;
-}
-
 /* Responsive breakpoints */
 @media (max-width: 1400px) {
   .space-card {
@@ -253,42 +254,74 @@ h1 {
 .filter-div {
   margin: 0px 10px 10px;
 }
-.filter-section {
-  display: flex;
-  width: 100%;
-  background: #ffffff;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 16px 25px 0px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-  width: 100%;
-  box-sizing: border-box;
-}
-.filter-section h3 {
-  font-size: 14px;
-  color: #707070;
-  line-height: 2.8;
-  margin-right: 20px;
-}
-@media (max-width: 900px) {
-  .filter-section {
-    display: flex;
-    width: 100%;
-    justify-content: space-between;
-    flex-wrap: wrap;
-  }
-  .filter-section h3 {
-    width: 100%;
-    line-height: 3;
-  }
-}
 
 .help-icon {
-  font-size: 1.1em;
-  margin-left: 8px;
-  vertical-align: middle;
-  color: grey;
+  color: #757575;
   cursor: help;
-  margin-top: 20px;
+}
+
+/* Filter styles */
+.filter-expansion-panel {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.filter-content {
+  padding: 16px 0;
+}
+
+.filter-fields-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.filter-field {
+  min-width: 200px;
+  flex: 1;
+  height: 56px; /* Ensure consistent height for all form fields */
+}
+
+.filter-actions-inline {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  height: 56px; /* Match form field height */
+  margin-left: 16px;
+}
+
+.filter-actions-inline button {
+  white-space: nowrap;
+  height: 36px;
+}
+
+@media (max-width: 768px) {
+  .headtitle {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .filter-fields-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-field {
+    min-width: unset;
+    width: 100%;
+  }
+
+  .filter-actions-inline {
+    flex-direction: column;
+    width: 100%;
+    justify-content: center;
+    margin-left: 0;
+  }
+
+  .filter-actions-inline button {
+    width: 100%;
+  }
 }
