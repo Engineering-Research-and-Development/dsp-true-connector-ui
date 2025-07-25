@@ -1,9 +1,12 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, map, Observable, of, switchMap, tap, timer } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { DataTransfer } from '../../models/dataTransfer';
-import { GenericApiResponse } from '../../models/genericApiResponse';
+import {
+  GenericApiResponse,
+  PagedAPIResponse,
+} from '../../models/genericApiResponse';
 import { ErrorHandlerService } from '../error-handler/error-handler.service';
 import { SnackbarService } from '../snackbar/snackbar.service';
 
@@ -78,9 +81,10 @@ export class DataTransferService {
 
   /**
    * Request for a new data transfer to be created
-   * @param agreement
+   * @param transferProcessId
+   * @param format
    * @returns Observable<DataTransfer>
-   * @example dataTransferService.requestDataTransfer(agreement).subscribe({ next: console.log, error: console.error, complete: () => console.log('completed') });
+   * @example dataTransferService.requestDataTransfer(transferProcessId, format).subscribe({ next: console.log, error: console.error, complete: () => console.log('completed') });
    * */
   requestDataTransfer(
     transferProcessId: string,
@@ -115,104 +119,63 @@ export class DataTransferService {
   }
 
   /**
-   * Get all data transfers for the provider
-   * @returns Observable<DataTransfer>
-   * @example dataTransferService.getAllDataTransfers().subscribe({ next: console.log, error: console.error, complete: () => console.log('completed') });
-   * */
-  getAllProviderDataTransfers(): Observable<DataTransfer[]> {
-    return this.http
-      .get<GenericApiResponse<any[]>>(
-        this.apiUrl + '?role=provider',
-        this.httpOptions
-      )
-      .pipe(
-        map((response: GenericApiResponse<any[]>) => {
-          if (response.success && response.data) {
-            return response.data;
-          } else {
-            throw new Error(response.message);
-          }
-        }),
-        catchError((error) => this.errorHandlerService.handleError(error))
-      );
-  }
-
-  /**
-   * Get all data transfers for the consumer
-   * @returns Observable<DataTransfer>
-   * @example dataTransferService.getAllDataTransfers().subscribe({ next: console.log, error: console.error, complete: () => console.log('completed') });
-   * */
-  getAllConsumerDataTransfers(): Observable<DataTransfer[]> {
-    return this.http
-      .get<GenericApiResponse<any[]>>(
-        this.apiUrl + '?role=consumer',
-        this.httpOptions
-      )
-      .pipe(
-        map((response: GenericApiResponse<DataTransfer[]>) => {
-          if (response.success && response.data) {
-            return response.data;
-          } else {
-            throw new Error(response.message);
-          }
-        }),
-        catchError((error) => this.errorHandlerService.handleError(error))
-      );
-  }
-
-  /**
-   * Get all data transfers with advanced filtering options
-   * @param role optional role to filter transfer processes by (e.g., 'consumer' or 'provider')
-   * @param state optional state to filter transfer processes by
-   * @param datasetId optional dataset identifier to filter transfer processes by
-   * @param providerPid optional provider PID to filter transfer processes by
-   * @param consumerPid optional consumer PID to filter transfer processes by
-   * @returns Observable<DataTransfer[]>
-   * @example dataTransferService.getAllDataTransfersWithFilters('consumer', 'STARTED', 'dataset123').subscribe({ next: console.log, error: console.error });
+   * Get all data transfers with filters and pagination
+   * @param filters - Filter options for data transfers
+   * @param pagination - Pagination options
+   * @returns Observable<PagedAPIResponse<DataTransfer>>
+   * @example dataTransferService.getDataTransfersWithFilters({role: 'provider'}, {page: 0, size: 20}).subscribe({next: console.log});
    */
-  getAllDataTransfersWithFilters(
-    role?: string,
-    state?: string,
-    datasetId?: string,
-    providerPid?: string,
-    consumerPid?: string
-  ): Observable<DataTransfer[]> {
-    const queryParams: string[] = [];
+  getDataTransfersWithFilters(
+    filters: {
+      role?: string;
+      state?: string;
+      datasetId?: string;
+      providerPid?: string;
+      consumerPid?: string;
+    } = {},
+    pagination: {
+      page?: number;
+      size?: number;
+      sort?: string;
+      direction?: 'asc' | 'desc';
+    } = {}
+  ): Observable<PagedAPIResponse<DataTransfer>> {
+    let params = new HttpParams();
 
-    if (role) {
-      queryParams.push(`role=${encodeURIComponent(role)}`);
+    // Add pagination parameters
+    if (pagination.page !== undefined) {
+      params = params.set('page', pagination.page.toString());
     }
-    if (state) {
-      queryParams.push(`state=${encodeURIComponent(state)}`);
-    }
-    if (datasetId) {
-      queryParams.push(`datasetId=${encodeURIComponent(datasetId)}`);
-    }
-    if (providerPid) {
-      queryParams.push(`providerPid=${encodeURIComponent(providerPid)}`);
-    }
-    if (consumerPid) {
-      queryParams.push(`consumerPid=${encodeURIComponent(consumerPid)}`);
+    if (pagination.size !== undefined) {
+      params = params.set('size', pagination.size.toString());
     }
 
-    const queryString =
-      queryParams.length > 0 ? '?' + queryParams.join('&') : '';
+    // Add sorting parameters
+    const sortField = pagination.sort || 'timestamp';
+    const sortDirection = pagination.direction || 'desc';
+    params = params.set('sort', `${sortField},${sortDirection}`);
 
-    return this.http
-      .get<GenericApiResponse<any[]>>(
-        this.apiUrl + queryString,
-        this.httpOptions
-      )
-      .pipe(
-        map((response: GenericApiResponse<DataTransfer[]>) => {
-          if (response.success && response.data) {
-            return response.data;
-          } else {
-            throw new Error(response.message);
-          }
-        }),
-        catchError((error) => this.errorHandlerService.handleError(error))
-      );
+    // Add filter parameters
+    if (filters.role) {
+      params = params.set('role', filters.role);
+    }
+    if (filters.state) {
+      params = params.set('state', filters.state);
+    }
+    if (filters.datasetId) {
+      params = params.set('datasetId', filters.datasetId);
+    }
+    if (filters.providerPid) {
+      params = params.set('providerPid', filters.providerPid);
+    }
+    if (filters.consumerPid) {
+      params = params.set('consumerPid', filters.consumerPid);
+    }
+
+    return this.http.get<PagedAPIResponse<DataTransfer>>(`${this.apiUrl}`, {
+      ...this.httpOptions,
+      params,
+    });
   }
 
   /**
@@ -315,7 +278,7 @@ export class DataTransferService {
    * Terminate the data transfer
    * @param transferProcessId - The id of the transfer process
    * @returns Observable<DataTransfer>
-   * @example
+   * @example dataTransferService.terminateDataTransfer('1234').subscribe({ next: console.log, error: console.error, complete: () => console.log('completed') });
    * */
   terminateDataTransfer(transferProcessId: string): Observable<DataTransfer> {
     return this.http
@@ -476,7 +439,6 @@ export class DataTransferService {
       );
   }
 
-  /** TEMPORARY HELPER METHODS FOR CHECKING TRANSFER STATUS */
   /**
    * Get transfer status for polling
    * @param transferProcessId - The id of the transfer process
@@ -486,11 +448,11 @@ export class DataTransferService {
     transferProcessId: string
   ): Observable<DataTransfer | null> {
     return this.http
-      .get<GenericApiResponse<DataTransfer[]>>(this.apiUrl, this.httpOptions)
+      .get<PagedAPIResponse<DataTransfer>>(this.apiUrl, this.httpOptions)
       .pipe(
-        map((response: GenericApiResponse<DataTransfer[]>) => {
-          if (response.success && response.data) {
-            const transfer = response.data.find(
+        map((response: PagedAPIResponse<DataTransfer>) => {
+          if (response.response.success && response.response.data) {
+            const transfer = response.response.data.content.find(
               (t) => t['@id'] === transferProcessId
             );
             return transfer || null;
