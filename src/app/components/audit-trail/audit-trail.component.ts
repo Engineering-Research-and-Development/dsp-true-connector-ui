@@ -26,6 +26,12 @@ import { AuditEvent } from '../../models/auditEvent';
 import { AuditEventType } from '../../models/auditEventType';
 import { AuditService } from '../../services/audit/audit.service';
 import { SnackbarService } from '../../services/snackbar/snackbar.service';
+import {
+  FilterExpansionState,
+  PaginationHelper,
+  PaginationState,
+  SortState,
+} from '../../shared/utils/pagination.utils';
 import { AuditEventDetailsDialogComponent } from './audit-event-details-dialog/audit-event-details-dialog.component';
 
 // Custom date adapter to force DD/MM/YYYY format
@@ -110,15 +116,10 @@ export class AuditTrailComponent implements OnInit {
     'actions',
   ];
 
-  // Pagination
-  pageSize = 20;
-  pageIndex = 0;
-  totalEvents = 0;
-  pageSizeOptions = [10, 20, 50, 100];
-
-  // Sorting
-  sortColumn = 'timestamp';
-  sortDirection: 'asc' | 'desc' = 'desc';
+  // Pagination and sorting using shared utility
+  paginationState: PaginationState =
+    PaginationHelper.createInitialPaginationState();
+  sortState: SortState = PaginationHelper.createInitialSortState();
 
   // Filter properties
   selectedEventType: AuditEventType | null = null;
@@ -135,8 +136,9 @@ export class AuditTrailComponent implements OnInit {
   loadingEventTypes = false;
   eventTypeFilterDisabled = false;
 
-  // Expansion panel state
-  filtersExpanded: boolean = false;
+  // Filter expansion state using shared utility
+  filterExpansionState: FilterExpansionState =
+    PaginationHelper.createFilterExpansionState();
 
   constructor(
     private auditService: AuditService,
@@ -197,22 +199,22 @@ export class AuditTrailComponent implements OnInit {
    */
   fetchAuditEvents() {
     this.loading = true;
+    const paginationOptions = PaginationHelper.createPaginationOptions(
+      this.paginationState,
+      this.sortState
+    );
+
     this.auditService
-      .getAuditEventsWithFilters(
-        {},
-        {
-          page: this.pageIndex,
-          size: this.pageSize,
-          sort: this.sortColumn,
-          direction: this.sortDirection,
-        }
-      )
+      .getAuditEventsWithFilters({}, paginationOptions)
       .subscribe({
         next: (response) => {
           const data = response.response.data;
           if (data) {
             this.auditEvents = data.content;
-            this.totalEvents = data.page.totalElements;
+            this.paginationState = PaginationHelper.updateTotalElements(
+              this.paginationState,
+              data.page.totalElements
+            );
           }
           this.loading = false;
         },
@@ -228,12 +230,18 @@ export class AuditTrailComponent implements OnInit {
    */
   applyFilters() {
     // Keep the expansion panel open when applying filters
-    this.filtersExpanded = true;
+    this.filterExpansionState = PaginationHelper.keepFilterExpansionOpen(
+      this.filterExpansionState
+    );
+
+    // Reset to first page when applying filters
+    this.paginationState = PaginationHelper.resetToFirstPage(
+      this.paginationState
+    );
 
     if (this.hasFiltersApplied()) {
       // Use filtering method when filters are applied
       this.loading = true;
-      this.pageIndex = 0; // Reset to first page when applying filters
 
       const filters = {
         eventType: this.selectedEventType?.code,
@@ -250,21 +258,22 @@ export class AuditTrailComponent implements OnInit {
           : undefined,
       };
 
-      const pagination = {
-        page: this.pageIndex,
-        size: this.pageSize,
-        sort: this.sortColumn,
-        direction: this.sortDirection,
-      };
+      const paginationOptions = PaginationHelper.createPaginationOptions(
+        this.paginationState,
+        this.sortState
+      );
 
       this.auditService
-        .getAuditEventsWithFilters(filters, pagination)
+        .getAuditEventsWithFilters(filters, paginationOptions)
         .subscribe({
           next: (response) => {
             const data = response.response.data;
             if (data) {
               this.auditEvents = data.content;
-              this.totalEvents = data.page.totalElements;
+              this.paginationState = PaginationHelper.updateTotalElements(
+                this.paginationState,
+                data.page.totalElements
+              );
             }
             this.loading = false;
           },
@@ -284,7 +293,9 @@ export class AuditTrailComponent implements OnInit {
    */
   clearFilters() {
     // Keep the expansion panel open after clearing filters
-    this.filtersExpanded = true;
+    this.filterExpansionState = PaginationHelper.keepFilterExpansionOpen(
+      this.filterExpansionState
+    );
 
     this.selectedEventType = null;
     this.usernameFilter = '';
@@ -294,7 +305,11 @@ export class AuditTrailComponent implements OnInit {
     this.consumerPidFilter = '';
     this.fromDateFilter = null;
     this.toDateFilter = null;
-    this.pageIndex = 0; // Reset to first page
+
+    // Reset to first page
+    this.paginationState = PaginationHelper.resetToFirstPage(
+      this.paginationState
+    );
     this.fetchAuditEvents();
   }
 
@@ -302,9 +317,14 @@ export class AuditTrailComponent implements OnInit {
    * Handle sort change
    */
   onSortChange(sort: Sort) {
-    this.sortColumn = sort.active;
-    this.sortDirection = sort.direction as 'asc' | 'desc';
-    this.pageIndex = 0; // Reset to first page when sorting changes
+    this.sortState = PaginationHelper.handleSortChange(
+      { active: sort.active, direction: sort.direction as 'asc' | 'desc' },
+      this.sortState
+    );
+    // Reset to first page when sorting changes
+    this.paginationState = PaginationHelper.resetToFirstPage(
+      this.paginationState
+    );
     this.refreshCurrentView();
   }
 
@@ -312,8 +332,10 @@ export class AuditTrailComponent implements OnInit {
    * Handle page change
    */
   onPageChange(event: PageEvent) {
-    this.pageIndex = event.pageIndex;
-    this.pageSize = event.pageSize;
+    this.paginationState = PaginationHelper.handlePageChange(
+      { pageIndex: event.pageIndex, pageSize: event.pageSize },
+      this.paginationState
+    );
     this.refreshCurrentView();
   }
 
@@ -386,21 +408,45 @@ export class AuditTrailComponent implements OnInit {
    * Get event type chip color based on event type
    */
   getEventTypeChipColor(eventTypeCode: string): string {
-    if (eventTypeCode.includes('LOGIN') || eventTypeCode.includes('LOGOUT')) {
-      return 'primary';
-    } else if (
-      eventTypeCode.includes('ERROR') ||
-      eventTypeCode.includes('FAILED') ||
-      eventTypeCode.includes('DENIED')
+    const upperEventType = eventTypeCode.toUpperCase();
+
+    // Error events (Red)
+    if (
+      upperEventType.includes('ERROR') ||
+      upperEventType.includes('FAILED') ||
+      upperEventType.includes('DENIED')
     ) {
       return 'warn';
-    } else if (
-      eventTypeCode.includes('COMPLETED') ||
-      eventTypeCode.includes('FINALIZED') ||
-      eventTypeCode.includes('APPROVED')
-    ) {
+    }
+
+    // Data transfer events (Green)
+    else if (upperEventType.includes('TRANSFER')) {
       return 'accent';
     }
-    return '';
+
+    // Contract negotiation events (Blue)
+    else if (
+      upperEventType.includes('NEGOTIATION') ||
+      upperEventType.includes('POLICY EVALUATION')
+    ) {
+      return 'primary';
+    }
+
+    // User-related events (Orange)
+    else if (
+      upperEventType.includes('LOGIN') ||
+      upperEventType.includes('LOGOUT') ||
+      upperEventType.includes('USER') ||
+      upperEventType.includes('AUTHENTICATION')
+    ) {
+      return 'user';
+    }
+
+    // Application events (Gray) - return default for default styling
+    else if (upperEventType.includes('APPLICATION')) {
+      return 'default';
+    }
+
+    return 'default';
   }
 }

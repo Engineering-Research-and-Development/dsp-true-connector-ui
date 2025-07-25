@@ -166,21 +166,45 @@ export class AuditEventDetailsDialogComponent {
    * Get event type chip color based on event type
    */
   getEventTypeChipColor(eventTypeCode: string): string {
-    if (eventTypeCode.includes('LOGIN') || eventTypeCode.includes('LOGOUT')) {
-      return 'primary';
-    } else if (
-      eventTypeCode.includes('ERROR') ||
-      eventTypeCode.includes('FAILED') ||
-      eventTypeCode.includes('DENIED')
+    const upperEventType = eventTypeCode.toUpperCase();
+
+    // Error events (Red)
+    if (
+      upperEventType.includes('ERROR') ||
+      upperEventType.includes('FAILED') ||
+      upperEventType.includes('DENIED')
     ) {
       return 'warn';
-    } else if (
-      eventTypeCode.includes('COMPLETED') ||
-      eventTypeCode.includes('FINALIZED') ||
-      eventTypeCode.includes('APPROVED')
-    ) {
+    }
+
+    // Data transfer events (Green)
+    else if (upperEventType.includes('TRANSFER')) {
       return 'accent';
     }
-    return '';
+
+    // Contract negotiation events (Blue)
+    else if (
+      upperEventType.includes('NEGOTIATION') ||
+      upperEventType.includes('POLICY EVALUATION')
+    ) {
+      return 'primary';
+    }
+
+    // User-related events (Orange)
+    else if (
+      upperEventType.includes('LOGIN') ||
+      upperEventType.includes('LOGOUT') ||
+      upperEventType.includes('USER') ||
+      upperEventType.includes('AUTHENTICATION')
+    ) {
+      return 'user';
+    }
+
+    // Application events (Gray) - return default for default styling
+    else if (upperEventType.includes('APPLICATION')) {
+      return 'default';
+    }
+
+    return 'default';
   }
 }
