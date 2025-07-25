@@ -1,9 +1,10 @@
-# [0.1.3] - 07-07-2025
+# [0.1.3] - 24-07-2025
 
 ### Added
 
 - Connector configuration - manage all available connector properties from UI
-- Advanced search of Data Transfers with multiple filter criteria
+- Advanced search and pagination of Data Transfers and Contract Negotiations with multiple filter criteria
+- Audit trail to track all audit events inside connector with advanced search options such are date range, type of event, username, etc.
 
 # [0.1.2] - 04-06-2025
 

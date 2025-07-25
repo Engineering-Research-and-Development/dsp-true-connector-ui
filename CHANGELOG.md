@@ -7,13 +7,18 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Connector configuration - related component and service to handle application properties management from UI
-- Advanced search of Data Transfers with multiple filter criteria - related component and service to handle BE changes
+- Advanced search and pagination of Data Transfers with multiple filter criteria - related component and service to handle BE changes
+- Advanced search and pagination of Contract Negotiations with multiple filter criteria - related component and service to handle BE changes
+- Audit trail component with advanced search and pagination of Audit Events with multiple filter criteria - related component and service for new implemented feature
+- Test coverage for new components
 
 ### Changed
 
 - Routing now supports lazy loading
 - Angular.json optimization tweaking
 - Data-transfer-service and data-transfers-component to support async download on BE (added pooling to check the download status)
+- CSS styling across whole application
+- Aligned tests with new logic in services regarding pagination
 
 ### Removed
 
