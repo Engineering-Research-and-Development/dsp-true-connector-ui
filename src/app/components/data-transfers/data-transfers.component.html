@@ -33,18 +33,9 @@
         </div>
         <div class="buttons">
           <button
-            *ngIf="userType === 'provider'"
             mat-button
             matTooltip="Refresh data"
-            (click)="getProviderDataTransfers()"
-          >
-            <mat-icon>cached</mat-icon>
-          </button>
-          <button
-            *ngIf="userType === 'consumer'"
-            mat-button
-            matTooltip="Refresh data"
-            (click)="getConsumerDataTransfers()"
+            (click)="fetchDataTransfers()"
           >
             <mat-icon>cached</mat-icon>
           </button>
@@ -53,7 +44,7 @@
       <div class="filter-div">
         <mat-expansion-panel
           class="filter-expansion-panel"
-          [(expanded)]="filtersExpanded"
+          [(expanded)]="filterExpansionState.filtersExpanded"
         >
           <mat-expansion-panel-header>
             <mat-panel-title>
@@ -135,7 +126,7 @@
         </mat-expansion-panel>
       </div>
       <div class="space-card">
-        <div *ngFor="let dataTransfer of filteredDataTransfers">
+        <div *ngFor="let dataTransfer of dataTransfers">
           <div class="card">
             <div class="title">
               {{ dataTransfer["@id"] }}
@@ -305,6 +296,19 @@
           </div>
         </div>
       </div>
+
+      <!-- Pagination Controls -->
+      <mat-paginator
+        *ngIf="paginationState.totalElements > 0"
+        [length]="paginationState.totalElements"
+        [pageSize]="paginationState.pageSize"
+        [pageIndex]="paginationState.pageIndex"
+        [pageSizeOptions]="paginationState.pageSizeOptions"
+        (page)="onPageChange($event)"
+        showFirstLastButtons
+        aria-label="Select page of data transfers"
+      >
+      </mat-paginator>
     </mat-card-content>
   </mat-card>
 </div>

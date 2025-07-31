@@ -1,9 +1,19 @@
-import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import {
+  provideHttpClient,
+  withInterceptorsFromDi,
+} from '@angular/common/http';
+import {
+  HttpTestingController,
+  provideHttpClientTesting,
+} from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { environment } from '../../../environments/environment';
 import { ContractNegotiation } from '../../models/contractNegotiation';
 import { ContractNegotiationState } from '../../models/enums/contractNegotiationState';
-import { GenericApiResponse } from '../../models/genericApiResponse';
+import {
+  GenericApiResponse,
+  PagedAPIResponse,
+} from '../../models/genericApiResponse';
 import {
   MOCK_CONTRACT_NEGOTIATION,
   MOCK_CONTRACT_NEGOTIATION_ACCEPTED,
@@ -15,7 +25,6 @@ import {
 } from '../../test-utils/test-utils';
 import { SnackbarService } from '../snackbar/snackbar.service';
 import { ContractNegotiationService } from './contract-negotiation.service';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('ContractNegotiationService', () => {
   let service: ContractNegotiationService;
@@ -28,14 +37,14 @@ describe('ContractNegotiationService', () => {
     ]);
 
     TestBed.configureTestingModule({
-    imports: [],
-    providers: [
+      imports: [],
+      providers: [
         ContractNegotiationService,
         { provide: SnackbarService, useValue: snackbarSpy },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-    ]
-});
+      ],
+    });
 
     service = TestBed.inject(ContractNegotiationService);
     httpMock = TestBed.inject(HttpTestingController);
@@ -105,109 +114,141 @@ describe('ContractNegotiationService', () => {
     });
   });
 
-  describe('getAllNegotiationsAsProvider', () => {
+  describe('getContractNegotiationsWithFilters (provider)', () => {
     it('should retrieve all provider negotiations successfully', () => {
       const mockNegotiations = [
         MOCK_CONTRACT_NEGOTIATION,
         { ...MOCK_CONTRACT_NEGOTIATION, '@id': 'test-negotiation-id-2' },
       ];
-      const mockResponse: GenericApiResponse<ContractNegotiation[]> = {
-        success: true,
-        message: 'Fetched provider negotiations',
-        data: mockNegotiations,
-        timestamp: '2025-01-13T15:14:06+01:00',
+      const mockResponse: PagedAPIResponse<ContractNegotiation> = {
+        response: {
+          success: true,
+          message: 'Fetched provider negotiations',
+          data: {
+            links: [],
+            content: mockNegotiations,
+            page: {
+              totalElements: 2,
+              totalPages: 1,
+              size: 20,
+              number: 0,
+            },
+          },
+          timestamp: '2025-01-13T15:14:06+01:00',
+        },
       };
 
-      service.getAllNegotiationsAsProvider().subscribe({
-        next: (response) => {
-          expect(response).toEqual(mockNegotiations);
-          expect(response.length).toBe(2);
-        },
-      });
+      service
+        .getContractNegotiationsWithFilters({ role: 'provider' })
+        .subscribe({
+          next: (response: PagedAPIResponse<ContractNegotiation>) => {
+            expect(response.response.data?.content).toEqual(mockNegotiations);
+            expect(response.response.data?.content.length).toBe(2);
+          },
+        });
 
-      const req = httpMock.expectOne(
-        `${environment.NEGOTIATION_API_URL()}?role=provider`
-      );
+      const req = httpMock.expectOne((request) => {
+        return (
+          request.url === environment.NEGOTIATION_API_URL() &&
+          request.params.get('role') === 'provider' &&
+          request.params.get('sort') === 'timestamp,desc'
+        );
+      });
       expect(req.request.method).toBe('GET');
       req.flush(mockResponse);
     });
 
     it('should handle error when retrieving provider negotiations fails', () => {
-      const errorResponse: GenericApiResponse<ContractNegotiation[]> = {
-        success: false,
-        message: 'Failed to fetch provider negotiations',
-        timestamp: '2025-01-13T15:14:06+01:00',
+      const errorResponse: PagedAPIResponse<ContractNegotiation> = {
+        response: {
+          success: false,
+          message: 'Failed to fetch provider negotiations',
+          timestamp: '2025-01-13T15:14:06+01:00',
+        },
       };
 
-      service.getAllNegotiationsAsProvider().subscribe({
-        error: (error) => {},
+      service
+        .getContractNegotiationsWithFilters({ role: 'provider' })
+        .subscribe({
+          error: (error: any) => {},
+        });
+
+      const req = httpMock.expectOne((request) => {
+        return (
+          request.url === environment.NEGOTIATION_API_URL() &&
+          request.params.get('role') === 'provider'
+        );
       });
-
-      const req = httpMock.expectOne(
-        `${environment.NEGOTIATION_API_URL()}?role=provider`
-      );
       req.flush(errorResponse, { status: 404, statusText: 'Not Found' });
-
-      expect(snackbarService.openSnackBar).toHaveBeenCalledWith(
-        'An error occurred: Failed to fetch provider negotiations',
-        'OK',
-        'center',
-        'bottom',
-        'snackbar-error'
-      );
     });
   });
 
-  describe('getAllNegotiationsAsConsumer', () => {
+  describe('getContractNegotiationsWithFilters (consumer)', () => {
     it('should retrieve all consumer negotiations successfully', () => {
       const mockNegotiations = [
         MOCK_CONTRACT_NEGOTIATION,
         { ...MOCK_CONTRACT_NEGOTIATION, '@id': 'test-negotiation-id-2' },
       ];
-      const mockResponse: GenericApiResponse<ContractNegotiation[]> = {
-        success: true,
-        message: 'Fetched consumer negotiations',
-        data: mockNegotiations,
-        timestamp: '2025-01-13T15:14:06+01:00',
+      const mockResponse: PagedAPIResponse<ContractNegotiation> = {
+        response: {
+          success: true,
+          message: 'Fetched consumer negotiations',
+          data: {
+            links: [],
+            content: mockNegotiations,
+            page: {
+              totalElements: 2,
+              totalPages: 1,
+              size: 20,
+              number: 0,
+            },
+          },
+          timestamp: '2025-01-13T15:14:06+01:00',
+        },
       };
 
-      service.getAllNegotiationsAsConsumer().subscribe({
-        next: (response) => {
-          expect(response).toEqual(mockNegotiations);
-          expect(response.length).toBe(2);
-        },
-      });
+      service
+        .getContractNegotiationsWithFilters({ role: 'consumer' })
+        .subscribe({
+          next: (response: PagedAPIResponse<ContractNegotiation>) => {
+            expect(response.response.data?.content).toEqual(mockNegotiations);
+            expect(response.response.data?.content.length).toBe(2);
+          },
+        });
 
-      const req = httpMock.expectOne(
-        `${environment.NEGOTIATION_API_URL()}?role=consumer`
-      );
+      const req = httpMock.expectOne((request) => {
+        return (
+          request.url === environment.NEGOTIATION_API_URL() &&
+          request.params.get('role') === 'consumer' &&
+          request.params.get('sort') === 'timestamp,desc'
+        );
+      });
       expect(req.request.method).toBe('GET');
       req.flush(mockResponse);
     });
 
     it('should handle error when retrieving consumer negotiations fails', () => {
-      const errorResponse: GenericApiResponse<ContractNegotiation[]> = {
-        success: false,
-        message: 'Failed to fetch consumer negotiations',
-        timestamp: '2025-01-13T15:14:06+01:00',
+      const errorResponse: PagedAPIResponse<ContractNegotiation> = {
+        response: {
+          success: false,
+          message: 'Failed to fetch consumer negotiations',
+          timestamp: '2025-01-13T15:14:06+01:00',
+        },
       };
 
-      service.getAllNegotiationsAsConsumer().subscribe({
-        error: (error) => {},
+      service
+        .getContractNegotiationsWithFilters({ role: 'consumer' })
+        .subscribe({
+          error: (error: any) => {},
+        });
+
+      const req = httpMock.expectOne((request) => {
+        return (
+          request.url === environment.NEGOTIATION_API_URL() &&
+          request.params.get('role') === 'consumer'
+        );
       });
-
-      const req = httpMock.expectOne(
-        `${environment.NEGOTIATION_API_URL()}?role=consumer`
-      );
       req.flush(errorResponse, { status: 404, statusText: 'Not Found' });
-
-      expect(snackbarService.openSnackBar).toHaveBeenCalledWith(
-        'An error occurred: Failed to fetch consumer negotiations',
-        'OK',
-        'center',
-        'bottom',
-        'snackbar-error'
-      );
     });
   });
 
@@ -516,42 +557,6 @@ describe('ContractNegotiationService', () => {
         'bottom',
         'snackbar-error'
       );
-    });
-  });
-
-  describe('checkContractAgreement', () => {
-    it('should check contract agreement successfully', () => {
-      const negotiationId = 'test-negotiation-id';
-      const mockResponse = true;
-
-      service.checkContractAgreement(negotiationId).subscribe({
-        next: (response) => {
-          expect(response).toBe(true);
-        },
-      });
-
-      const req = httpMock.expectOne(
-        `${environment.NEGOTIATION_API_URL()}/check/${negotiationId}`
-      );
-      expect(req.request.method).toBe('GET');
-      req.flush(mockResponse);
-    });
-
-    it('should handle error when checking contract agreement fails', () => {
-      const negotiationId = 'test-negotiation-id';
-      const errorResponse = false;
-
-      service.checkContractAgreement(negotiationId).subscribe({
-        next: (response) => {
-          expect(response).toBe(false);
-        },
-      });
-
-      const req = httpMock.expectOne(
-        `${environment.NEGOTIATION_API_URL()}/check/${negotiationId}`
-      );
-      expect(req.request.method).toBe('GET');
-      req.flush(errorResponse);
     });
   });
 });

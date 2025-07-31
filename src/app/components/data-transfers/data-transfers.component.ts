@@ -2,18 +2,17 @@ import { CommonModule, Location } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
+import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
@@ -21,6 +20,12 @@ import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
 import { DataTransfer } from '../../models/dataTransfer';
 import { DataTransferState } from '../../models/enums/dataTransferState';
 import { DataTransferService } from '../../services/data-transfer/data-transfer.service';
+import {
+  FilterExpansionState,
+  PaginationHelper,
+  PaginationState,
+  SortState,
+} from '../../shared/utils/pagination.utils';
 
 @Component({
   selector: 'app-data-transfers',
@@ -39,11 +44,10 @@ import { DataTransferService } from '../../services/data-transfer/data-transfer.
     FormsModule,
     ReactiveFormsModule,
     MatTooltipModule,
-    MatButtonToggleModule,
-    MatCheckboxModule,
-    MatChipsModule,
     MatProgressSpinnerModule,
     MatSelectModule,
+    MatPaginatorModule,
+    MatSortModule,
   ],
   templateUrl: './data-transfers.component.html',
   styleUrl: './data-transfers.component.css',
@@ -52,15 +56,20 @@ export class DataTransfersComponent {
   userType!: string;
   loading = false;
   dataTransfers: DataTransfer[] = [];
-  filteredDataTransfers: DataTransfer[] = [];
   selectedState: DataTransferState | null = null;
   dataTransferStates = Object.values(DataTransferState);
   datasetIdFilter: string = '';
   providerPidFilter: string = '';
   consumerPidFilter: string = '';
 
-  // Expansion panel state
-  filtersExpanded: boolean = false;
+  // Pagination and sorting using shared utility
+  paginationState: PaginationState =
+    PaginationHelper.createInitialPaginationState();
+  sortState: SortState = PaginationHelper.createInitialSortState();
+
+  // Filter expansion state using shared utility
+  filterExpansionState: FilterExpansionState =
+    PaginationHelper.createFilterExpansionState();
 
   dataTransferState = DataTransferState;
 
@@ -81,60 +90,71 @@ export class DataTransfersComponent {
    * Initialize the component and checks for which role to fetch the dataTransfers
    */
   ngOnInit(): void {
-    this.fetchDataTransfersByRole();
+    this.fetchDataTransfers();
     this.loading = true;
   }
 
-  fetchDataTransfersByRole() {
-    if (this.userType === 'provider') {
-      this.getProviderDataTransfers();
-    } else if (this.userType === 'consumer') {
-      this.getConsumerDataTransfers();
-    }
+  /**
+   * Navigate back to the previous page
+   */
+  goBack(): void {
+    this.location.back();
   }
 
   /**
-   * Apply filters and fetch data transfers with filtering
+   * Fetch data transfers with current filters and pagination
+   */
+  fetchDataTransfers() {
+    this.loading = true;
+
+    const filters = {
+      role: this.userType,
+      state: this.selectedState || undefined,
+      datasetId: this.datasetIdFilter || undefined,
+      providerPid: this.providerPidFilter || undefined,
+      consumerPid: this.consumerPidFilter || undefined,
+    };
+
+    const paginationOptions = PaginationHelper.createPaginationOptions(
+      this.paginationState,
+      this.sortState
+    );
+
+    this.dataTransferService
+      .getDataTransfersWithFilters(filters, paginationOptions)
+      .subscribe({
+        next: (response) => {
+          console.log('Data Transfers fetched');
+          this.dataTransfers = response.response.data?.content || [];
+          if (response.response.data?.page) {
+            this.paginationState = PaginationHelper.updateTotalElements(
+              this.paginationState,
+              response.response.data.page.totalElements
+            );
+          }
+          this.dataTransferService.cleanupCompleted(this.dataTransfers);
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Error fetching data transfers:', error);
+          this.loading = false;
+        },
+      });
+  }
+
+  /**
+   * Apply filters and fetch data transfers with filtering and pagination
    */
   applyFilters() {
     // Keep the expansion panel open when applying filters
-    this.filtersExpanded = true;
-
-    // Check if any filters are applied
-    const hasFilters =
-      this.selectedState !== null ||
-      this.datasetIdFilter.trim() ||
-      this.providerPidFilter.trim() ||
-      this.consumerPidFilter.trim();
-
-    if (hasFilters) {
-      // Use filtering method when filters are applied
-      this.loading = true;
-      this.dataTransferService
-        .getAllDataTransfersWithFilters(
-          this.userType,
-          this.selectedState || undefined,
-          this.datasetIdFilter || undefined,
-          this.providerPidFilter || undefined,
-          this.consumerPidFilter || undefined
-        )
-        .subscribe({
-          next: (data) => {
-            console.log('Data Transfers fetched with filters');
-            this.dataTransfers = data;
-            this.filteredDataTransfers = data;
-            this.dataTransferService.cleanupCompleted(data);
-            this.loading = false;
-          },
-          error: (error) => {
-            console.error('Error fetching filtered dataTransfers:', error);
-            this.loading = false;
-          },
-        });
-    } else {
-      // No filters applied, use original method
-      this.fetchDataTransfersByRole();
-    }
+    this.filterExpansionState = PaginationHelper.keepFilterExpansionOpen(
+      this.filterExpansionState
+    );
+    // Reset to first page when applying filters
+    this.paginationState = PaginationHelper.resetToFirstPage(
+      this.paginationState
+    );
+    this.fetchDataTransfers();
   }
 
   /**
@@ -142,60 +162,46 @@ export class DataTransfersComponent {
    */
   clearFilters() {
     // Keep the expansion panel open after clearing filters
-    this.filtersExpanded = true;
+    this.filterExpansionState = PaginationHelper.keepFilterExpansionOpen(
+      this.filterExpansionState
+    );
 
     this.selectedState = null;
     this.datasetIdFilter = '';
     this.providerPidFilter = '';
     this.consumerPidFilter = '';
-    this.fetchDataTransfersByRole();
+
+    // Reset to first page
+    this.paginationState = PaginationHelper.resetToFirstPage(
+      this.paginationState
+    );
+    this.fetchDataTransfers();
   }
 
   /**
-   * Fetch all Data Transfers for the provider
+   * Handle sort change
    */
-  getProviderDataTransfers() {
-    this.loading = true;
-    this.dataTransferService.getAllProviderDataTransfers().subscribe({
-      next: (data) => {
-        console.log('Provider Data Transfers fetched');
-        this.dataTransfers = data;
-        this.filteredDataTransfers = data;
-        this.dataTransferService.cleanupCompleted(data);
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error('Error fetching provider dataTransfers:', error);
-        this.loading = false;
-      },
-    });
+  onSortChange(sort: Sort) {
+    this.sortState = PaginationHelper.handleSortChange(
+      { active: sort.active, direction: sort.direction as 'asc' | 'desc' },
+      this.sortState
+    );
+    // Reset to first page when sorting changes
+    this.paginationState = PaginationHelper.resetToFirstPage(
+      this.paginationState
+    );
+    this.fetchDataTransfers();
   }
 
   /**
-   * Fetch all Data Transfers for the consumer
-   * */
-  getConsumerDataTransfers() {
-    this.loading = true;
-    this.dataTransferService.getAllConsumerDataTransfers().subscribe({
-      next: (data) => {
-        console.log('Consumer Data Transfers fetched');
-        this.dataTransfers = data;
-        this.filteredDataTransfers = data;
-        this.dataTransferService.cleanupCompleted(data);
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error('Error fetching consumer dataTransfers:', error);
-        this.loading = false;
-      },
-    });
-  }
-
-  /**
-   * Navigate back to the previous page
-   * */
-  goBack(): void {
-    this.location.back();
+   * Handle page change
+   */
+  onPageChange(event: PageEvent) {
+    this.paginationState = PaginationHelper.handlePageChange(
+      { pageIndex: event.pageIndex, pageSize: event.pageSize },
+      this.paginationState
+    );
+    this.fetchDataTransfers();
   }
 
   /**
@@ -226,7 +232,7 @@ export class DataTransfersComponent {
       .requestDataTransfer(dataTransfer['@id'], format)
       .subscribe({
         next: () => {
-          this.getConsumerDataTransfers();
+          this.fetchDataTransfers();
         },
         error: (error) => {
           console.error('Error requesting data transfer:', error);
@@ -241,7 +247,7 @@ export class DataTransfersComponent {
   onStart(dataTransfer: DataTransfer) {
     this.dataTransferService.startDataTransfer(dataTransfer['@id']).subscribe({
       next: () => {
-        this.fetchDataTransfersByRole();
+        this.fetchDataTransfers();
       },
       error: (error) => {
         console.error('Error starting data transfer:', error);
@@ -256,7 +262,7 @@ export class DataTransfersComponent {
     this.dataTransferService.downloadArtifact(dataTransfer['@id']).subscribe({
       next: (completed: boolean) => {
         // Refresh the transfer list to reflect any status changes
-        this.fetchDataTransfersByRole();
+        this.fetchDataTransfers();
 
         if (!completed) {
           console.warn(
@@ -268,7 +274,7 @@ export class DataTransfersComponent {
       error: (error) => {
         console.error('Error downloading artifact:', error);
         // Refresh the transfer list in case of error to sync UI state
-        this.fetchDataTransfersByRole();
+        this.fetchDataTransfers();
       },
     });
   }
@@ -282,7 +288,7 @@ export class DataTransfersComponent {
       next: (presignedUrl) => {
         this.dataTransferService.viewArtifact(presignedUrl).subscribe({
           next: () => {
-            this.fetchDataTransfersByRole();
+            this.fetchDataTransfers();
           },
           error: (error) => {
             console.error('Error viewing data transfer:', error);
@@ -303,7 +309,7 @@ export class DataTransfersComponent {
       .completeDataTransfer(dataTransfer['@id'])
       .subscribe({
         next: () => {
-          this.fetchDataTransfersByRole();
+          this.fetchDataTransfers();
         },
         error: (error) => {
           console.error('Error finalizing contract dataTransfer:', error);
@@ -320,7 +326,7 @@ export class DataTransfersComponent {
       .terminateDataTransfer(dataTransfer['@id'])
       .subscribe({
         next: () => {
-          this.fetchDataTransfersByRole();
+          this.fetchDataTransfers();
         },
         error: (error) => {
           console.error('Error terminating contract dataTransfer:', error);
@@ -333,7 +339,7 @@ export class DataTransfersComponent {
       .suspendDataTransfer(dataTransfer['@id'])
       .subscribe({
         next: () => {
-          this.fetchDataTransfersByRole();
+          this.fetchDataTransfers();
         },
         error: (error) => {
           console.error('Error suspending contract dataTransfer:', error);

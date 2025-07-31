@@ -9,14 +9,18 @@
     <mat-card-title class="service-title"> </mat-card-title>
     <mat-card-content>
       <div class="headtitle">
-        <div class="back">
-          <button
-            mat-button
-            (click)="directEdit ? goBack() : editMode ? cancelEdit() : goBack()"
-          >
-            <mat-icon>keyboard_arrow_left</mat-icon>
-            Back
-          </button>
+        <div class="title-section">
+          <div class="back">
+            <button
+              mat-button
+              (click)="
+                directEdit ? goBack() : editMode ? cancelEdit() : goBack()
+              "
+            >
+              <mat-icon>keyboard_arrow_left</mat-icon>
+              Back
+            </button>
+          </div>
           <h1>Distribution Details</h1>
           <mat-icon
             class="help-icon"

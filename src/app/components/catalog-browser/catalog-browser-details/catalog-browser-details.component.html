@@ -1,5 +1,5 @@
 <div *ngIf="loading" class="item">
-  <mat-card class="catalog-card">
+  <mat-card class="service-card">
     <ngx-skeleton-loader
       count="15"
       appearance="line"
@@ -8,8 +8,8 @@
   </mat-card>
 </div>
 <div *ngIf="!loading && catalogData != undefined">
-  <mat-card class="catalog-card">
-    <mat-card-title class="catalog-title"></mat-card-title>
+  <mat-card class="service-card">
+    <mat-card-title class="service-title"></mat-card-title>
     <mat-card-content>
       <div class="headtitle">
         <div class="back">
