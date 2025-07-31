@@ -69,8 +69,9 @@ export class AuditEventDetailsDialogComponent {
    * Check if details object has any content
    */
   hasDetails(): boolean {
-    return !!(
-      this.auditEvent.details && Object.keys(this.auditEvent.details).length > 0
+    return (
+      this.auditEvent.details != null &&
+      Object.keys(this.auditEvent.details).length > 0
     );
   }
 
