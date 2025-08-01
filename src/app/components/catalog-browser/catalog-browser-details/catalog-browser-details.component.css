@@ -419,3 +419,19 @@ p strong {
     padding: 16px;
   }
 }
+
+/* No datasets message styling */
+.no-datasets {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.no-datasets p {
+  color: #666;
+  font-size: 16px;
+  font-style: italic;
+  margin: 0;
+}

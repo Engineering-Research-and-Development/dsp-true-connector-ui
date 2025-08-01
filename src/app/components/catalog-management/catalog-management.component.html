@@ -7,7 +7,7 @@
     ></ngx-skeleton-loader>
   </mat-card>
 </div>
-<div *ngIf="!loading && catalogData === undefined" class="buttons">
+<div *ngIf="!loading && catalogData === undefined">
   <mat-card class="service-card">
     <mat-card-title class="service-title"></mat-card-title>
     <mat-card-content>
@@ -22,21 +22,33 @@
           >
         </div>
       </div>
-      <div>
-        <h2>There is no catalog, please create one</h2>
-        <button mat-button (click)="onAdd()">Add New Catalog</button>
+      <div class="no-catalog-content">
+        <div class="no-catalog-message">
+          <h2>There is no catalog, please create one</h2>
+          <div class="no-catalog-actions">
+            <button mat-button (click)="onAdd()" class="action-button">
+              <mat-icon>add</mat-icon>
+              Add New Catalog
+            </button>
 
-        <input
-          type="file"
-          (change)="onFileSelected($event)"
-          accept=".json"
-          style="display: none"
-          #fileInput
-        />
+            <input
+              type="file"
+              (change)="onFileSelected($event)"
+              accept=".json"
+              style="display: none"
+              #fileInput
+            />
 
-        <button mat-button (click)="fileInput.click()">
-          Upload catalog from file
-        </button>
+            <button
+              mat-button
+              (click)="fileInput.click()"
+              class="action-button"
+            >
+              <mat-icon>upload</mat-icon>
+              Upload catalog from file
+            </button>
+          </div>
+        </div>
       </div>
     </mat-card-content>
   </mat-card>
@@ -114,10 +126,10 @@
                   <span>{{ catalogData.conformsTo }}</span>
 
                   <strong>Keyword</strong>
-                  <span>{{ catalogData.keyword.join(", ") }}</span>
+                  <span>{{ catalogData.keyword?.join(", ") || "N/A" }}</span>
 
                   <strong>Theme</strong>
-                  <span>{{ catalogData.theme.join(", ") }}</span>
+                  <span>{{ catalogData.theme?.join(", ") || "N/A" }}</span>
 
                   <strong>Participant ID</strong>
                   <span> {{ catalogData.participantId }}</span>
@@ -162,12 +174,21 @@
 
                       <strong>Issued</strong>
                       <span>
-                        {{ catalogData.issued | date : "d MMMM y, HH:mm:ss" }}
+                        {{
+                          catalogData.issued
+                            ? (catalogData.issued | date : "d MMMM y, HH:mm:ss")
+                            : "N/A"
+                        }}
                       </span>
 
                       <strong>Modified</strong>
                       <span>
-                        {{ catalogData.modified | date : "d MMMM y, HH:mm:ss" }}
+                        {{
+                          catalogData.modified
+                            ? (catalogData.modified
+                              | date : "d MMMM y, HH:mm:ss")
+                            : "N/A"
+                        }}
                       </span>
 
                       <strong>Last modified by</strong>
