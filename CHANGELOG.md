@@ -21,6 +21,8 @@ All notable changes to this project will be documented in this file.
 - Aligned tests with new logic in services regarding pagination
 - Fix missing things in docker folder (ENG-employee.json, properties, etc)
 - Fix handling missing attributes from BE response
+- Updated screenshots
+- Updated USER_MANUAL.md
 
 ### Removed
 
