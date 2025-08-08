@@ -26,29 +26,36 @@ import { Dataset } from '../../../models/dataset';
 import { Multilanguage } from '../../../models/multilanguage';
 import { DataServiceService } from '../../../services/data-service/data-service.service';
 import { DatasetService } from '../../../services/dataset/dataset.service';
+import { EditStateService } from '../../../shared/edit-state.service';
+import { ModifiedFieldDirective } from '../../../shared/modified-field.directive';
+import { OldValuePipe } from '../../../shared/old-value.pipe';
+import { UnsavedChangesComponent } from '../../../shared/unsaved-changes/unsaved-changes.component';
 import { ConfirmationDialogComponent } from '../../confirmation-dialog/confirmation-dialog.component';
 
 @Component({
-    selector: 'app-service-details',
-    imports: [
-        CommonModule,
-        RouterModule,
-        MatCardModule,
-        MatButtonModule,
-        MatExpansionModule,
-        MatToolbarModule,
-        NgxSkeletonLoaderModule,
-        MatIconModule,
-        FormsModule,
-        ReactiveFormsModule,
-        MatFormFieldModule,
-        MatSelectModule,
-        MatInputModule,
-        MatTooltipModule,
-        MatTabsModule,
-    ],
-    templateUrl: './service-details.component.html',
-    styleUrls: ['./service-details.component.css']
+  selector: 'app-service-details',
+  imports: [
+    CommonModule,
+    RouterModule,
+    MatCardModule,
+    MatButtonModule,
+    MatExpansionModule,
+    MatToolbarModule,
+    NgxSkeletonLoaderModule,
+    MatIconModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatInputModule,
+    MatTooltipModule,
+    MatTabsModule,
+    ModifiedFieldDirective,
+    OldValuePipe,
+    UnsavedChangesComponent,
+  ],
+  templateUrl: './service-details.component.html',
+  styleUrls: ['./service-details.component.css'],
 })
 export class ServiceDetailsComponent implements OnInit {
   serviceForm!: FormGroup;
@@ -62,13 +69,16 @@ export class ServiceDetailsComponent implements OnInit {
   loading = false;
   allDatasets: Dataset[] = [];
 
+  // Change tracking handled by EditStateService
+
   constructor(
     public dialog: MatDialog,
     private router: Router,
     private location: Location,
     private dataService: DataServiceService,
     private fb: FormBuilder,
-    private datasetService: DatasetService
+    private datasetService: DatasetService,
+    public editState: EditStateService
   ) {
     const navigation = this.router.getCurrentNavigation();
     if (navigation?.extras.state) {
@@ -90,6 +100,10 @@ export class ServiceDetailsComponent implements OnInit {
   ngOnInit(): void {
     this.initForm();
     this.getAllDataSets();
+  }
+
+  ngOnDestroy(): void {
+    this.editState.destroy();
   }
 
   /**
@@ -271,7 +285,7 @@ export class ServiceDetailsComponent implements OnInit {
    * */
   addDescription() {
     const control = this.fb.group({
-      language: ['', Validators.required],
+      language: ['', [Validators.required, Validators.pattern('[a-zA-Z]*')]],
       value: ['', Validators.required],
     });
     (this.serviceForm.get('description') as FormArray).push(control);
@@ -417,6 +431,8 @@ export class ServiceDetailsComponent implements OnInit {
         this.setFormArray('keyword', service.keyword);
         this.setFormArray('theme', service.theme);
       }
+
+      this.editState.init(this.serviceForm);
     }
   }
 
@@ -433,7 +449,10 @@ export class ServiceDetailsComponent implements OnInit {
         if (formArrayName === 'description') {
           formArray.push(
             this.fb.group({
-              language: [value.language, Validators.required],
+              language: [
+                value.language,
+                [Validators.required, Validators.pattern('[a-zA-Z]*')],
+              ],
               value: [value.value, Validators.required],
             })
           );
@@ -473,4 +492,6 @@ export class ServiceDetailsComponent implements OnInit {
 
     return cleanedData;
   }
+
+  // Old-value formatting handled by EditStateService
 }

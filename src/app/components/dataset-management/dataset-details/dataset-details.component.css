@@ -227,3 +227,27 @@ span {
   align-items: center;
   gap: 10px;
 }
+
+/* Changes Indicator */
+.changes-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ff9800;
+  font-weight: 500;
+  margin-bottom: 20px;
+  padding: 12px;
+  background: #fff8e1;
+  border-radius: 8px;
+  border-left: 4px solid #ff9800;
+}
+
+.modified-icon {
+  color: #ff9800;
+}
+
+.option-with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}

@@ -173,20 +173,47 @@
       <div *ngIf="editMode">
         <form [formGroup]="datasetForm">
           <div class="edit">
+            <unsaved-changes
+              [active]="editState.hasChanges()"
+            ></unsaved-changes>
             <br />
             <div class="edit-input">
-              <mat-form-field appearance="outline">
+              <mat-form-field
+                appearance="outline"
+                [tcModified]="{ key: 'title', state: editState }"
+              >
                 <mat-label>Title</mat-label>
                 <input matInput formControlName="title" />
+                <mat-icon
+                  *ngIf="editState.isChanged('title')"
+                  matSuffix
+                  class="modified-icon"
+                  [matTooltip]="
+                    'Old Value: ' + ('title' | oldValue : editState)
+                  "
+                  >edit</mat-icon
+                >
                 <mat-error
                   *ngIf="datasetForm.get('title')?.hasError('required')"
                 >
                   Title is required
                 </mat-error>
               </mat-form-field>
-              <mat-form-field appearance="outline">
+              <mat-form-field
+                appearance="outline"
+                [tcModified]="{ key: 'identifier', state: editState }"
+              >
                 <mat-label>Identifier</mat-label>
                 <input matInput formControlName="identifier" />
+                <mat-icon
+                  *ngIf="editState.isChanged('identifier')"
+                  matSuffix
+                  class="modified-icon"
+                  [matTooltip]="
+                    'Old Value: ' + ('identifier' | oldValue : editState)
+                  "
+                  >edit</mat-icon
+                >
                 <mat-error
                   *ngIf="datasetForm.get('identifier')?.hasError('required')"
                 >
@@ -195,18 +222,42 @@
               </mat-form-field>
             </div>
             <div class="edit-input">
-              <mat-form-field appearance="outline">
+              <mat-form-field
+                appearance="outline"
+                [tcModified]="{ key: 'creator', state: editState }"
+              >
                 <mat-label>Creator</mat-label>
                 <input matInput formControlName="creator" />
+                <mat-icon
+                  *ngIf="editState.isChanged('creator')"
+                  matSuffix
+                  class="modified-icon"
+                  [matTooltip]="
+                    'Old Value: ' + ('creator' | oldValue : editState)
+                  "
+                  >edit</mat-icon
+                >
                 <mat-error
                   *ngIf="datasetForm.get('creator')?.hasError('required')"
                 >
                   Creator is required
                 </mat-error>
               </mat-form-field>
-              <mat-form-field appearance="outline">
+              <mat-form-field
+                appearance="outline"
+                [tcModified]="{ key: 'conformsTo', state: editState }"
+              >
                 <mat-label>Conforms to</mat-label>
                 <input matInput formControlName="conformsTo" />
+                <mat-icon
+                  *ngIf="editState.isChanged('conformsTo')"
+                  matSuffix
+                  class="modified-icon"
+                  [matTooltip]="
+                    'Old Value: ' + ('conformsTo' | oldValue : editState)
+                  "
+                  >edit</mat-icon
+                >
                 <mat-error
                   *ngIf="datasetForm.get('conformsTo')?.hasError('required')"
                 >
@@ -286,6 +337,19 @@
                       maxlength="2"
                       pattern="[a-zA-Z ]*"
                     />
+                    <mat-icon
+                      *ngIf="
+                        editState.isChanged('description[' + i + '].language')
+                      "
+                      matSuffix
+                      class="modified-icon"
+                      [matTooltip]="
+                        'Old Value: ' +
+                        ('description[' + i + '].language'
+                          | oldValue : editState)
+                      "
+                      >edit</mat-icon
+                    >
                     <mat-error
                       *ngIf="desc.get('language')?.hasError('required')"
                     >
@@ -305,6 +369,19 @@
                         formControlName="value"
                         placeholder="Description"
                       ></textarea>
+                      <mat-icon
+                        *ngIf="
+                          editState.isChanged('description[' + i + '].value')
+                        "
+                        matSuffix
+                        class="modified-icon"
+                        [matTooltip]="
+                          'Old Value: ' +
+                          ('description[' + i + '].value'
+                            | oldValue : editState)
+                        "
+                        >edit</mat-icon
+                      >
                       <mat-error
                         *ngIf="desc.get('value')?.hasError('required')"
                       >
@@ -331,26 +408,56 @@
                 <div class="edit">
                   <br />
                   <div class="edit-input">
-                    <mat-form-field appearance="outline">
+                    <mat-form-field
+                      appearance="outline"
+                      [class.field-modified]="
+                        isPolicyFieldModified(i, 'assigner')
+                      "
+                    >
                       <mat-label>Assigner</mat-label>
                       <input
                         matInput
                         formControlName="assigner"
                         placeholder="Assigner"
                       />
+                      <mat-icon
+                        *ngIf="isPolicyFieldModified(i, 'assigner')"
+                        matSuffix
+                        class="modified-icon"
+                        [matTooltip]="
+                          'Old Value: ' +
+                          getOldValueForPolicyField(i, 'assigner')
+                        "
+                        >edit</mat-icon
+                      >
                       <mat-error
                         *ngIf="policy.get('assigner')?.hasError('required')"
                       >
                         Assigner is required
                       </mat-error>
                     </mat-form-field>
-                    <mat-form-field appearance="outline">
+                    <mat-form-field
+                      appearance="outline"
+                      [class.field-modified]="
+                        isPolicyFieldModified(i, 'assignee')
+                      "
+                    >
                       <mat-label>Assignee</mat-label>
                       <input
                         matInput
                         formControlName="assignee"
                         placeholder="Assignee"
                       />
+                      <mat-icon
+                        *ngIf="isPolicyFieldModified(i, 'assignee')"
+                        matSuffix
+                        class="modified-icon"
+                        [matTooltip]="
+                          'Old Value: ' +
+                          getOldValueForPolicyField(i, 'assignee')
+                        "
+                        >edit</mat-icon
+                      >
                       <mat-error
                         *ngIf="policy.get('assignee')?.hasError('required')"
                       >
@@ -368,7 +475,12 @@
                     "
                     [formGroupName]="j"
                   >
-                    <mat-form-field appearance="outline">
+                    <mat-form-field
+                      appearance="outline"
+                      [class.field-modified]="
+                        isPermissionFieldModified(i, j, 'action')
+                      "
+                    >
                       <mat-label>Action</mat-label>
                       <mat-select formControlName="action">
                         <mat-option
@@ -378,6 +490,16 @@
                           {{ action }}
                         </mat-option>
                       </mat-select>
+                      <mat-icon
+                        *ngIf="isPermissionFieldModified(i, j, 'action')"
+                        matSuffix
+                        class="modified-icon"
+                        [matTooltip]="
+                          'Old Value: ' +
+                          getOldValueForPermissionField(i, j, 'action')
+                        "
+                        >edit</mat-icon
+                      >
                       <mat-error
                         *ngIf="perm.get('action')?.hasError('required')"
                       >
@@ -394,7 +516,12 @@
                         [formGroupName]="k"
                       >
                         <div class="row-action">
-                          <mat-form-field appearance="outline">
+                          <mat-form-field
+                            appearance="outline"
+                            [class.field-modified]="
+                              isConstraintFieldModified(i, j, k, 'leftOperand')
+                            "
+                          >
                             <mat-label>Left Operand</mat-label>
                             <mat-select
                               formControlName="leftOperand"
@@ -407,6 +534,28 @@
                                 {{ operand }}
                               </mat-option>
                             </mat-select>
+                            <mat-icon
+                              *ngIf="
+                                isConstraintFieldModified(
+                                  i,
+                                  j,
+                                  k,
+                                  'leftOperand'
+                                )
+                              "
+                              matSuffix
+                              class="modified-icon"
+                              [matTooltip]="
+                                'Old Value: ' +
+                                getOldValueForConstraintField(
+                                  i,
+                                  j,
+                                  k,
+                                  'leftOperand'
+                                )
+                              "
+                              >edit</mat-icon
+                            >
                             <mat-error
                               *ngIf="
                                 cons.get('leftOperand')?.hasError('required')
@@ -416,7 +565,12 @@
                             </mat-error>
                           </mat-form-field>
 
-                          <mat-form-field appearance="outline">
+                          <mat-form-field
+                            appearance="outline"
+                            [class.field-modified]="
+                              isConstraintFieldModified(i, j, k, 'operator')
+                            "
+                          >
                             <mat-label>Operator</mat-label>
                             <mat-select formControlName="operator">
                               <mat-option
@@ -426,6 +580,23 @@
                                 {{ operator }}
                               </mat-option>
                             </mat-select>
+                            <mat-icon
+                              *ngIf="
+                                isConstraintFieldModified(i, j, k, 'operator')
+                              "
+                              matSuffix
+                              class="modified-icon"
+                              [matTooltip]="
+                                'Old Value: ' +
+                                getOldValueForConstraintField(
+                                  i,
+                                  j,
+                                  k,
+                                  'operator'
+                                )
+                              "
+                              >edit</mat-icon
+                            >
                             <mat-error
                               *ngIf="cons.get('operator')?.hasError('required')"
                             >
@@ -458,6 +629,28 @@
                                   formControlName="rightOperand"
                                   placeholder="Enter number"
                                 />
+                                <mat-icon
+                                  *ngIf="
+                                    isConstraintFieldModified(
+                                      i,
+                                      j,
+                                      k,
+                                      'rightOperand'
+                                    )
+                                  "
+                                  matSuffix
+                                  class="modified-icon"
+                                  [matTooltip]="
+                                    'Old Value: ' +
+                                    getOldValueForConstraintField(
+                                      i,
+                                      j,
+                                      k,
+                                      'rightOperand'
+                                    )
+                                  "
+                                  >edit</mat-icon
+                                >
                                 <mat-error
                                   *ngIf="
                                     cons
@@ -485,6 +678,28 @@
                                   [for]="picker"
                                 ></mat-datepicker-toggle>
                                 <mat-datepicker #picker></mat-datepicker>
+                                <mat-icon
+                                  *ngIf="
+                                    isConstraintFieldModified(
+                                      i,
+                                      j,
+                                      k,
+                                      'rightOperand'
+                                    )
+                                  "
+                                  matSuffix
+                                  class="modified-icon"
+                                  [matTooltip]="
+                                    'Old Value: ' +
+                                    getOldValueForConstraintField(
+                                      i,
+                                      j,
+                                      k,
+                                      'rightOperand'
+                                    )
+                                  "
+                                  >edit</mat-icon
+                                >
                                 <mat-error
                                   *ngIf="
                                     cons
@@ -509,6 +724,28 @@
                                   [value]="getTimeValue(i, j, k)"
                                   (input)="onTimeChange($event, i, j, k)"
                                 />
+                                <mat-icon
+                                  *ngIf="
+                                    isConstraintFieldModified(
+                                      i,
+                                      j,
+                                      k,
+                                      'rightOperand'
+                                    )
+                                  "
+                                  matSuffix
+                                  class="modified-icon"
+                                  [matTooltip]="
+                                    'Old Value: ' +
+                                    getOldValueForConstraintField(
+                                      i,
+                                      j,
+                                      k,
+                                      'rightOperand'
+                                    )
+                                  "
+                                  >edit</mat-icon
+                                >
                               </mat-form-field>
 
                               <!-- For PURPOSE - Text input -->
@@ -522,6 +759,28 @@
                                   formControlName="rightOperand"
                                   placeholder="Enter purpose"
                                 />
+                                <mat-icon
+                                  *ngIf="
+                                    isConstraintFieldModified(
+                                      i,
+                                      j,
+                                      k,
+                                      'rightOperand'
+                                    )
+                                  "
+                                  matSuffix
+                                  class="modified-icon"
+                                  [matTooltip]="
+                                    'Old Value: ' +
+                                    getOldValueForConstraintField(
+                                      i,
+                                      j,
+                                      k,
+                                      'rightOperand'
+                                    )
+                                  "
+                                  >edit</mat-icon
+                                >
                                 <mat-error
                                   *ngIf="
                                     cons
@@ -544,6 +803,28 @@
                                   formControlName="rightOperand"
                                   placeholder="Enter spatial info"
                                 />
+                                <mat-icon
+                                  *ngIf="
+                                    isConstraintFieldModified(
+                                      i,
+                                      j,
+                                      k,
+                                      'rightOperand'
+                                    )
+                                  "
+                                  matSuffix
+                                  class="modified-icon"
+                                  [matTooltip]="
+                                    'Old Value: ' +
+                                    getOldValueForConstraintField(
+                                      i,
+                                      j,
+                                      k,
+                                      'rightOperand'
+                                    )
+                                  "
+                                  >edit</mat-icon
+                                >
                                 <mat-error
                                   *ngIf="
                                     cons
@@ -566,6 +847,28 @@
                                   formControlName="rightOperand"
                                   placeholder="Right Operand"
                                 />
+                                <mat-icon
+                                  *ngIf="
+                                    isConstraintFieldModified(
+                                      i,
+                                      j,
+                                      k,
+                                      'rightOperand'
+                                    )
+                                  "
+                                  matSuffix
+                                  class="modified-icon"
+                                  [matTooltip]="
+                                    'Old Value: ' +
+                                    getOldValueForConstraintField(
+                                      i,
+                                      j,
+                                      k,
+                                      'rightOperand'
+                                    )
+                                  "
+                                  >edit</mat-icon
+                                >
                                 <mat-error
                                   *ngIf="
                                     cons
@@ -617,7 +920,15 @@
                   *ngFor="let distribution of allDistributions"
                   [value]="distribution"
                 >
-                  {{ distribution.title }}
+                  <span class="option-with-icon">
+                    {{ distribution.title }}
+                    <mat-icon
+                      *ngIf="isDistributionItemModified(distribution)"
+                      class="modified-icon"
+                      aria-hidden="true"
+                      >edit</mat-icon
+                    >
+                  </span>
                 </mat-option>
               </mat-select>
               <mat-error
@@ -629,9 +940,22 @@
 
             <p><strong>Keyword:</strong></p>
             <div formArrayName="keyword" class="key">
-              <div *ngFor="let keyword of keywordControls; let i = index">
+              <div
+                *ngFor="let keyword of keywordControls; let i = index"
+                [tcModified]="{ key: 'keyword[' + i + ']', state: editState }"
+              >
                 <mat-form-field appearance="outline">
                   <input matInput [formControlName]="i" placeholder="Keyword" />
+                  <mat-icon
+                    *ngIf="editState.isChanged('keyword[' + i + ']')"
+                    matSuffix
+                    class="modified-icon"
+                    [matTooltip]="
+                      'Old Value: ' +
+                      ('keyword[' + i + ']' | oldValue : editState)
+                    "
+                    >edit</mat-icon
+                  >
                   <mat-error
                     *ngIf="
                       datasetForm.get(['keyword', i])?.hasError('required') &&
@@ -652,9 +976,22 @@
 
             <p><strong>Theme:</strong></p>
             <div formArrayName="theme" class="key">
-              <div *ngFor="let theme of themeControls; let i = index">
+              <div
+                *ngFor="let theme of themeControls; let i = index"
+                [tcModified]="{ key: 'theme[' + i + ']', state: editState }"
+              >
                 <mat-form-field appearance="outline">
                   <input matInput [formControlName]="i" placeholder="Theme" />
+                  <mat-icon
+                    *ngIf="editState.isChanged('theme[' + i + ']')"
+                    matSuffix
+                    class="modified-icon"
+                    [matTooltip]="
+                      'Old Value: ' +
+                      ('theme[' + i + ']' | oldValue : editState)
+                    "
+                    >edit</mat-icon
+                  >
                   <mat-error
                     *ngIf="
                       datasetForm.get(['theme', i])?.hasError('required') &&

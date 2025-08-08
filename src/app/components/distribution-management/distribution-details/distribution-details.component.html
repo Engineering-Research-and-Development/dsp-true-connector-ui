@@ -130,24 +130,49 @@
       <div *ngIf="editMode">
         <form [formGroup]="distributionForm">
           <div class="edit">
+            <unsaved-changes
+              [active]="editState.hasChanges()"
+            ></unsaved-changes>
             <br />
             <div class="edit-input">
-              <mat-form-field appearance="outline">
+              <mat-form-field
+                appearance="outline"
+                [tcModified]="{ key: 'title', state: editState }"
+              >
                 <mat-label>Title</mat-label>
                 <input matInput formControlName="title" />
+                <mat-icon
+                  *ngIf="editState.isChanged('title')"
+                  matSuffix
+                  class="modified-icon"
+                  [matTooltip]="
+                    'Old Value: ' + ('title' | oldValue : editState)
+                  "
+                  >edit</mat-icon
+                >
                 <mat-error
                   *ngIf="distributionForm.get('title')?.hasError('required')"
                 >
                   Title is required
                 </mat-error> </mat-form-field
-              ><mat-form-field appearance="outline">
+              ><mat-form-field
+                appearance="outline"
+                [tcModified]="{ key: 'accessService', state: editState }"
+              >
                 <mat-label>Select Access Services</mat-label>
                 <mat-select formControlName="accessService" multiple>
                   <mat-option
                     *ngFor="let service of allServices"
                     [value]="service"
                   >
-                    {{ service.title }}
+                    <span class="option-with-icon">
+                      {{ service.title }}
+                      <mat-icon
+                        *ngIf="editState.isChanged('accessService')"
+                        class="modified-icon"
+                        >edit</mat-icon
+                      >
+                    </span>
                   </mat-option>
                 </mat-select>
                 <mat-error
@@ -175,6 +200,19 @@
                       maxlength="2"
                       pattern="[a-zA-Z ]*"
                     />
+                    <mat-icon
+                      *ngIf="
+                        editState.isChanged('description[' + i + '].language')
+                      "
+                      matSuffix
+                      class="modified-icon"
+                      [matTooltip]="
+                        'Old Value: ' +
+                        ('description[' + i + '].language'
+                          | oldValue : editState)
+                      "
+                      >edit</mat-icon
+                    >
                     <mat-error
                       *ngIf="desc.get('language')?.hasError('required')"
                     >
@@ -189,6 +227,19 @@
                         formControlName="value"
                         placeholder="Description"
                       ></textarea>
+                      <mat-icon
+                        *ngIf="
+                          editState.isChanged('description[' + i + '].value')
+                        "
+                        matSuffix
+                        class="modified-icon"
+                        [matTooltip]="
+                          'Old Value: ' +
+                          ('description[' + i + '].value'
+                            | oldValue : editState)
+                        "
+                        >edit</mat-icon
+                      >
                       <mat-error
                         *ngIf="desc.get('value')?.hasError('required')"
                       >
