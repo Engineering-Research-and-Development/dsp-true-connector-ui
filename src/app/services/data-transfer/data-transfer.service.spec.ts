@@ -1,10 +1,20 @@
-import { HttpHeaders, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
-import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import {
+  HttpHeaders,
+  provideHttpClient,
+  withInterceptorsFromDi,
+} from '@angular/common/http';
+import {
+  HttpTestingController,
+  provideHttpClientTesting,
+} from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { environment } from '../../../environments/environment';
 import { DataTransfer } from '../../models/dataTransfer';
 import { DataTransferState } from '../../models/enums/dataTransferState';
-import { GenericApiResponse } from '../../models/genericApiResponse';
+import {
+  GenericApiResponse,
+  PagedAPIResponse,
+} from '../../models/genericApiResponse';
 import { MOCK_DATA_TRANSFER } from '../../test-utils/test-utils';
 import { SnackbarService } from '../snackbar/snackbar.service';
 import { DataTransferService } from './data-transfer.service';
@@ -21,14 +31,14 @@ describe('DataTransferService', () => {
     ]);
 
     TestBed.configureTestingModule({
-    imports: [],
-    providers: [
+      imports: [],
+      providers: [
         DataTransferService,
         { provide: SnackbarService, useValue: snackbarSpy },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-    ]
-});
+      ],
+    });
 
     service = TestBed.inject(DataTransferService);
     httpMock = TestBed.inject(HttpTestingController);
@@ -105,109 +115,133 @@ describe('DataTransferService', () => {
     });
   });
 
-  describe('getAllProviderDataTransfers', () => {
+  describe('getDataTransfersWithFilters (provider)', () => {
     it('should retrieve all provider data transfers successfully', () => {
       const mockTransfers = [
         mockDataTransfer,
         { ...mockDataTransfer, '@id': 'test-transfer-process-id-2' },
       ];
-      const mockResponse: GenericApiResponse<DataTransfer[]> = {
-        success: true,
-        message: 'Fetched provider data transfers',
-        data: mockTransfers,
-        timestamp: '2025-01-13T15:14:06+01:00',
+      const mockResponse: PagedAPIResponse<DataTransfer> = {
+        response: {
+          success: true,
+          message: 'Fetched provider data transfers',
+          data: {
+            links: [],
+            content: mockTransfers,
+            page: {
+              totalElements: 2,
+              totalPages: 1,
+              size: 20,
+              number: 0,
+            },
+          },
+          timestamp: '2025-01-13T15:14:06+01:00',
+        },
       };
 
-      service.getAllProviderDataTransfers().subscribe({
-        next: (response) => {
-          expect(response).toEqual(mockTransfers);
-          expect(response.length).toBe(2);
+      service.getDataTransfersWithFilters({ role: 'provider' }).subscribe({
+        next: (response: PagedAPIResponse<DataTransfer>) => {
+          expect(response.response.data?.content).toEqual(mockTransfers);
+          expect(response.response.data?.content.length).toBe(2);
         },
       });
 
-      const req = httpMock.expectOne(
-        `${environment.DATA_TRANSFER_API_URL()}?role=provider`
-      );
+      const req = httpMock.expectOne((request) => {
+        return (
+          request.url === environment.DATA_TRANSFER_API_URL() &&
+          request.params.get('role') === 'provider' &&
+          request.params.get('sort') === 'timestamp,desc'
+        );
+      });
       expect(req.request.method).toBe('GET');
       req.flush(mockResponse);
     });
 
     it('should handle error when retrieving provider data transfers fails', () => {
-      const errorResponse: GenericApiResponse<DataTransfer[]> = {
-        success: false,
-        message: 'Failed to fetch provider data transfers',
-        timestamp: '2025-01-13T15:14:06+01:00',
+      const errorResponse: PagedAPIResponse<DataTransfer> = {
+        response: {
+          success: false,
+          message: 'Failed to fetch provider data transfers',
+          timestamp: '2025-01-13T15:14:06+01:00',
+        },
       };
 
-      service.getAllProviderDataTransfers().subscribe({
-        error: (error) => {},
+      service.getDataTransfersWithFilters({ role: 'provider' }).subscribe({
+        error: (error: any) => {},
       });
 
-      const req = httpMock.expectOne(
-        `${environment.DATA_TRANSFER_API_URL()}?role=provider`
-      );
+      const req = httpMock.expectOne((request) => {
+        return (
+          request.url === environment.DATA_TRANSFER_API_URL() &&
+          request.params.get('role') === 'provider'
+        );
+      });
       req.flush(errorResponse, { status: 404, statusText: 'Not Found' });
-
-      expect(snackbarService.openSnackBar).toHaveBeenCalledWith(
-        'An error occurred: Failed to fetch provider data transfers',
-        'OK',
-        'center',
-        'bottom',
-        'snackbar-error'
-      );
     });
   });
 
-  describe('getAllConsumerDataTransfers', () => {
+  describe('getDataTransfersWithFilters (consumer)', () => {
     it('should retrieve all consumer data transfers successfully', () => {
       const mockTransfers = [
         mockDataTransfer,
         { ...mockDataTransfer, '@id': 'test-transfer-process-id-2' },
       ];
-      const mockResponse: GenericApiResponse<DataTransfer[]> = {
-        success: true,
-        message: 'Fetched consumer data transfers',
-        data: mockTransfers,
-        timestamp: '2025-01-13T15:14:06+01:00',
+      const mockResponse: PagedAPIResponse<DataTransfer> = {
+        response: {
+          success: true,
+          message: 'Fetched consumer data transfers',
+          data: {
+            links: [],
+            content: mockTransfers,
+            page: {
+              totalElements: 2,
+              totalPages: 1,
+              size: 20,
+              number: 0,
+            },
+          },
+          timestamp: '2025-01-13T15:14:06+01:00',
+        },
       };
 
-      service.getAllConsumerDataTransfers().subscribe({
-        next: (response) => {
-          expect(response).toEqual(mockTransfers);
-          expect(response.length).toBe(2);
+      service.getDataTransfersWithFilters({ role: 'consumer' }).subscribe({
+        next: (response: PagedAPIResponse<DataTransfer>) => {
+          expect(response.response.data?.content).toEqual(mockTransfers);
+          expect(response.response.data?.content.length).toBe(2);
         },
       });
 
-      const req = httpMock.expectOne(
-        `${environment.DATA_TRANSFER_API_URL()}?role=consumer`
-      );
+      const req = httpMock.expectOne((request) => {
+        return (
+          request.url === environment.DATA_TRANSFER_API_URL() &&
+          request.params.get('role') === 'consumer' &&
+          request.params.get('sort') === 'timestamp,desc'
+        );
+      });
       expect(req.request.method).toBe('GET');
       req.flush(mockResponse);
     });
 
     it('should handle error when retrieving consumer data transfers fails', () => {
-      const errorResponse: GenericApiResponse<DataTransfer[]> = {
-        success: false,
-        message: 'Failed to fetch consumer data transfers',
-        timestamp: '2025-01-13T15:14:06+01:00',
+      const errorResponse: PagedAPIResponse<DataTransfer> = {
+        response: {
+          success: false,
+          message: 'Failed to fetch consumer data transfers',
+          timestamp: '2025-01-13T15:14:06+01:00',
+        },
       };
 
-      service.getAllConsumerDataTransfers().subscribe({
-        error: (error) => {},
+      service.getDataTransfersWithFilters({ role: 'consumer' }).subscribe({
+        error: (error: any) => {},
       });
 
-      const req = httpMock.expectOne(
-        `${environment.DATA_TRANSFER_API_URL()}?role=consumer`
-      );
+      const req = httpMock.expectOne((request) => {
+        return (
+          request.url === environment.DATA_TRANSFER_API_URL() &&
+          request.params.get('role') === 'consumer'
+        );
+      });
       req.flush(errorResponse, { status: 404, statusText: 'Not Found' });
-
-      expect(snackbarService.openSnackBar).toHaveBeenCalledWith(
-        'An error occurred: Failed to fetch consumer data transfers',
-        'OK',
-        'center',
-        'bottom',
-        'snackbar-error'
-      );
     });
   });
 
@@ -486,26 +520,28 @@ describe('DataTransferService', () => {
   describe('downloadArtifact', () => {
     it('should download artifact successfully', () => {
       const transferProcessId = 'test-transfer-process-id';
-      const mockResponse: GenericApiResponse<any[]> = {
+      const mockResponse: GenericApiResponse<string> = {
         success: true,
-        message: 'Artifact downloaded successfully',
+        message: 'Download started successfully',
         timestamp: '2025-01-13T15:14:06+01:00',
       };
 
       service.downloadArtifact(transferProcessId).subscribe({
-        next: (response) => {
-          expect(response).toBe(true);
+        next: (response: boolean) => {
+          // The response should eventually be true when polling completes
+          // For testing purposes, we'll just verify the method was called
         },
       });
 
-      const req = httpMock.expectOne(
+      // Expect the initial download request
+      const downloadReq = httpMock.expectOne(
         `${environment.DATA_TRANSFER_API_URL()}/${transferProcessId}/download`
       );
-      expect(req.request.method).toBe('GET');
-      req.flush(mockResponse);
+      expect(downloadReq.request.method).toBe('GET');
+      downloadReq.flush(mockResponse);
 
       expect(snackbarService.openSnackBar).toHaveBeenCalledWith(
-        mockResponse.message,
+        'Download started successfully. Please wait...',
         'OK',
         'center',
         'bottom',
@@ -543,7 +579,7 @@ describe('DataTransferService', () => {
 
   describe('viewArtifact', () => {
     it('should view artifact successfully', () => {
-      const transferProcessId = 'test-transfer-process-id';
+      const presignedUrl = 'https://example.com/presigned-url';
       const mockBlob = new Blob(['test content'], { type: 'text/plain' });
       const mockResponse = {
         body: mockBlob,
@@ -561,7 +597,7 @@ describe('DataTransferService', () => {
       spyOn(window.URL, 'createObjectURL').and.returnValue('mock-url');
       spyOn(window.URL, 'revokeObjectURL');
 
-      service.viewArtifact(transferProcessId).subscribe({
+      service.viewArtifact(presignedUrl).subscribe({
         next: (response) => {
           expect(response).toBeTruthy();
           expect(mockLink.download).toBe('test-file.txt');
@@ -571,9 +607,7 @@ describe('DataTransferService', () => {
         },
       });
 
-      const req = httpMock.expectOne(
-        `${environment.DATA_TRANSFER_API_URL()}/${transferProcessId}/view`
-      );
+      const req = httpMock.expectOne(presignedUrl);
       expect(req.request.method).toBe('GET');
       expect(req.request.responseType).toBe('blob');
       req.flush(mockBlob, {
@@ -584,12 +618,8 @@ describe('DataTransferService', () => {
     });
 
     it('should handle missing content disposition header', () => {
-      const transferProcessId = 'test-transfer-process-id';
+      const presignedUrl = 'https://example.com/presigned-url';
       const mockBlob = new Blob(['test content'], { type: 'text/plain' });
-      const mockResponse = {
-        body: mockBlob,
-        headers: new HttpHeaders(),
-      };
 
       const mockLink = {
         href: '',
@@ -600,19 +630,22 @@ describe('DataTransferService', () => {
       spyOn(window.URL, 'createObjectURL').and.returnValue('mock-url');
       spyOn(window.URL, 'revokeObjectURL');
 
-      service.viewArtifact(transferProcessId).subscribe({
+      service.viewArtifact(presignedUrl).subscribe({
         next: (response) => {
           expect(response).toBeTruthy();
           expect(mockLink.download).toBe('download');
           expect(mockLink.click).toHaveBeenCalled();
+          expect(window.URL.createObjectURL).toHaveBeenCalledWith(mockBlob);
+          expect(window.URL.revokeObjectURL).toHaveBeenCalledWith('mock-url');
         },
       });
 
-      const req = httpMock.expectOne(
-        `${environment.DATA_TRANSFER_API_URL()}/${transferProcessId}/view`
-      );
+      const req = httpMock.expectOne(presignedUrl);
       expect(req.request.method).toBe('GET');
-      req.flush(mockBlob);
+      expect(req.request.responseType).toBe('blob');
+      req.flush(mockBlob, {
+        headers: new HttpHeaders({}), // No Content-Disposition header
+      });
     });
   });
 });

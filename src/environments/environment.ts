@@ -1,5 +1,5 @@
 export const environment = {
-  APP_VERSION: '0.1.1',
+  APP_VERSION: '0.1.2-dev',
   TC_ROOT_API_URL: 'TC_ROOT_API_URL_PLACEHOLDER',
   CATALOG_API_URL: () => `${environment.TC_ROOT_API_URL}/catalogs`,
   DATASET_API_URL: () => `${environment.TC_ROOT_API_URL}/datasets`,
@@ -10,4 +10,6 @@ export const environment = {
   ARTIFACTS_API_URL: () => `${environment.TC_ROOT_API_URL}/artifacts`,
   CONTRACT_NEGOTIATION_FORWARD_TO: () => `negotiations`,
   PROXY_API_URL: () => `${environment.TC_ROOT_API_URL}/proxy`,
+  PROPERTIES_API_URL: () => `${environment.TC_ROOT_API_URL}/properties`,
+  AUDIT_API_URL: () => `${environment.TC_ROOT_API_URL}/audit`,
 };

@@ -100,18 +100,27 @@ button[mat-button]:hover {
 .headtitle {
   display: flex;
   justify-content: space-between;
+  min-height: 40px;
+  padding-top: 10px;
 }
 .headtitle .buttons {
   display: flex;
   width: 50%;
   justify-content: flex-end;
   align-items: center;
+  min-height: 40px;
 }
 .headtitle .buttons button {
   margin: 3px;
+  height: 36px !important;
+  min-height: 36px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 .back {
-  display: inline-flex;
+  display: flex;
+  align-items: center;
 }
 
 .back button {
@@ -120,7 +129,6 @@ button[mat-button]:hover {
   padding: 0px;
   font-size: 0.7em;
   margin-right: 15px;
-  margin-top: 8px;
 }
 .back button[mat-button] mat-icon {
   margin-right: 0px;
@@ -173,10 +181,29 @@ span {
   min-height: 260px !important;
 }
 .help-icon {
-  font-size: 1.1em;
-  margin-left: 8px;
-  vertical-align: middle;
-  color: grey;
+  color: #757575;
   cursor: help;
-  margin-top: 20px;
+}
+.title-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Changes Indicator */
+.changes-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ff9800;
+  font-weight: 500;
+  margin-bottom: 20px;
+  padding: 12px;
+  background: #fff8e1;
+  border-radius: 8px;
+  border-left: 4px solid #ff9800;
+}
+
+.modified-icon {
+  color: #ff9800;
 }

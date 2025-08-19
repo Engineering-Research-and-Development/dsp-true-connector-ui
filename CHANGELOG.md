@@ -2,7 +2,45 @@
 
 All notable changes to this project will be documented in this file.
 
-[0.1.0] - 15-05-2025
+# [0.2.0] - 08-08-2025
+
+### Added
+
+- Connector configuration - related component and service to handle application properties management from UI
+- Advanced search and pagination of Data Transfers with multiple filter criteria - related component and service to handle BE changes
+- Advanced search and pagination of Contract Negotiations with multiple filter criteria - related component and service to handle BE changes
+- Audit trail component with advanced search and pagination of Audit Events with multiple filter criteria - related component and service for new implemented feature
+- Test coverage for new components
+- Track and mark changes when editing Catalog, Datasets, Services and Distributions
+- Data transfer state tracking to determine downloading spinner
+- Notify user that download took longer time than expected, and it will continue in background
+
+### Changed
+
+- Routing now supports lazy loading
+- Angular.json optimization tweaking
+- Data-transfer-service and data-transfers-component to support async download on BE (added pooling to check the download status)
+- CSS styling across whole application
+- Aligned tests with new logic in services regarding pagination
+- Fix missing things in docker folder (ENG-employee.json, properties, etc)
+- Fix handling missing attributes from BE response
+- Datatransfer download uses presigned S3 URL
+- GHA Action for building develop to trigger after merge with master branch
+- Fix "/" error when browsing remote catalogs
+- Updated screenshots
+- Updated USER_MANUAL.md
+
+### Removed
+
+- ConnectorDetails component - ConnectorConfiguration use instead
+
+# [0.1.1] - 15-05-2025
+
+### Changed
+
+- Develop branch aligned with master
+
+# [0.1.0] - 15-05-2025
 
 ### Added
 
@@ -21,7 +59,7 @@ All notable changes to this project will be documented in this file.
 - Upgrade 3rd party libraries
 - Fix actions if data transfer is in suspend state
 
-[0.0.1] - 24-04-2025
+# [0.0.1] - 24-04-2025
 
 ### Added
 

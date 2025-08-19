@@ -1,7 +1,7 @@
 services:
 ### Instance A
   connector-a:
-    image: ghcr.io/engineering-research-and-development/dsp-true-connector:test
+    image: ghcr.io/engineering-research-and-development/dsp-true-connector:latest
     deploy:
       resources:
         limits:
@@ -38,7 +38,7 @@ services:
       - tc_a_log:/var/log/tc
   
   ui-a:
-    image: ghcr.io/engineering-research-and-development/dsp-true-connector-ui:test
+    image: ghcr.io/engineering-research-and-development/dsp-true-connector-ui:latest
     container_name: ui-a
     networks:
       - network-a
@@ -66,7 +66,7 @@ services:
 ### instance b
 
   connector-b:
-    image: ghcr.io/engineering-research-and-development/dsp-true-connector:test
+    image: ghcr.io/engineering-research-and-development/dsp-true-connector:latest
     deploy:
       resources:
         limits:
@@ -102,7 +102,7 @@ services:
       - ./:/home/nobody/ftp
       - tc_b_log:/var/log/tc
   ui-b:
-    image: ghcr.io/engineering-research-and-development/dsp-true-connector-ui:test
+    image: ghcr.io/engineering-research-and-development/dsp-true-connector-ui:latest
     container_name: ui-b
     networks:
       - network-b
@@ -126,7 +126,23 @@ services:
     volumes:
       - mongodb-data_b:/data/db
       - mongodb-configdb_b:/data/configdb
-      
+
+  minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    networks:
+      - network-a
+      - network-b
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    command: server /data --console-address ":9001"
+
 networks:
   network-a: { }
   network-b: { }
@@ -138,3 +154,4 @@ volumes:
   tc_b_log: { }
   mongodb-data_b: { }
   mongodb-configdb_b: { }
+  minio_data: { }

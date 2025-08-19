@@ -17,24 +17,24 @@ import { CatalogService } from '../../services/catalog/catalog.service';
 import { ProxyService } from '../../services/proxy/proxy.service';
 
 @Component({
-    selector: 'app-catalog-browser',
-    imports: [
-        CommonModule,
-        MatCardModule,
-        MatButtonModule,
-        MatIconModule,
-        MatExpansionModule,
-        MatInputModule,
-        MatToolbarModule,
-        MatFormFieldModule,
-        FormsModule,
-        ReactiveFormsModule,
-        NgxSkeletonLoaderModule,
-        MatTooltipModule,
-    ],
-    providers: [CatalogService],
-    templateUrl: './catalog-browser.component.html',
-    styleUrls: ['./catalog-browser.component.css']
+  selector: 'app-catalog-browser',
+  imports: [
+    CommonModule,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatExpansionModule,
+    MatInputModule,
+    MatToolbarModule,
+    MatFormFieldModule,
+    FormsModule,
+    ReactiveFormsModule,
+    NgxSkeletonLoaderModule,
+    MatTooltipModule,
+  ],
+  providers: [CatalogService],
+  templateUrl: './catalog-browser.component.html',
+  styleUrls: ['./catalog-browser.component.css'],
 })
 export class CatalogBrowserComponent implements OnInit {
   loading: boolean = false;
@@ -85,23 +85,27 @@ export class CatalogBrowserComponent implements OnInit {
 
   onFetch() {
     console.log('Fetching catalog');
-    const url = this.urlControl.value;
+    let url = this.urlControl.value;
+
     if (!url) {
       return;
-    } else {
-      this.proxyService.getRemoteCatalog(url!).subscribe({
-        next: (data) => {
-          console.log('Catalog data fetched');
-
-          this.catalogData.push(data);
-          this.filteredCatalogsData = this.catalogData;
-          this.loading = false;
-        },
-        error: (error) => {
-          console.error('Error:', error);
-          this.loading = false;
-        },
-      });
     }
+
+    if (url.endsWith('/')) {
+      url = url.slice(0, -1);
+    }
+
+    this.proxyService.getRemoteCatalog(url).subscribe({
+      next: (data) => {
+        console.log('Catalog data fetched');
+        this.catalogData.push(data);
+        this.filteredCatalogsData = this.catalogData;
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error:', error);
+        this.loading = false;
+      },
+    });
   }
 }

@@ -1,0 +1,108 @@
+<div class="dialog-content">
+  <!-- Header Section -->
+  <div class="dialog-header">
+    <h1 class="dialog-title">
+      <mat-icon>description</mat-icon>
+      Audit Event Details
+    </h1>
+    <button class="header-close-button" (click)="onClose()" mat-icon-button>
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Body Content -->
+  <div class="dialog-body">
+    <!-- Event Information Section -->
+    <div class="section event-info">
+      <h3 class="section-title">
+        <mat-icon>event</mat-icon>
+        Event Information
+      </h3>
+
+      <div class="info-row">
+        <span class="info-label">Event ID:</span>
+        <span class="info-value">{{ auditEvent.id }}</span>
+      </div>
+
+      <div class="info-row">
+        <span class="info-label">Event Type:</span>
+        <span class="info-value">
+          <div
+            class="custom-event-type-chip"
+            [ngClass]="'chip-' + getEventTypeChipColor(auditEvent.eventType)"
+          >
+            {{ getEventTypeDisplayName(auditEvent.eventType) }}
+          </div>
+        </span>
+      </div>
+
+      <div class="info-row">
+        <span class="info-label">Timestamp:</span>
+        <span class="info-value">{{
+          formatTimestamp(auditEvent.timestamp)
+        }}</span>
+      </div>
+
+      <div class="info-row">
+        <span class="info-label">Description:</span>
+        <span class="info-value">{{
+          auditEvent.description || "No description available"
+        }}</span>
+      </div>
+    </div>
+
+    <!-- User & Technical Information Section -->
+    <div class="section user-tech-info">
+      <h3 class="section-title">
+        <mat-icon>account_circle</mat-icon>
+        User & Technical Information
+      </h3>
+
+      <div class="info-row">
+        <span class="info-label">Username:</span>
+        <span class="info-value">{{ auditEvent.username || "-" }}</span>
+      </div>
+
+      <div class="info-row">
+        <span class="info-label">Source:</span>
+        <span class="info-value">{{ auditEvent.source || "-" }}</span>
+      </div>
+
+      <div class="info-row">
+        <span class="info-label">IP Address:</span>
+        <span class="info-value">{{ auditEvent.ipAddress || "-" }}</span>
+      </div>
+    </div>
+
+    <!-- Additional Details Section -->
+    <div class="section additional-details" *ngIf="hasDetails()">
+      <h3 class="section-title">
+        <mat-icon>info</mat-icon>
+        Additional Details
+      </h3>
+
+      <div class="details-grid">
+        <div class="detail-item" *ngFor="let detail of getStructuredDetails()">
+          <div class="detail-header">
+            <mat-icon class="detail-icon">{{ detail.icon || "info" }}</mat-icon>
+            <span class="detail-label">{{ detail.key }}</span>
+          </div>
+          <div
+            class="detail-value"
+            [ngClass]="{ 'complex-value': detail.isComplex }"
+          >
+            {{ detail.value }}
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="no-details-message"
+        *ngIf="getStructuredDetails().length === 0"
+      >
+        <mat-icon>info_outline</mat-icon>
+        <span>No additional details available for this event</span>
+      </div>
+    </div>
+  </div>
+</div>

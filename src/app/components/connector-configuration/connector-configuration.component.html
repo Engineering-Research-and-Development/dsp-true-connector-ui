@@ -1,0 +1,161 @@
+<!-- Loading Spinner -->
+<div *ngIf="loading" class="item">
+  <mat-card class="service-card">
+    <ngx-skeleton-loader count="15" appearance="line" animation="pulse" />
+  </mat-card>
+</div>
+
+<!-- Main Content -->
+<div *ngIf="!loading">
+  <mat-card class="service-card">
+    <mat-card-title class="service-title"> </mat-card-title>
+    <mat-card-content>
+      <div class="headtitle">
+        <div class="back">
+          <h1>Connector Configuration</h1>
+          <mat-icon
+            class="help-icon"
+            matTooltip="Here you can configure various connector settings. Properties are grouped by functionality and can be modified to customize the connector behavior."
+            aria-label="Help regarding connector configuration"
+          >
+            help_outline
+          </mat-icon>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="buttons" *ngIf="properties.length > 0">
+          <button
+            mat-button
+            (click)="saveChanges()"
+            [disabled]="!hasChanges || loading"
+            matTooltip="Save all changes"
+          >
+            <mat-icon>save</mat-icon>
+          </button>
+          <button
+            mat-button
+            (click)="cancelChanges()"
+            [disabled]="!hasChanges || loading"
+            matTooltip="Cancel changes"
+          >
+            <mat-icon>cancel</mat-icon>
+          </button>
+          <button
+            mat-button
+            (click)="loadProperties()"
+            [disabled]="loading"
+            matTooltip="Refresh properties"
+          >
+            <mat-icon>refresh</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Changes Indicator -->
+      <div *ngIf="hasChanges" class="changes-indicator">
+        <mat-icon color="accent">edit</mat-icon>
+        <span>You have unsaved changes</span>
+      </div>
+
+      <!-- Properties Groups -->
+      <div *ngIf="properties.length > 0" class="properties-groups">
+        <mat-expansion-panel
+          *ngFor="let group of groupKeys"
+          class="expansion-panel"
+          [expanded]="true"
+        >
+          <mat-expansion-panel-header>
+            <mat-panel-title class="mat-panel-title">
+              <mat-icon>asterisk</mat-icon>
+              {{ group }}
+              <span class="property-count"
+                >({{ groupedProperties[group].length }} properties)</span
+              >
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+
+          <div class="properties-list">
+            <div
+              *ngFor="
+                let property of groupedProperties[group];
+                trackBy: trackByKey
+              "
+              class="property-item"
+              [class.property-modified]="isPropertyModified(property)"
+            >
+              <!-- Property Label and Tooltip -->
+              <div class="property-header">
+                <div class="property-label-container">
+                  <span class="property-label">{{
+                    getPropertyLabel(property)
+                  }}</span>
+                  <mat-icon
+                    class="help-icon-property"
+                    [matTooltip]="getPropertyTooltip(property)"
+                  >
+                    help_outline
+                  </mat-icon>
+                  <mat-icon
+                    *ngIf="property.mandatory"
+                    class="mandatory-icon"
+                    matTooltip="This property is mandatory"
+                  >
+                    star
+                  </mat-icon>
+                </div>
+
+                <div class="property-key">{{ property.key }}</div>
+              </div>
+
+              <!-- Property Value Control -->
+              <div class="property-control">
+                <!-- Boolean Property (Toggle) -->
+                <div
+                  *ngIf="isBooleanProperty(property)"
+                  class="boolean-control"
+                >
+                  <mat-slide-toggle
+                    [checked]="getBooleanValue(property)"
+                    (change)="onToggleChange(property, $event.checked)"
+                    [disabled]="loading"
+                    color="primary"
+                  >
+                    {{ getBooleanValue(property) ? "Enabled" : "Disabled" }}
+                  </mat-slide-toggle>
+                </div>
+
+                <!-- Text Property -->
+                <div *ngIf="!isBooleanProperty(property)" class="text-control">
+                  <mat-form-field appearance="outline" class="property-input">
+                    <mat-label>Value</mat-label>
+                    <input
+                      matInput
+                      [(ngModel)]="property.value"
+                      (input)="onPropertyChange()"
+                      [placeholder]="property.sampleValue || 'Enter value'"
+                      [disabled]="loading"
+                    />
+                    <mat-hint *ngIf="property.sampleValue"
+                      >Example: {{ property.sampleValue }}</mat-hint
+                    >
+                  </mat-form-field>
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-expansion-panel>
+      </div>
+
+      <!-- No Properties Message -->
+      <div *ngIf="properties.length === 0" class="no-properties">
+        <mat-icon class="no-properties-icon">settings_suggest</mat-icon>
+        <h3>No Configuration Properties Found</h3>
+        <p>No configuration properties are available at the moment.</p>
+        <button mat-raised-button color="primary" (click)="loadProperties()">
+          <mat-icon>refresh</mat-icon>
+          Refresh
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

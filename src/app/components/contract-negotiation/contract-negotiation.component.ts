@@ -2,16 +2,16 @@ import { CommonModule, Location } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatSelectModule } from '@angular/material/select';
+import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
@@ -19,38 +19,57 @@ import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
 import { ContractNegotiation } from '../../models/contractNegotiation';
 import { ContractNegotiationState } from '../../models/enums/contractNegotiationState';
 import { ContractNegotiationService } from '../../services/contract-negotiation/contract-negotiation.service';
+import {
+  FilterExpansionState,
+  PaginationHelper,
+  PaginationState,
+  SortState,
+} from '../../shared/utils/pagination.utils';
 
 @Component({
-    selector: 'app-contract-negotiation',
-    imports: [
-        CommonModule,
-        MatCardModule,
-        MatDividerModule,
-        MatListModule,
-        MatExpansionModule,
-        MatIconModule,
-        MatButtonModule,
-        NgxSkeletonLoaderModule,
-        MatInputModule,
-        MatToolbarModule,
-        MatFormFieldModule,
-        FormsModule,
-        ReactiveFormsModule,
-        MatTooltipModule,
-        MatButtonToggleModule,
-        MatCheckboxModule,
-        MatChipsModule,
-    ],
-    templateUrl: './contract-negotiation.component.html',
-    styleUrls: ['./contract-negotiation.component.css']
+  selector: 'app-contract-negotiation',
+  imports: [
+    CommonModule,
+    MatCardModule,
+    MatDividerModule,
+    MatListModule,
+    MatExpansionModule,
+    MatIconModule,
+    MatButtonModule,
+    NgxSkeletonLoaderModule,
+    MatInputModule,
+    MatToolbarModule,
+    MatFormFieldModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MatTooltipModule,
+    MatSelectModule,
+    MatPaginatorModule,
+    MatSortModule,
+  ],
+  templateUrl: './contract-negotiation.component.html',
+  styleUrls: ['./contract-negotiation.component.css'],
 })
 export class ContractNegotiationComponent implements OnInit {
   userType!: string;
   loading = false;
   contractNegotiations: ContractNegotiation[] = [];
-  filteredContractNegotiations: ContractNegotiation[] = [];
-  selectedStates: ContractNegotiationState[] = [];
+  selectedState: ContractNegotiationState | null = null;
   contractNegotiationStates = Object.values(ContractNegotiationState);
+
+  // Pagination and sorting using shared utility
+  paginationState: PaginationState =
+    PaginationHelper.createInitialPaginationState();
+  sortState: SortState = PaginationHelper.createInitialSortState();
+
+  // Filter expansion state using shared utility
+  filterExpansionState: FilterExpansionState =
+    PaginationHelper.createFilterExpansionState();
+
+  // Filters
+  offerIdFilter: string = '';
+  providerPidFilter: string = '';
+  consumerPidFilter: string = '';
 
   contractNegotiationState = ContractNegotiationState;
 
@@ -72,11 +91,7 @@ export class ContractNegotiationComponent implements OnInit {
    * */
   ngOnInit(): void {
     this.loading = true;
-    if (this.userType === 'provider') {
-      this.getProviderContractNegotiations();
-    } else if (this.userType === 'consumer') {
-      this.getConsumerContractNegotiations();
-    }
+    this.fetchContractNegotiations();
   }
 
   /**
@@ -87,64 +102,105 @@ export class ContractNegotiationComponent implements OnInit {
   }
 
   /**
-   * Fetches all contract negotiations from the server as a provider.
+   * Fetch contract negotiations with current filters and pagination
    */
-  getProviderContractNegotiations() {
-    this.contractNegotiationService.getAllNegotiationsAsProvider().subscribe({
-      next: (data) => {
-        this.contractNegotiations = data;
-        this.filterContractNegotiations();
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error('Error fetching provider contract negotiations:', error);
-        this.loading = false;
-      },
-    });
+  fetchContractNegotiations() {
+    this.loading = true;
+
+    const filters = {
+      role: this.userType,
+      state: this.selectedState || undefined,
+      offerId: this.offerIdFilter || undefined,
+      providerPid: this.providerPidFilter || undefined,
+      consumerPid: this.consumerPidFilter || undefined,
+    };
+
+    const paginationOptions = PaginationHelper.createPaginationOptions(
+      this.paginationState,
+      this.sortState
+    );
+
+    this.contractNegotiationService
+      .getContractNegotiationsWithFilters(filters, paginationOptions)
+      .subscribe({
+        next: (response) => {
+          console.log('Contract Negotiations fetched');
+          this.contractNegotiations = response.response.data?.content || [];
+          if (response.response.data?.page) {
+            this.paginationState = PaginationHelper.updateTotalElements(
+              this.paginationState,
+              response.response.data.page.totalElements
+            );
+          }
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Error fetching contract negotiations:', error);
+          this.loading = false;
+        },
+      });
   }
 
   /**
-   * Fetches all contract negotiations from the server as a consumer.
-   * */
-  getConsumerContractNegotiations() {
-    this.contractNegotiationService.getAllNegotiationsAsConsumer().subscribe({
-      next: (data) => {
-        this.contractNegotiations = data;
-        this.filterContractNegotiations();
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error('Error fetching consumer contract negotiations:', error);
-        this.loading = false;
-      },
-    });
+   * Apply filters and fetch contract negotiations with filtering and pagination
+   */
+  applyFilters() {
+    // Keep the expansion panel open when applying filters
+    this.filterExpansionState = PaginationHelper.keepFilterExpansionOpen(
+      this.filterExpansionState
+    );
+    // Reset to first page when applying filters
+    this.paginationState = PaginationHelper.resetToFirstPage(
+      this.paginationState
+    );
+    this.fetchContractNegotiations();
   }
 
   /**
-   * Toggles the selection of the contract negotiation state.
-   * @param state The contract negotiation state to toggle.
+   * Clear all filters and fetch all contract negotiations
    */
-  toggleStateSelection(state: ContractNegotiationState) {
-    const index = this.selectedStates.indexOf(state);
-    if (index > -1) {
-      this.selectedStates.splice(index, 1);
-    } else {
-      this.selectedStates.push(state);
-    }
-    this.filterContractNegotiations();
+  clearFilters() {
+    // Keep the expansion panel open after clearing filters
+    this.filterExpansionState = PaginationHelper.keepFilterExpansionOpen(
+      this.filterExpansionState
+    );
+
+    this.selectedState = null;
+    this.offerIdFilter = '';
+    this.providerPidFilter = '';
+    this.consumerPidFilter = '';
+
+    // Reset to first page
+    this.paginationState = PaginationHelper.resetToFirstPage(
+      this.paginationState
+    );
+    this.fetchContractNegotiations();
   }
 
   /**
-   * Filters the contract negotiations based on the selected states.
+   * Handle sort change
    */
-  filterContractNegotiations() {
-    if (this.selectedStates.length > 0) {
-      this.filteredContractNegotiations = this.contractNegotiations.filter(
-        (negotiation) => this.selectedStates.includes(negotiation.state)
-      );
-    } else {
-      this.filteredContractNegotiations = this.contractNegotiations;
-    }
+  onSortChange(sort: Sort) {
+    this.sortState = PaginationHelper.handleSortChange(
+      { active: sort.active, direction: sort.direction as 'asc' | 'desc' },
+      this.sortState
+    );
+    // Reset to first page when sorting changes
+    this.paginationState = PaginationHelper.resetToFirstPage(
+      this.paginationState
+    );
+    this.fetchContractNegotiations();
+  }
+
+  /**
+   * Handle page change
+   */
+  onPageChange(event: PageEvent) {
+    this.paginationState = PaginationHelper.handlePageChange(
+      { pageIndex: event.pageIndex, pageSize: event.pageSize },
+      this.paginationState
+    );
+    this.fetchContractNegotiations();
   }
 
   /**
@@ -165,7 +221,7 @@ export class ContractNegotiationComponent implements OnInit {
       .approveNegotiation(contractNegotiation['@id'])
       .subscribe({
         next: () => {
-          this.getProviderContractNegotiations();
+          this.fetchContractNegotiations();
         },
         error: (error) => {
           console.error('Error approving contract negotiation:', error);
@@ -182,7 +238,7 @@ export class ContractNegotiationComponent implements OnInit {
       .acceptNegotiation(contractNegotiation['@id'])
       .subscribe({
         next: () => {
-          this.getConsumerContractNegotiations();
+          this.fetchContractNegotiations();
         },
         error: (error) => {
           console.error('Error accepting contract negotiation:', error);
@@ -198,7 +254,7 @@ export class ContractNegotiationComponent implements OnInit {
       .verifyNegotiation(contractNegotiation['@id'])
       .subscribe({
         next: () => {
-          this.getConsumerContractNegotiations();
+          this.fetchContractNegotiations();
         },
         error: (error) => {
           console.error('Error verifying contract negotiation:', error);
@@ -215,7 +271,7 @@ export class ContractNegotiationComponent implements OnInit {
       .finalizeNegotiation(contractNegotiation['@id'])
       .subscribe({
         next: () => {
-          this.getProviderContractNegotiations();
+          this.fetchContractNegotiations();
         },
         error: (error) => {
           console.error('Error finalizing contract negotiation:', error);
@@ -232,7 +288,7 @@ export class ContractNegotiationComponent implements OnInit {
       .terminateNegotiation(contractNegotiation['@id'])
       .subscribe({
         next: () => {
-          this.getProviderContractNegotiations();
+          this.fetchContractNegotiations();
         },
         error: (error) => {
           console.error('Error terminating contract negotiation:', error);

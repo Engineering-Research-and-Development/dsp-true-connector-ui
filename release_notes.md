@@ -1,4 +1,21 @@
-[0.1.0] - 15-05-2025
+# [0.2.0] - 08-08-2025
+
+### Added
+
+- Connector configuration - manage all available connector properties from UI
+- Advanced search and pagination of Data Transfers and Contract Negotiations with multiple filter criteria
+- Audit trail to track all audit events inside connector with advanced search options such are date range, type of event, username, etc.
+- Tracking and marking changes when editing data inside connector (Catalog, Dataset, Service, Distribution, Connector configuration)
+- Spinner for downloading process
+- User notification for larger download and running in background
+
+# [0.1.1] - 15-05-2025
+
+### Added
+
+- Bug fixing
+
+# [0.1.0] - 15-05-2025
 
 ### Added
 
@@ -9,7 +26,7 @@
 - View downloaded artifact
 - Cosmetic UI changes
 
-[0.0.1] - 24-04-2025
+# [0.0.1] - 24-04-2025
 
 ### Added
 

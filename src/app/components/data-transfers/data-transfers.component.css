@@ -15,14 +15,23 @@ mat-divider {
   height: 0;
 }
 
+/* Container and card styles */
+.item {
+  margin: 20px;
+}
+
 .service-card {
   margin: 20px;
   padding: 20px;
-  background-color: #ffffff;
-  border-radius: 15px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-  box-sizing: border-box;
-  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.service-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
 }
 
 .service-title h2 {
@@ -101,36 +110,44 @@ button[mat-button]:hover {
   background-color: #8a9eed5c;
 }
 
+/* Header styles */
 .headtitle {
   display: flex;
   justify-content: space-between;
-}
-
-.headtitle .buttons {
-  display: flex;
-  width: 50%;
-  justify-content: flex-end;
   align-items: center;
-}
-
-.headtitle .buttons button {
-  margin: 3px;
+  margin-bottom: 20px;
+  min-height: 40px;
 }
 
 .back {
-  display: inline-flex;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.back button {
-  margin: 0;
-  background: transparent;
-  padding: 0px;
-  font-size: 0.7em;
-  margin-right: 15px;
+h1 {
+  margin: 10px 0;
 }
 
-.back button[mat-button] mat-icon {
-  margin-right: 0px;
+.help-icon {
+  color: #757575;
+  cursor: help;
+}
+
+.buttons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  min-height: 40px;
+}
+
+.buttons button[mat-button] {
+  height: 36px !important;
+  min-height: 36px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 8px !important;
 }
 
 .space-card {
@@ -227,58 +244,85 @@ button[mat-button]:hover {
   }
 }
 
+/* Filter styles */
 .filter-div {
-  margin: 0px 10px 10px;
+  margin-bottom: 20px;
 }
 
-.filter-section {
+.filter-expansion-panel {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  border-radius: 4px;
+}
+
+.filter-content {
+  padding: 16px 0;
+}
+
+.filter-fields-row {
   display: flex;
-  width: 100%;
-  background: #ffffff;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 16px 25px 0px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-  width: 100%;
-  box-sizing: border-box;
   flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+  margin-bottom: 16px;
+}
+
+.filter-field {
+  flex: 1;
+  min-width: 200px;
+  height: 56px; /* Ensure consistent height for all form fields */
+}
+
+.filter-actions-inline {
+  display: flex;
+  gap: 8px;
   align-items: center;
+  height: 56px; /* Match form field height */
+  margin-left: 16px;
 }
 
-.filter-section h3 {
+/* Ensure buttons are properly sized */
+.filter-actions-inline button {
+  height: 36px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .headtitle {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .filter-fields-row {
+    flex-direction: column;
+  }
+
+  .filter-field {
+    min-width: unset;
+    width: 100%;
+  }
+
+  .filter-actions-inline {
+    width: 100%;
+    justify-content: center;
+    margin-left: 0;
+  }
+
+  .service-card {
+    margin: 10px;
+    padding: 16px;
+  }
+}
+
+.download-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.download-spinner p {
+  margin: 0;
   font-size: 14px;
-  color: #707070;
-  line-height: 2.8;
-  margin-right: 20px;
-  margin-bottom: 16px;
-  flex-shrink: 0;
-}
-
-.filter-section mat-chip-listbox {
-  margin-bottom: 16px;
-}
-
-@media (max-width: 900px) {
-  .filter-section {
-    padding-bottom: 16px;
-  }
-  .filter-section h3 {
-    width: 100%;
-    line-height: normal;
-    margin-bottom: 10px;
-    margin-right: 0;
-  }
-  .filter-section mat-chip-listbox {
-    width: 100%;
-    margin-bottom: 0;
-  }
-}
-.help-icon {
-  font-size: 1.1em;
-  margin-left: 8px;
-  vertical-align: middle;
-  color: grey;
-  cursor: help;
-  margin-top: 10px;
+  color: #666;
 }

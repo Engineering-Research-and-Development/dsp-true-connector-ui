@@ -4,17 +4,26 @@ mat-divider {
   height: 0;
 }
 
-.catalog-card {
+/* Container and card styles */
+.item {
   margin: 20px;
-  padding: 20px;
-  background-color: #ffffff;
-  border-radius: 15px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-  max-width: 100%;
-  overflow: hidden;
 }
 
-.catalog-title h2 {
+.service-card {
+  margin: 20px;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.service-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.service-title h2 {
   margin: 0;
   color: #6200ea;
   font-weight: 700;
@@ -114,7 +123,7 @@ button[mat-button] mat-icon {
     flex-direction: column;
   }
 
-  .catalog-card {
+  .service-card {
     margin: 10px;
     padding: 15px;
   }
@@ -123,18 +132,84 @@ button[mat-button] mat-icon {
     width: 100%;
   }
 }
+
+@media (max-width: 768px) {
+  .headtitle {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .buttons {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .service-card {
+    margin: 10px;
+    padding: 16px;
+  }
+
+  .no-catalog-content {
+    min-height: 250px;
+    padding: 20px 10px;
+  }
+
+  .no-catalog-message h2 {
+    font-size: 20px;
+    margin-bottom: 20px;
+  }
+
+  .action-button {
+    min-width: 180px !important;
+    height: 44px !important;
+    font-size: 14px !important;
+  }
+}
+/* Header styles */
 .headtitle {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  min-height: 40px;
+}
+
+.back {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+h1 {
+  margin: 10px 0;
+}
+
+.help-icon {
+  color: #757575;
+  cursor: help;
+}
+
+.buttons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  min-height: 40px;
 }
 .headtitle .buttons {
   display: flex;
   width: 50%;
   justify-content: flex-end;
   align-items: center;
+  min-height: 40px;
 }
 .headtitle .buttons button {
   margin: 3px;
+  height: 36px !important;
+  min-height: 36px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 .back {
   display: inline-flex;
@@ -194,11 +269,80 @@ h1 {
   flex-direction: row;
 }
 
-.help-icon {
-  font-size: 1.1em;
-  margin-left: 8px;
-  vertical-align: middle;
-  color: grey;
-  cursor: help;
-  margin-top: 20px;
+/* Changes Indicator */
+.changes-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ff9800;
+  font-weight: 500;
+  margin-bottom: 20px;
+  padding: 12px;
+  background: #fff8e1;
+  border-radius: 8px;
+  border-left: 4px solid #ff9800;
+}
+
+/* Remove background/outline highlight; icons indicate changes */
+/* Keep classes as hooks for template conditions without visual changes */
+.field-modified .noop {
+  display: contents;
+}
+.array-item-modified .noop {
+  display: contents;
+}
+
+/* Modified icon styling */
+.modified-icon {
+  color: #ff9800;
+}
+
+/* No catalog content styling */
+.no-catalog-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  padding: 40px 20px;
+}
+
+.no-catalog-message {
+  text-align: center;
+  max-width: 500px;
+}
+
+.no-catalog-message h2 {
+  color: #383838;
+  font-size: 24px;
+  font-weight: 500;
+  margin-bottom: 30px;
+  margin-top: 0;
+}
+
+.no-catalog-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: center;
+}
+
+.action-button {
+  min-width: 200px !important;
+  height: 48px !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  border-radius: 8px !important;
+  background-color: #8a9eed !important;
+  color: white !important;
+  transition: all 0.3s ease !important;
+}
+
+.action-button:hover {
+  background-color: #6b7bd4 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(138, 158, 237, 0.3);
+}
+
+.action-button mat-icon {
+  margin-right: 8px !important;
 }

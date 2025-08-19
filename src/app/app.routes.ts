@@ -1,18 +1,4 @@
 import { Routes } from '@angular/router';
-import { CatalogBrowserDetailsComponent } from './components/catalog-browser/catalog-browser-details/catalog-browser-details.component';
-import { CatalogBrowserComponent } from './components/catalog-browser/catalog-browser.component';
-import { CatalogManagementComponent } from './components/catalog-management/catalog-management.component';
-import { ContractNegotiationComponent } from './components/contract-negotiation/contract-negotiation.component';
-import { DataConsumptionComponent } from './components/data-consumption/data-consumption.component';
-import { DataTransfersComponent } from './components/data-transfers/data-transfers.component';
-import { DatasetDetailsComponent } from './components/dataset-management/dataset-details/dataset-details.component';
-import { DatasetManagementComponent } from './components/dataset-management/dataset-management.component';
-import { DistributionDetailsComponent } from './components/distribution-management/distribution-details/distribution-details.component';
-import { DistributionManagementComponent } from './components/distribution-management/distribution-management.component';
-import { PolicyDetailsComponent } from './components/policy-details/policy-details.component';
-import { ServiceDetailsComponent } from './components/service-management/service-details/service-details.component';
-import { ServiceManagementComponent } from './components/service-management/service-management.component';
-import { UnderConstructionComponent } from './components/under-construction/under-construction.component';
 
 export const routes: Routes = [
   {
@@ -22,74 +8,132 @@ export const routes: Routes = [
   },
   {
     path: 'under-construction',
-    component: UnderConstructionComponent,
+    loadComponent: () =>
+      import(
+        './components/under-construction/under-construction.component'
+      ).then((m) => m.UnderConstructionComponent),
     title: 'Under Construction',
   },
   {
     path: 'catalog-browser',
-    component: CatalogBrowserComponent,
+    loadComponent: () =>
+      import('./components/catalog-browser/catalog-browser.component').then(
+        (m) => m.CatalogBrowserComponent
+      ),
     title: 'Catalog Browser',
   },
   {
     path: 'catalog-browser/details',
-    component: CatalogBrowserDetailsComponent,
+    loadComponent: () =>
+      import(
+        './components/catalog-browser/catalog-browser-details/catalog-browser-details.component'
+      ).then((m) => m.CatalogBrowserDetailsComponent),
     title: 'Catalog Details',
   },
   {
     path: 'catalog-management',
-    component: CatalogManagementComponent,
+    loadComponent: () =>
+      import(
+        './components/catalog-management/catalog-management.component'
+      ).then((m) => m.CatalogManagementComponent),
     title: 'Manage Catalog data',
   },
   {
     path: 'catalog-management/service-management',
-    component: ServiceManagementComponent,
+    loadComponent: () =>
+      import(
+        './components/service-management/service-management.component'
+      ).then((m) => m.ServiceManagementComponent),
     title: 'Manage Services',
   },
 
   {
     path: 'catalog-management/service-management/details',
-    component: ServiceDetailsComponent,
+    loadComponent: () =>
+      import(
+        './components/service-management/service-details/service-details.component'
+      ).then((m) => m.ServiceDetailsComponent),
     title: 'Service Details',
   },
   {
     path: 'catalog-management/dataset-management',
-    component: DatasetManagementComponent,
+    loadComponent: () =>
+      import(
+        './components/dataset-management/dataset-management.component'
+      ).then((m) => m.DatasetManagementComponent),
     title: 'Manage Datasets',
   },
 
   {
     path: 'catalog-management/dataset-management/details',
-    component: DatasetDetailsComponent,
+    loadComponent: () =>
+      import(
+        './components/dataset-management/dataset-details/dataset-details.component'
+      ).then((m) => m.DatasetDetailsComponent),
     title: 'Dataset Details',
   },
   {
     path: 'catalog-management/distribution-management',
-    component: DistributionManagementComponent,
+    loadComponent: () =>
+      import(
+        './components/distribution-management/distribution-management.component'
+      ).then((m) => m.DistributionManagementComponent),
     title: 'Manage Distributions',
   },
   {
     path: 'catalog-management/distribution-management/details',
-    component: DistributionDetailsComponent,
+    loadComponent: () =>
+      import(
+        './components/distribution-management/distribution-details/distribution-details.component'
+      ).then((m) => m.DistributionDetailsComponent),
     title: 'Distribution Details',
   },
   {
     path: 'catalog-management/policy-management/details',
-    component: PolicyDetailsComponent,
+    loadComponent: () =>
+      import('./components/policy-details/policy-details.component').then(
+        (m) => m.PolicyDetailsComponent
+      ),
     title: 'Policy Details',
   },
   {
     path: 'contract-negotiation',
-    component: ContractNegotiationComponent,
+    loadComponent: () =>
+      import(
+        './components/contract-negotiation/contract-negotiation.component'
+      ).then((m) => m.ContractNegotiationComponent),
     title: 'Contract Negotiation',
   },
   {
     path: 'data-transfer',
-    component: DataTransfersComponent,
+    loadComponent: () =>
+      import('./components/data-transfers/data-transfers.component').then(
+        (m) => m.DataTransfersComponent
+      ),
     title: 'Data Transfer',
   },
   {
     path: 'data-consumption',
-    component: DataConsumptionComponent,
+    loadComponent: () =>
+      import('./components/data-consumption/data-consumption.component').then(
+        (m) => m.DataConsumptionComponent
+      ),
     title: 'Data Consumption',
+  },
+  {
+    path: 'connector-configuration',
+    loadComponent: () =>
+      import(
+        './components/connector-configuration/connector-configuration.component'
+      ).then((m) => m.ConnectorConfigurationComponent),
+    title: 'Connector Configuration',
+  },
+  {
+    path: 'audit-trail',
+    loadComponent: () =>
+      import('./components/audit-trail/audit-trail.component').then(
+        (m) => m.AuditTrailComponent
+      ),
+    title: 'Audit Trail',
   },
 ];

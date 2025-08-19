@@ -4,17 +4,26 @@ mat-divider {
   height: 0;
 }
 
-.catalog-card {
+/* Container and card styles */
+.item {
   margin: 20px;
-  padding: 20px;
-  background-color: #ffffff;
-  border-radius: 15px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-  box-sizing: border-box;
-  overflow: hidden;
 }
 
-.catalog-title h2 {
+.service-card {
+  margin: 20px;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.service-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.service-title h2 {
   margin: 0;
   color: #6200ea;
   font-weight: 700;
@@ -145,24 +154,34 @@ button[mat-button] mat-icon {
   margin: 0;
 }
 
+/* Header styles */
 .headtitle {
   display: flex;
   justify-content: space-between;
-}
-
-.headtitle .buttons {
-  display: flex;
-  width: 50%;
-  justify-content: flex-end;
   align-items: center;
-}
-
-.headtitle .buttons button {
-  margin: 3px;
+  margin-bottom: 20px;
+  min-height: 40px;
+  padding-top: 10px;
 }
 
 .back {
-  display: inline-flex;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+h1 {
+  margin: 10px 0;
+}
+
+.help-icon {
+  color: #757575;
+  cursor: help;
+}
+
+.buttons {
+  display: flex;
+  gap: 10px;
 }
 
 .back button {
@@ -355,7 +374,7 @@ p strong {
     flex-direction: column;
   }
 
-  .catalog-card {
+  .service-card {
     margin: 10px;
     padding: 15px;
   }
@@ -383,11 +402,36 @@ p strong {
   }
 }
 
-.help-icon {
-  font-size: 1.1em;
-  margin-left: 8px;
-  vertical-align: middle;
-  color: grey;
-  cursor: help;
-  margin-top: 20px;
+@media (max-width: 768px) {
+  .headtitle {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .buttons {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .service-card {
+    margin: 10px;
+    padding: 16px;
+  }
+}
+
+/* No datasets message styling */
+.no-datasets {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.no-datasets p {
+  color: #666;
+  font-size: 16px;
+  font-style: italic;
+  margin: 0;
 }

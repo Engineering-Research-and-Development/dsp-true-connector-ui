@@ -1,17 +1,14 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, map, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ContractNegotiation } from '../../models/contractNegotiation';
-import { GenericApiResponse } from '../../models/genericApiResponse';
+import {
+  GenericApiResponse,
+  PagedAPIResponse,
+} from '../../models/genericApiResponse';
 import { ErrorHandlerService } from '../error-handler/error-handler.service';
 import { SnackbarService } from '../snackbar/snackbar.service';
-
-const headers = new HttpHeaders({
-  'Content-Type': 'application/json',
-});
-
-const options = { headers };
 
 @Injectable({
   providedIn: 'root',
@@ -70,51 +67,66 @@ export class ContractNegotiationService {
   }
 
   /**
-   * Get all contract negotiations as provider
-   * @returns Observable<ContractNegotiation[]>
-   * @example contractNegotiationService.getAllNegotiationsAsProvider().subscribe({ next: console.log, error: console.error, complete: () => console.log('completed') });
-   *
+   * Get all contract negotiations with filters and pagination
+   * @param filters - Filter options for contract negotiations
+   * @param pagination - Pagination options
+   * @returns Observable<PagedAPIResponse<ContractNegotiation>>
+   * @example contractNegotiationService.getContractNegotiationsWithFilters({role: 'provider'}, {page: 0, size: 20}).subscribe({next: console.log});
    */
-  getAllNegotiationsAsProvider(): Observable<ContractNegotiation[]> {
-    return this.http
-      .get<GenericApiResponse<ContractNegotiation[]>>(
-        this.apiUrl + '?role=provider',
-        this.httpOptions
-      )
-      .pipe(
-        map((response: GenericApiResponse<ContractNegotiation[]>) => {
-          if (response.success && response.data) {
-            return response.data;
-          } else {
-            throw new Error(response.message);
-          }
-        }),
-        catchError((error) => this.errorHandlerService.handleError(error))
-      );
-  }
+  getContractNegotiationsWithFilters(
+    filters: {
+      role?: string;
+      state?: string;
+      offerId?: string;
+      providerPid?: string;
+      consumerPid?: string;
+    } = {},
+    pagination: {
+      page?: number;
+      size?: number;
+      sort?: string;
+      direction?: 'asc' | 'desc';
+    } = {}
+  ): Observable<PagedAPIResponse<ContractNegotiation>> {
+    let params = new HttpParams();
 
-  /**
-   * Get all contract negotiations as consumer
-   * @returns Observable<ContractNegotiation[]>
-   * @example contractNegotiationService.getAllNegotiationsAsConsumer().subscribe({ next: console.log, error: console.error, complete: () => console.log('completed') });
-   *
-   */
-  getAllNegotiationsAsConsumer(): Observable<ContractNegotiation[]> {
-    return this.http
-      .get<GenericApiResponse<ContractNegotiation[]>>(
-        this.apiUrl + '?role=consumer',
-        this.httpOptions
-      )
-      .pipe(
-        map((response: GenericApiResponse<ContractNegotiation[]>) => {
-          if (response.success && response.data) {
-            return response.data;
-          } else {
-            throw new Error(response.message);
-          }
-        }),
-        catchError((error) => this.errorHandlerService.handleError(error))
-      );
+    // Add pagination parameters
+    if (pagination.page !== undefined) {
+      params = params.set('page', pagination.page.toString());
+    }
+    if (pagination.size !== undefined) {
+      params = params.set('size', pagination.size.toString());
+    }
+
+    // Add sorting parameters
+    const sortField = pagination.sort || 'timestamp';
+    const sortDirection = pagination.direction || 'desc';
+    params = params.set('sort', `${sortField},${sortDirection}`);
+
+    // Add filter parameters
+    if (filters.role) {
+      params = params.set('role', filters.role);
+    }
+    if (filters.state) {
+      params = params.set('state', filters.state);
+    }
+    if (filters.offerId) {
+      params = params.set('offerId', filters.offerId);
+    }
+    if (filters.providerPid) {
+      params = params.set('providerPid', filters.providerPid);
+    }
+    if (filters.consumerPid) {
+      params = params.set('consumerPid', filters.consumerPid);
+    }
+
+    return this.http.get<PagedAPIResponse<ContractNegotiation>>(
+      `${this.apiUrl}`,
+      {
+        ...this.httpOptions,
+        params,
+      }
+    );
   }
 
   /**
@@ -186,7 +198,7 @@ export class ContractNegotiationService {
   /**
    * Verify contract negotiation
    * @param negotiationId
-   * @returns Observable<ContractNegotiation>
+   * @returns Observable<boolean>
    * @example contractNegotiationService.verifyNegotiation(negotiationId).subscribe({ next: console.log, error: console.error, complete: () => console.log('completed') });
    *
    * */
@@ -219,7 +231,7 @@ export class ContractNegotiationService {
   /**
    * Finalize contract negotiation
    * @param negotiationId
-   * @returns Observable<ContractNegotiation>
+   * @returns Observable<boolean>
    * @example contractNegotiationService.finalizeNegotiation(negotiationId).subscribe({ next: console.log, error: console.error, complete: () => console.log('completed') });
    *
    */
@@ -280,19 +292,5 @@ export class ContractNegotiationService {
         }),
         catchError((error) => this.errorHandlerService.handleError(error))
       );
-  }
-
-  /**
-   * Check if contract agreement is valid
-   * @param negotiationId
-   * @returns Observable<any>
-   * @example contractNegotiationService.checkContractAgreement(negotiationId).subscribe({ next: console.log, error: console.error, complete: () => console.log('completed') });
-   *
-   * */
-  checkContractAgreement(negotiationId: string): Observable<any> {
-    return this.http.get<any>(
-      this.apiUrl + '/check/' + negotiationId,
-      this.httpOptions
-    );
   }
 }

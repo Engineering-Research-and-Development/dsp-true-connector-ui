@@ -1,0 +1,403 @@
+.connector-configuration-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f5f5f5;
+}
+
+.configuration-toolbar {
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.toolbar-title {
+  margin-left: 12px;
+  font-weight: 500;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+/* Main card styling - matching other components */
+.item {
+  margin: 20px;
+}
+
+.service-card {
+  margin: 20px;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.service-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.service-title h2 {
+  margin: 0;
+  color: #6200ea;
+  font-weight: 700;
+  font-size: 1.5em;
+}
+
+/* Header styling matching other components */
+.headtitle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  min-height: 40px;
+}
+
+.back {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+h1 {
+  margin: 10px 0;
+}
+
+.help-icon {
+  color: #757575;
+  cursor: help;
+}
+
+.buttons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  min-height: 40px;
+}
+
+.buttons button[mat-button] {
+  height: 36px !important;
+  min-height: 36px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 8px !important;
+}
+
+/* Changes Indicator */
+.changes-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ff9800;
+  font-weight: 500;
+  margin-bottom: 20px;
+  padding: 12px;
+  background: #fff8e1;
+  border-radius: 8px;
+  border-left: 4px solid #ff9800;
+}
+
+/* Expansion panels */
+.properties-groups {
+  margin-top: 15px;
+}
+
+.expansion-panel {
+  margin-top: 15px;
+  background-color: #fafafa;
+  border-radius: 10px;
+  transition: box-shadow 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.expansion-panel ::ng-deep .mat-expansion-panel-header {
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 0 15px;
+  height: 60px;
+}
+
+.mat-panel-title {
+  color: #8a9eed;
+  font-weight: 600;
+  font-size: 1.2em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.property-count {
+  color: #666;
+  font-size: 0.9em;
+  font-weight: 400;
+  margin-left: 8px;
+}
+
+/* Properties List */
+.properties-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 15px;
+}
+
+.property-item {
+  padding: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  background: #ffffff;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 80px;
+}
+
+.property-item:hover {
+  background-color: #f8f9fa;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-color: #8a9eed;
+}
+
+.property-modified {
+  border-left: 4px solid #ff9800;
+  background: #fff8e1;
+}
+
+/* Property Header */
+.property-header {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.property-label-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.property-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.mandatory-icon {
+  color: #ff9800;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.property-key {
+  font-family: "Courier New", monospace;
+  font-size: 0.875rem;
+  color: #666;
+  background: #f0f0f0;
+  padding: 4px 8px;
+  border-radius: 5px;
+  display: inline-block;
+}
+
+/* Property Controls */
+.property-control {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 450px;
+  align-items: flex-end;
+  justify-content: center;
+  height: 100%;
+}
+
+.boolean-control {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+}
+
+.text-control {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  position: relative;
+}
+
+.property-input {
+  width: 100%;
+  max-width: 650px;
+  min-width: 550px;
+  margin-top: 22px;
+}
+
+.property-input ::ng-deep .mat-mdc-form-field-wrapper {
+  margin: 0;
+  padding: 0;
+}
+
+.property-input ::ng-deep .mat-mdc-form-field-flex {
+  align-items: center;
+}
+
+.sample-value {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #666;
+  font-size: 0.875rem;
+  text-align: right;
+  justify-content: flex-end;
+}
+
+.sample-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+}
+
+/* No Properties */
+.no-properties {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px;
+  margin-top: 20px;
+  background: #ffffff;
+  border-radius: 15px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.no-properties-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  color: #ccc;
+  margin-bottom: 16px;
+}
+
+.no-properties h3 {
+  margin: 0 0 16px 0;
+  color: #666;
+}
+
+.no-properties p {
+  margin: 0 0 24px 0;
+  color: #999;
+  max-width: 400px;
+  line-height: 1.5;
+}
+
+/* Buttons styling to match other components */
+button[mat-button],
+button[mat-raised-button] {
+  padding: 10px 15px;
+  font-size: 1em;
+  font-weight: 300;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s, box-shadow 0.3s;
+  display: flex;
+  align-items: center;
+  color: #383838;
+  border-radius: 5px;
+}
+
+button[mat-button]:hover {
+  background-color: #8a9eed5c;
+}
+
+button[mat-button] mat-icon,
+button[mat-raised-button] mat-icon {
+  margin-right: 0px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .headtitle {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .buttons {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .service-card {
+    margin: 10px;
+    padding: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .service-card {
+    margin: 10px;
+    padding: 16px;
+  }
+
+  .property-item {
+    padding: 12px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 15px;
+  }
+
+  .property-header {
+    margin-bottom: 10px;
+  }
+
+  .property-control {
+    align-items: stretch;
+    min-width: auto;
+  }
+
+  .boolean-control {
+    justify-content: flex-start;
+  }
+
+  .text-control {
+    align-items: stretch;
+  }
+
+  .property-input {
+    max-width: 100%;
+  }
+
+  .sample-value {
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  .property-label-container {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .toolbar-title {
+    font-size: 1rem;
+  }
+
+  .property-key {
+    font-size: 0.75rem;
+    word-break: break-all;
+  }
+
+  .property-input {
+    max-width: 100%;
+  }
+
+  .back h1 {
+    font-size: 1.4em;
+  }
+}

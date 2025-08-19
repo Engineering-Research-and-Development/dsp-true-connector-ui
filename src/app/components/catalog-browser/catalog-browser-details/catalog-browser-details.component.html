@@ -1,5 +1,5 @@
 <div *ngIf="loading" class="item">
-  <mat-card class="catalog-card">
+  <mat-card class="service-card">
     <ngx-skeleton-loader
       count="15"
       appearance="line"
@@ -8,8 +8,8 @@
   </mat-card>
 </div>
 <div *ngIf="!loading && catalogData != undefined">
-  <mat-card class="catalog-card">
-    <mat-card-title class="catalog-title"></mat-card-title>
+  <mat-card class="service-card">
+    <mat-card-title class="service-title"></mat-card-title>
     <mat-card-content>
       <div class="headtitle">
         <div class="back">
@@ -82,7 +82,20 @@
               <div class="page-wrraper">
                 <div class="bc-grey">
                   <div class="table-info">
-                    <div class="space-card">
+                    <div
+                      *ngIf="
+                        !catalogData.dataset || catalogData.dataset.length === 0
+                      "
+                      class="no-datasets"
+                    >
+                      <p>No datasets available in this catalog.</p>
+                    </div>
+                    <div
+                      class="space-card"
+                      *ngIf="
+                        catalogData.dataset && catalogData.dataset.length > 0
+                      "
+                    >
                       <div *ngFor="let dataset of catalogData.dataset">
                         <div class="card">
                           <div class="title">
@@ -92,35 +105,54 @@
                           <div class="content">
                             <p>
                               <strong>Identifier:</strong>
-                              {{ dataset.identifier }}
+                              {{ dataset.identifier || "N/A" }}
                             </p>
                             <p>
                               <strong>Creator:</strong>
-                              {{ dataset.creator }}
+                              {{ dataset.creator || "N/A" }}
                             </p>
                             <p>
                               <strong>Theme:</strong>
-                              {{ dataset.theme.join(", ") }}
+                              {{
+                                (dataset.theme || []).length
+                                  ? (dataset.theme || []).join(", ")
+                                  : "N/A"
+                              }}
                             </p>
                             <p>
                               <strong>Keywords:</strong>
-                              {{ dataset.keyword.join(", ") }}
+                              {{
+                                (dataset.keyword || []).length
+                                  ? (dataset.keyword || []).join(", ")
+                                  : "N/A"
+                              }}
                             </p>
                             <p>
                               <strong>Issued:</strong>
-                              {{ dataset.issued | date : "d MMMM y, HH:mm:ss" }}
+                              {{
+                                dataset.issued
+                                  ? (dataset.issued
+                                    | date : "d MMMM y, HH:mm:ss")
+                                  : "N/A"
+                              }}
                             </p>
                             <p>
                               <strong>Modified:</strong>
                               {{
-                                dataset.modified | date : "d MMMM y, HH:mm:ss"
+                                dataset.modified
+                                  ? (dataset.modified
+                                    | date : "d MMMM y, HH:mm:ss")
+                                  : "N/A"
                               }}
                             </p>
                           </div>
                           <div class="sdd">
                             <mat-expansion-panel
                               class="expansion-panel"
-                              *ngIf="dataset.hasPolicy.length > 0"
+                              *ngIf="
+                                dataset.hasPolicy &&
+                                dataset.hasPolicy.length > 0
+                              "
                             >
                               <mat-expansion-panel-header>
                                 <mat-panel-title>Offers</mat-panel-title>
@@ -153,7 +185,10 @@
 
                             <mat-expansion-panel
                               class="expansion-panel"
-                              *ngIf="dataset.distribution.length > 0"
+                              *ngIf="
+                                dataset.distribution &&
+                                dataset.distribution.length > 0
+                              "
                             >
                               <mat-expansion-panel-header>
                                 <mat-panel-title>Distribution</mat-panel-title>

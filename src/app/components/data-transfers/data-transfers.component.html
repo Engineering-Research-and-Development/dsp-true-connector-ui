@@ -33,44 +33,100 @@
         </div>
         <div class="buttons">
           <button
-            *ngIf="userType === 'provider'"
             mat-button
             matTooltip="Refresh data"
-            (click)="getProviderDataTransfers()"
-          >
-            <mat-icon>cached</mat-icon>
-          </button>
-          <button
-            *ngIf="userType === 'consumer'"
-            mat-button
-            matTooltip="Refresh data"
-            (click)="getConsumerDataTransfers()"
+            (click)="fetchDataTransfers()"
           >
             <mat-icon>cached</mat-icon>
           </button>
         </div>
       </div>
       <div class="filter-div">
-        <section class="filter-section">
-          <h3>Filter by State</h3>
-          <mat-chip-listbox
-            multiple
-            aria-label="Data Transfer state selection"
-            class="transfer-state-chips"
-          >
-            <mat-chip-option
-              *ngFor="let state of dataTransferStates"
-              [selected]="selectedStates.includes(state)"
-              (click)="toggleStateSelection(state)"
-              color="primary"
-            >
-              {{ getStateDisplayName(state) }}
-            </mat-chip-option>
-          </mat-chip-listbox>
-        </section>
+        <mat-expansion-panel
+          class="filter-expansion-panel"
+          [(expanded)]="filterExpansionState.filtersExpanded"
+        >
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <mat-icon>filter_list</mat-icon>
+              Advanced Filters
+            </mat-panel-title>
+            <mat-panel-description>
+              Filter data transfers by state, dataset ID, provider PID, and
+              consumer PID
+            </mat-panel-description>
+          </mat-expansion-panel-header>
+
+          <div class="filter-content">
+            <div class="filter-fields-row">
+              <!-- State Filter - Dropdown with Single Selection -->
+              <mat-form-field appearance="outline" class="filter-field">
+                <mat-label>Filter by State</mat-label>
+                <mat-select
+                  [(value)]="selectedState"
+                  placeholder="Select state"
+                >
+                  <mat-option [value]="null">All States</mat-option>
+                  <mat-option
+                    *ngFor="let state of dataTransferStates"
+                    [value]="state"
+                  >
+                    {{ getStateDisplayName(state) }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <!-- Dataset ID Filter -->
+              <mat-form-field appearance="outline" class="filter-field">
+                <mat-label>Dataset ID</mat-label>
+                <input
+                  matInput
+                  [(ngModel)]="datasetIdFilter"
+                  placeholder="Enter dataset ID"
+                />
+              </mat-form-field>
+
+              <!-- Provider PID Filter -->
+              <mat-form-field appearance="outline" class="filter-field">
+                <mat-label>Provider PID</mat-label>
+                <input
+                  matInput
+                  [(ngModel)]="providerPidFilter"
+                  placeholder="Enter provider PID"
+                />
+              </mat-form-field>
+
+              <!-- Consumer PID Filter -->
+              <mat-form-field appearance="outline" class="filter-field">
+                <mat-label>Consumer PID</mat-label>
+                <input
+                  matInput
+                  [(ngModel)]="consumerPidFilter"
+                  placeholder="Enter consumer PID"
+                />
+              </mat-form-field>
+
+              <!-- Filter Action Buttons -->
+              <div class="filter-actions-inline">
+                <button
+                  mat-raised-button
+                  color="primary"
+                  (click)="applyFilters()"
+                >
+                  <mat-icon>search</mat-icon>
+                  Apply
+                </button>
+                <button mat-button (click)="clearFilters()">
+                  <mat-icon>clear</mat-icon>
+                  Clear
+                </button>
+              </div>
+            </div>
+          </div>
+        </mat-expansion-panel>
       </div>
       <div class="space-card">
-        <div *ngFor="let dataTransfer of filteredDataTransfers">
+        <div *ngFor="let dataTransfer of dataTransfers">
           <div class="card">
             <div class="title">
               {{ dataTransfer["@id"] }}
@@ -122,94 +178,137 @@
             </div>
 
             <div class="btn-action">
-              <button
-                mat-button
-                matTooltip="Request data transfer"
-                *ngIf="
-                  dataTransfer.state === dataTransferState.INITIALIZED &&
-                  userType === 'consumer'
-                "
-                (click)="onRequest(dataTransfer, 'HttpData-PULL')"
+              <div
+                *ngIf="isDownloading(dataTransfer['@id'])"
+                class="download-spinner"
               >
-                <mat-icon>check</mat-icon>
-                <p>Request</p>
-              </button>
-              <button
-                mat-button
-                matTooltip="Start data transfer"
-                *ngIf="
-                  (dataTransfer.state === dataTransferState.REQUESTED ||
-                    dataTransfer.state === dataTransferState.SUSPENDED) &&
-                  userType === 'provider'
-                "
-                (click)="onStart(dataTransfer)"
-              >
-                <mat-icon>play_arrow</mat-icon>
-                <p>Start</p>
-              </button>
-              <button
-                mat-button
-                matTooltip="Download artifact"
-                *ngIf="
-                  dataTransfer.state === dataTransferState.STARTED &&
-                  userType === 'consumer' &&
-                  dataTransfer.downloaded === false
-                "
-                (click)="onDownload(dataTransfer)"
-              >
-                <mat-icon>download</mat-icon>
-                <p>Download</p>
-              </button>
-              <button
-                mat-button
-                matTooltip="View artifact"
-                *ngIf="
-                  dataTransfer.state === dataTransferState.STARTED &&
-                  userType === 'consumer' &&
-                  dataTransfer.downloaded === true
-                "
-                (click)="onView(dataTransfer)"
-              >
-                <mat-icon>pageview</mat-icon>
-                <p>View</p>
-              </button>
-              <button
-                mat-button
-                matTooltip="Complete data transfer"
-                *ngIf="dataTransfer.state === dataTransferState.STARTED"
-                (click)="onComplete(dataTransfer)"
-              >
-                <mat-icon>verified</mat-icon>
-                <p>Complete</p>
-              </button>
-              <button
+                <mat-progress-spinner diameter="24" mode="indeterminate">
+                </mat-progress-spinner>
+                <p>Downloading...</p>
+              </div>
+              <ng-container *ngIf="!isDownloading(dataTransfer['@id'])">
+                <button
+                  mat-button
+                  matTooltip="Request data transfer"
+                  *ngIf="
+                    dataTransfer.state === dataTransferState.INITIALIZED &&
+                    userType === 'consumer'
+                  "
+                  (click)="onRequest(dataTransfer, 'HttpData-PULL')"
+                >
+                  <mat-icon>check</mat-icon>
+                  <p>Request</p>
+                </button>
+                <button
+                  mat-button
+                  matTooltip="Start data transfer"
+                  *ngIf="
+                    (dataTransfer.state === dataTransferState.REQUESTED &&
+                      userType === 'provider') ||
+                    dataTransfer.state === dataTransferState.SUSPENDED
+                  "
+                  (click)="onStart(dataTransfer)"
+                >
+                  <mat-icon>play_arrow</mat-icon>
+                  <p>Start</p>
+                </button>
+                <button
+                  mat-button
+                  [matTooltip]="
+                    isDownloading(dataTransfer['@id'])
+                      ? 'Downloading in progress...'
+                      : 'Download artifact'
+                  "
+                  *ngIf="
+                    dataTransfer.state === dataTransferState.STARTED &&
+                    userType === 'consumer' &&
+                    dataTransfer.downloaded === false
+                  "
+                  (click)="onDownload(dataTransfer)"
+                  [disabled]="isDownloading(dataTransfer['@id'])"
+                >
+                  <mat-progress-spinner
+                    *ngIf="isDownloading(dataTransfer['@id'])"
+                    diameter="20"
+                    mode="indeterminate"
+                  >
+                  </mat-progress-spinner>
+
+                  <mat-icon *ngIf="!isDownloading(dataTransfer['@id'])"
+                    >download</mat-icon
+                  >
+
+                  <p>
+                    {{ isDownloading(dataTransfer["@id"]) ? "" : "Download" }}
+                  </p>
+                </button>
+                <button
+                  mat-button
+                  matTooltip="View artifact"
+                  *ngIf="
+                    dataTransfer.state === dataTransferState.STARTED &&
+                    userType === 'consumer' &&
+                    dataTransfer.downloaded === true
+                  "
+                  (click)="onView(dataTransfer)"
+                >
+                  <mat-icon>pageview</mat-icon>
+                  <p>View</p>
+                </button>
+                <button
+                  mat-button
+                  matTooltip="Complete data transfer"
+                  *ngIf="dataTransfer.state === dataTransferState.STARTED"
+                  (click)="onComplete(dataTransfer)"
+                >
+                  <mat-icon>verified</mat-icon>
+                  <p>Complete</p>
+                </button>
+                <!-- <button
                 mat-button
                 matTooltip="Suspend data transfer"
-                *ngIf="
+                 *ngIf="
                   dataTransfer.state === dataTransferState.STARTED &&
-                  !(userType === 'consumer' && dataTransfer.downloaded === true)
+                  !(
+                    userType === 'consumer' && dataTransfer.downloaded === true
+                  ) &&
+                  !isDownloading(dataTransfer['@id'])
                 "
                 (click)="onSuspend(dataTransfer)"
               >
                 <mat-icon>pause</mat-icon>
                 <p>Suspend</p>
-              </button>
-              <button
-                mat-button
-                matTooltip="Terminate data transfer"
-                *ngIf="
-                  dataTransfer.state !== dataTransferState.COMPLETED &&
-                  dataTransfer.state !== dataTransferState.TERMINATED
-                "
-                (click)="onTerminate(dataTransfer)"
-              >
-                <mat-icon>cancel</mat-icon>
-                <p>Terminate</p>
-              </button>
+              </button> -->
+                <button
+                  mat-button
+                  matTooltip="Terminate data transfer"
+                  *ngIf="
+                    dataTransfer.state !== dataTransferState.COMPLETED &&
+                    dataTransfer.state !== dataTransferState.TERMINATED
+                  "
+                  (click)="onTerminate(dataTransfer)"
+                >
+                  <mat-icon>cancel</mat-icon>
+                  <p>Terminate</p>
+                </button>
+              </ng-container>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- Pagination Controls -->
+      <mat-paginator
+        *ngIf="paginationState.totalElements > 0"
+        [length]="paginationState.totalElements"
+        [pageSize]="paginationState.pageSize"
+        [pageIndex]="paginationState.pageIndex"
+        [pageSizeOptions]="paginationState.pageSizeOptions"
+        (page)="onPageChange($event)"
+        showFirstLastButtons
+        aria-label="Select page of data transfers"
+      >
+      </mat-paginator>
     </mat-card-content>
   </mat-card>
 </div>
