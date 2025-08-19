@@ -29,30 +29,37 @@ import { Distribution } from '../../models/distribution';
 import { Multilanguage } from '../../models/multilanguage';
 import { CatalogService } from '../../services/catalog/catalog.service';
 import { SnackbarService } from '../../services/snackbar/snackbar.service';
+import { EditStateService } from '../../shared/edit-state.service';
+import { ModifiedFieldDirective } from '../../shared/modified-field.directive';
+import { OldValuePipe } from '../../shared/old-value.pipe';
+import { UnsavedChangesComponent } from '../../shared/unsaved-changes/unsaved-changes.component';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
 
 @Component({
-    selector: 'app-catalog-management',
-    imports: [
-        CommonModule,
-        RouterModule,
-        MatCardModule,
-        MatButtonModule,
-        MatExpansionModule,
-        MatToolbarModule,
-        NgxSkeletonLoaderModule,
-        MatIconModule,
-        FormsModule,
-        ReactiveFormsModule,
-        MatFormFieldModule,
-        MatSelectModule,
-        MatInputModule,
-        MatTooltipModule,
-        MatTabsModule,
-    ],
-    providers: [CatalogService],
-    templateUrl: './catalog-management.component.html',
-    styleUrls: ['./catalog-management.component.css']
+  selector: 'app-catalog-management',
+  imports: [
+    CommonModule,
+    RouterModule,
+    MatCardModule,
+    MatButtonModule,
+    MatExpansionModule,
+    MatToolbarModule,
+    NgxSkeletonLoaderModule,
+    MatIconModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatInputModule,
+    MatTooltipModule,
+    MatTabsModule,
+    ModifiedFieldDirective,
+    OldValuePipe,
+    UnsavedChangesComponent,
+  ],
+  providers: [CatalogService],
+  templateUrl: './catalog-management.component.html',
+  styleUrls: ['./catalog-management.component.css'],
 })
 export class CatalogManagementComponent implements OnInit {
   panelOpenState = false;
@@ -70,13 +77,16 @@ export class CatalogManagementComponent implements OnInit {
   allDatasets: Dataset[] = [];
   allPolicies: any[] = [];
 
+  // Change tracking handled by EditStateService
+
   constructor(
     public dialog: MatDialog,
     private router: Router,
     private catalogService: CatalogService,
     private location: Location,
     private fb: FormBuilder,
-    private snackBarService: SnackbarService
+    private snackBarService: SnackbarService,
+    public editState: EditStateService
   ) {}
 
   /**
@@ -86,6 +96,10 @@ export class CatalogManagementComponent implements OnInit {
   ngOnInit(): void {
     this.initForm();
     this.getCatalogData();
+  }
+
+  ngOnDestroy(): void {
+    this.editState.destroy();
   }
 
   /**
@@ -116,7 +130,7 @@ export class CatalogManagementComponent implements OnInit {
   saveCatalogData() {
     this.loading = true;
     this.catalogService
-      .createCatalog(this.cleanFormData(this.catalogForm).value)
+      .createCatalog(this.cleanFormData(this.catalogForm))
       .subscribe({
         next: (data) => {
           this.catalogData = data;
@@ -140,26 +154,28 @@ export class CatalogManagementComponent implements OnInit {
    * */
   updateCatalogData() {
     this.loading = true;
-    this.catalogService.updateCatalog(this.catalogForm.value).subscribe({
-      next: (data) => {
-        this.catalogData = data;
-        this.languages = this.extractLanguages(this.catalogData.description);
-        this.onLanguageSelected();
-        this.updateForm(this.catalogData);
-        this.loading = false;
-        this.snackBarService.openSnackBar(
-          'Catalog data successfully updated',
-          'OK',
-          'center',
-          'bottom',
-          'snackbar-success'
-        );
-      },
-      error: (error) => {
-        console.error('Error updating catalog data:', error);
-        this.loading = false;
-      },
-    });
+    this.catalogService
+      .updateCatalog(this.cleanFormData(this.catalogForm))
+      .subscribe({
+        next: (data) => {
+          this.catalogData = data;
+          this.languages = this.extractLanguages(this.catalogData.description);
+          this.onLanguageSelected();
+          this.updateForm(this.catalogData);
+          this.loading = false;
+          this.snackBarService.openSnackBar(
+            'Catalog data successfully updated',
+            'OK',
+            'center',
+            'bottom',
+            'snackbar-success'
+          );
+        },
+        error: (error) => {
+          console.error('Error updating catalog data:', error);
+          this.loading = false;
+        },
+      });
   }
 
   /**
@@ -282,7 +298,7 @@ export class CatalogManagementComponent implements OnInit {
    * */
   addDescription() {
     const control = this.fb.group({
-      language: ['', Validators.required],
+      language: ['', [Validators.required, Validators.pattern('[a-zA-Z]*')]],
       value: ['', Validators.required],
     });
     (this.catalogForm.get('description') as FormArray).push(control);
@@ -492,6 +508,8 @@ export class CatalogManagementComponent implements OnInit {
       this.setFormArray('hasPolicy', catalogData.hasPolicy);
       this.setFormArray('dataset', catalogData.dataset);
       this.setFormArray('service', catalogData.service);
+
+      this.editState.init(this.catalogForm);
     }
   }
 
@@ -508,7 +526,10 @@ export class CatalogManagementComponent implements OnInit {
         if (formArrayName === 'description') {
           formArray.push(
             this.fb.group({
-              language: [value.language, Validators.required],
+              language: [
+                value.language,
+                [Validators.required, Validators.pattern('[a-zA-Z]*')],
+              ],
               value: [value.value, Validators.required],
             })
           );
@@ -528,7 +549,7 @@ export class CatalogManagementComponent implements OnInit {
   cleanFormData(formGroup: FormGroup): any {
     const cleanedData = { ...formGroup.value };
 
-    delete cleanedData.id;
+    delete cleanedData['@id'];
     delete cleanedData.createdBy;
     delete cleanedData.lastModifiedBy;
     delete cleanedData.version;
@@ -548,4 +569,6 @@ export class CatalogManagementComponent implements OnInit {
 
     return cleanedData;
   }
+
+  // Old-value helpers removed; use EditStateService + oldValue pipe
 }

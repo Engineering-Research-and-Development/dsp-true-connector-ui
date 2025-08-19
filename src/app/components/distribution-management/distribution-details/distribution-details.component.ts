@@ -26,30 +26,37 @@ import { Multilanguage } from '../../../models/multilanguage';
 import { Offer } from '../../../models/offer';
 import { DataServiceService } from '../../../services/data-service/data-service.service';
 import { DistributionService } from '../../../services/distribution/distribution.service';
+import { EditStateService } from '../../../shared/edit-state.service';
+import { ModifiedFieldDirective } from '../../../shared/modified-field.directive';
+import { OldValuePipe } from '../../../shared/old-value.pipe';
+import { UnsavedChangesComponent } from '../../../shared/unsaved-changes/unsaved-changes.component';
 import { ConfirmationDialogComponent } from '../../confirmation-dialog/confirmation-dialog.component';
 import { Distribution } from './../../../models/distribution';
 
 @Component({
-    selector: 'app-distribution-details',
-    imports: [
-        CommonModule,
-        RouterModule,
-        MatCardModule,
-        MatButtonModule,
-        MatExpansionModule,
-        MatToolbarModule,
-        NgxSkeletonLoaderModule,
-        MatIconModule,
-        FormsModule,
-        ReactiveFormsModule,
-        MatFormFieldModule,
-        MatSelectModule,
-        MatInputModule,
-        MatTooltipModule,
-        MatTabsModule,
-    ],
-    templateUrl: './distribution-details.component.html',
-    styleUrl: './distribution-details.component.css'
+  selector: 'app-distribution-details',
+  imports: [
+    CommonModule,
+    RouterModule,
+    MatCardModule,
+    MatButtonModule,
+    MatExpansionModule,
+    MatToolbarModule,
+    NgxSkeletonLoaderModule,
+    MatIconModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatInputModule,
+    MatTooltipModule,
+    MatTabsModule,
+    ModifiedFieldDirective,
+    OldValuePipe,
+    UnsavedChangesComponent,
+  ],
+  templateUrl: './distribution-details.component.html',
+  styleUrls: ['./distribution-details.component.css'],
 })
 export class DistributionDetailsComponent implements OnInit {
   distributionForm!: FormGroup;
@@ -63,13 +70,16 @@ export class DistributionDetailsComponent implements OnInit {
   loading = false;
   allServices: DataService[] = [];
 
+  // Change tracking handled by EditStateService
+
   constructor(
     public dialog: MatDialog,
     private router: Router,
     private location: Location,
     private distributionService: DistributionService,
     private fb: FormBuilder,
-    private dataServiceService: DataServiceService
+    private dataServiceService: DataServiceService,
+    public editState: EditStateService
   ) {
     const navigation = this.router.getCurrentNavigation();
     if (navigation?.extras.state) {
@@ -91,6 +101,10 @@ export class DistributionDetailsComponent implements OnInit {
   ngOnInit(): void {
     this.initForm();
     this.getAllServices();
+  }
+
+  ngOnDestroy(): void {
+    this.editState.destroy();
   }
 
   /**
@@ -274,7 +288,7 @@ export class DistributionDetailsComponent implements OnInit {
    * */
   addDescription() {
     const control = this.fb.group({
-      language: ['', Validators.required],
+      language: ['', [Validators.required, Validators.pattern('[a-zA-Z]*')]],
       value: ['', Validators.required],
     });
     (this.distributionForm.get('description') as FormArray).push(control);
@@ -363,6 +377,8 @@ export class DistributionDetailsComponent implements OnInit {
       } else {
         this.setFormArray('description', distribution.description);
       }
+
+      this.editState.init(this.distributionForm);
     }
   }
 
@@ -379,7 +395,10 @@ export class DistributionDetailsComponent implements OnInit {
         if (formArrayName === 'description') {
           formArray.push(
             this.fb.group({
-              language: [value.language, Validators.required],
+              language: [
+                value.language,
+                [Validators.required, Validators.pattern('[a-zA-Z]*')],
+              ],
               value: [value.value, Validators.required],
             })
           );
@@ -419,4 +438,7 @@ export class DistributionDetailsComponent implements OnInit {
 
     return cleanedData;
   }
+
+  // ===== Old value helpers for tooltips =====
+  // Old-value helpers removed; use EditStateService + oldValue pipe
 }

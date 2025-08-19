@@ -52,19 +52,31 @@
               </p>
               <p>
                 <strong>Keywords:</strong>
-                {{ catalog.keyword?.join(", ") || "N/A" }}
+                {{
+                  (catalog.keyword || []).length
+                    ? (catalog.keyword || []).join(", ")
+                    : "N/A"
+                }}
               </p>
               <p>
                 <strong>Issued:</strong>
-                {{ catalog.issued ? (catalog.issued | date : "d MMMM y, HH:mm:ss") : "N/A" }}
+                {{
+                  catalog.issued
+                    ? (catalog.issued | date : "d MMMM y, HH:mm:ss")
+                    : "N/A"
+                }}
               </p>
               <p>
                 <strong>Modified:</strong>
-                {{ catalog.modified ? (catalog.modified | date : "d MMMM y, HH:mm:ss") : "N/A" }}
+                {{
+                  catalog.modified
+                    ? (catalog.modified | date : "d MMMM y, HH:mm:ss")
+                    : "N/A"
+                }}
               </p>
               <p>
                 <strong>Datasets:</strong>
-                {{ catalog.dataset?.length || 0 }}
+                {{ (catalog.dataset || []).length }}
               </p>
             </div>
             <div class="btn-action">

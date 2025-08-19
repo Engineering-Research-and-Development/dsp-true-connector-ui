@@ -1,5 +1,5 @@
 import { CommonModule, Location } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import {
   FormArray,
   FormBuilder,
@@ -23,6 +23,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router, RouterModule } from '@angular/router';
 import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
+import { Subscription } from 'rxjs';
 import { Artifact } from '../../../models/artifact';
 import { Dataset } from '../../../models/dataset';
 import { Action } from '../../../models/enums/action.enum';
@@ -34,35 +35,42 @@ import { ArtifactService } from '../../../services/artifact/artifact.service';
 import { DatasetService } from '../../../services/dataset/dataset.service';
 import { DistributionService } from '../../../services/distribution/distribution.service';
 import { SnackbarService } from '../../../services/snackbar/snackbar.service';
+import { EditStateService } from '../../../shared/edit-state.service';
+import { ModifiedFieldDirective } from '../../../shared/modified-field.directive';
+import { OldValuePipe } from '../../../shared/old-value.pipe';
+import { UnsavedChangesComponent } from '../../../shared/unsaved-changes/unsaved-changes.component';
 import { ConfirmationDialogComponent } from '../../confirmation-dialog/confirmation-dialog.component';
 import { Distribution } from './../../../models/distribution';
 import { ArtifactDialogComponent } from './artifact-dialog/artifact-dialog.component';
 
 @Component({
-    selector: 'app-dataset-details',
-    imports: [
-        CommonModule,
-        RouterModule,
-        MatCardModule,
-        MatButtonModule,
-        MatExpansionModule,
-        MatToolbarModule,
-        NgxSkeletonLoaderModule,
-        MatIconModule,
-        FormsModule,
-        ReactiveFormsModule,
-        MatFormFieldModule,
-        MatSelectModule,
-        MatInputModule,
-        MatTooltipModule,
-        MatTabsModule,
-        MatDatepickerModule,
-        MatNativeDateModule,
-    ],
-    templateUrl: './dataset-details.component.html',
-    styleUrls: ['./dataset-details.component.css']
+  selector: 'app-dataset-details',
+  imports: [
+    CommonModule,
+    RouterModule,
+    MatCardModule,
+    MatButtonModule,
+    MatExpansionModule,
+    MatToolbarModule,
+    NgxSkeletonLoaderModule,
+    MatIconModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatInputModule,
+    MatTooltipModule,
+    MatTabsModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    ModifiedFieldDirective,
+    OldValuePipe,
+    UnsavedChangesComponent,
+  ],
+  templateUrl: './dataset-details.component.html',
+  styleUrls: ['./dataset-details.component.css'],
 })
-export class DatasetDetailsComponent {
+export class DatasetDetailsComponent implements OnDestroy {
   datasetForm!: FormGroup;
   dataset!: Dataset;
   originalDataset!: Dataset;
@@ -84,6 +92,12 @@ export class DatasetDetailsComponent {
   private constraintTypes: Record<string, string> = {};
   private timeValues: Record<string, string> = {};
 
+  // Change tracking
+  hasChanges = false;
+  private originalFormValue: any | undefined;
+  private valueChangesSubscription?: Subscription;
+  private initializingForm = false;
+
   constructor(
     public dialog: MatDialog,
     private router: Router,
@@ -92,7 +106,8 @@ export class DatasetDetailsComponent {
     private fb: FormBuilder,
     private snackBarService: SnackbarService,
     private distributionService: DistributionService,
-    private artifactService: ArtifactService
+    private artifactService: ArtifactService,
+    public editState: EditStateService
   ) {
     const navigation = this.router.getCurrentNavigation();
     if (navigation?.extras.state) {
@@ -120,6 +135,11 @@ export class DatasetDetailsComponent {
   ngOnInit(): void {
     this.initForm();
     this.getAllDistributions();
+  }
+
+  ngOnDestroy(): void {
+    this.valueChangesSubscription?.unsubscribe();
+    this.editState.destroy();
   }
 
   /**
@@ -548,6 +568,7 @@ export class DatasetDetailsComponent {
   updateForm(dataset: Dataset): void {
     if (dataset) {
       console.log('Updating form with dataset:', dataset);
+      this.initializingForm = true;
       this.datasetForm.patchValue({
         '@id': dataset['@id'],
         title: dataset.title,
@@ -589,6 +610,12 @@ export class DatasetDetailsComponent {
 
       // Initialize constraint types for existing data
       this.initializeConstraintTypes();
+
+      this.storeOriginalFormValue();
+      this.setupFormChangeTracking();
+      this.initializingForm = false;
+      this.evaluateChanges();
+      this.editState.init(this.datasetForm);
     }
   }
 
@@ -772,6 +799,40 @@ export class DatasetDetailsComponent {
       .padStart(2, '0')}:01${tzString}`;
 
     return formattedDate;
+  }
+
+  // ===== Change tracking helpers =====
+  private setupFormChangeTracking(): void {
+    this.valueChangesSubscription?.unsubscribe();
+    this.valueChangesSubscription = this.datasetForm.valueChanges.subscribe(
+      () => {
+        if (this.initializingForm) {
+          return;
+        }
+        this.evaluateChanges();
+      }
+    );
+  }
+
+  private storeOriginalFormValue(): void {
+    this.originalFormValue = this.deepClone(this.datasetForm.getRawValue());
+  }
+
+  private evaluateChanges(): void {
+    const current = this.datasetForm.getRawValue();
+    this.hasChanges = !this.deepEqual(this.originalFormValue, current);
+  }
+
+  private deepClone<T>(value: T): T {
+    return JSON.parse(JSON.stringify(value));
+  }
+
+  private deepEqual(a: any, b: any): boolean {
+    return JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+  }
+
+  private valuesEqual(a: any, b: any): boolean {
+    return JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
   }
 
   /**
@@ -1079,6 +1140,121 @@ export class DatasetDetailsComponent {
     ).controls;
   }
 
+  // ===== Modified helpers for policies and distribution =====
+  isPolicyFieldModified(
+    policyIndex: number,
+    field: 'assigner' | 'assignee'
+  ): boolean {
+    if (!this.originalFormValue) return false;
+    const policies: any[] = (this.originalFormValue['hasPolicy'] ||
+      []) as any[];
+    const original = policies[policyIndex]?.[field];
+    const group = (this.datasetForm.get('hasPolicy') as FormArray).at(
+      policyIndex
+    ) as FormGroup;
+    return !this.valuesEqual(group.get(field)?.value, original);
+  }
+
+  isPermissionFieldModified(
+    policyIndex: number,
+    permissionIndex: number,
+    field: 'action'
+  ): boolean {
+    if (!this.originalFormValue) return false;
+    const original = (this.originalFormValue['hasPolicy']?.[policyIndex]
+      ?.permission || [])[permissionIndex]?.[field];
+    const perm = (
+      (this.datasetForm.get('hasPolicy') as FormArray)
+        .at(policyIndex)
+        .get('permission') as FormArray
+    ).at(permissionIndex) as FormGroup;
+    return !this.valuesEqual(perm.get(field)?.value, original);
+  }
+
+  isConstraintFieldModified(
+    policyIndex: number,
+    permissionIndex: number,
+    constraintIndex: number,
+    field: 'leftOperand' | 'operator' | 'rightOperand'
+  ): boolean {
+    if (!this.originalFormValue) return false;
+    const original = (this.originalFormValue['hasPolicy']?.[policyIndex]
+      ?.permission?.[permissionIndex]?.constraint || [])[constraintIndex]?.[
+      field
+    ];
+    const cons = (
+      this.getConstraintsControls(policyIndex, permissionIndex).at(
+        constraintIndex
+      ) as FormGroup
+    ).get(field)?.value;
+    return !this.valuesEqual(cons, original);
+  }
+
+  isDistributionItemModified(distribution: Distribution): boolean {
+    if (!this.originalFormValue) return false;
+    const current: Distribution[] =
+      this.datasetForm.get('distribution')?.value || [];
+    const original: Distribution[] =
+      this.originalFormValue['distribution'] || [];
+    const wasSelected = original.some((d) => d['@id'] === distribution['@id']);
+    const isSelected = current.some((d) => d['@id'] === distribution['@id']);
+    return wasSelected !== isSelected;
+  }
+
+  // ===== Old value helpers for tooltips =====
+
+  public getOldValueForPolicyField(
+    policyIndex: number,
+    field: 'assigner' | 'assignee'
+  ): string {
+    if (!this.originalFormValue) return 'N/A';
+    const policies: any[] = (this.originalFormValue['hasPolicy'] ||
+      []) as any[];
+    const value = policies[policyIndex]?.[field];
+    return this.editState.oldValue('dummy') && value !== undefined
+      ? String(value)
+      : value === null || value === undefined || value === ''
+      ? 'N/A'
+      : Array.isArray(value)
+      ? value.join(', ')
+      : String(value);
+  }
+
+  public getOldValueForPermissionField(
+    policyIndex: number,
+    permissionIndex: number,
+    field: 'action'
+  ): string {
+    if (!this.originalFormValue) return 'N/A';
+    const original = (this.originalFormValue['hasPolicy']?.[policyIndex]
+      ?.permission || [])[permissionIndex]?.[field];
+    return original === null || original === undefined || original === ''
+      ? 'N/A'
+      : Array.isArray(original)
+      ? original.join(', ')
+      : String(original);
+  }
+
+  public getOldValueForConstraintField(
+    policyIndex: number,
+    permissionIndex: number,
+    constraintIndex: number,
+    field: 'leftOperand' | 'operator' | 'rightOperand'
+  ): string {
+    if (!this.originalFormValue) return 'N/A';
+    const original = (this.originalFormValue['hasPolicy']?.[policyIndex]
+      ?.permission?.[permissionIndex]?.constraint || [])[constraintIndex]?.[
+      field
+    ];
+    return original === null || original === undefined || original === ''
+      ? 'N/A'
+      : Array.isArray(original)
+      ? original.join(', ')
+      : String(original);
+  }
+
+  // Old-value helpers removed; use EditStateService + oldValue pipe
+
   /**
    * Handles the file selected event.
    * @param event The event.
@@ -1099,6 +1275,7 @@ export class DatasetDetailsComponent {
   removeFile(): void {
     this.selectedFile = undefined;
     this.updateArtifact = false;
+    this.evaluateChanges();
   }
 
   /**
@@ -1136,6 +1313,7 @@ export class DatasetDetailsComponent {
             };
           }
         }
+        this.evaluateChanges();
       }
     });
   }
@@ -1163,6 +1341,8 @@ export class DatasetDetailsComponent {
     this.getConstraintControl(policyIndex, permissionIndex, constraintIndex)
       .get('rightOperand')
       ?.setValue('');
+
+    this.evaluateChanges();
   }
 
   // Get the left operand type for a specific constraint
@@ -1264,5 +1444,6 @@ export class DatasetDetailsComponent {
       // Update the form control with the new date
       control.get('rightOperand')?.setValue(dateTime);
     }
+    this.evaluateChanges();
   }
 }

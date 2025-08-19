@@ -126,10 +126,18 @@
                   <span>{{ catalogData.conformsTo }}</span>
 
                   <strong>Keyword</strong>
-                  <span>{{ catalogData.keyword?.join(", ") || "N/A" }}</span>
+                  <span>{{
+                    (catalogData.keyword || []).length
+                      ? (catalogData.keyword || []).join(", ")
+                      : "N/A"
+                  }}</span>
 
                   <strong>Theme</strong>
-                  <span>{{ catalogData.theme?.join(", ") || "N/A" }}</span>
+                  <span>{{
+                    (catalogData.theme || []).length
+                      ? (catalogData.theme || []).join(", ")
+                      : "N/A"
+                  }}</span>
 
                   <strong>Participant ID</strong>
                   <span> {{ catalogData.participantId }}</span>
@@ -216,21 +224,48 @@
         </div>
         <div class="content-flex">
           <div *ngIf="editMode">
+            <unsaved-changes
+              [active]="editState.hasChanges()"
+            ></unsaved-changes>
             <div class="edit">
               <br />
               <div class="edit-input">
-                <mat-form-field appearance="outline">
+                <mat-form-field
+                  appearance="outline"
+                  [tcModified]="{ key: 'title', state: editState }"
+                >
                   <mat-label>Title</mat-label>
                   <input matInput formControlName="title" />
+                  <mat-icon
+                    *ngIf="editState.isChanged('title')"
+                    matSuffix
+                    class="modified-icon"
+                    [matTooltip]="
+                      'Old Value: ' + ('title' | oldValue : editState)
+                    "
+                    >edit</mat-icon
+                  >
                   <mat-error
                     *ngIf="catalogForm.get('title')?.hasError('required')"
                   >
                     Title is required
                   </mat-error>
                 </mat-form-field>
-                <mat-form-field appearance="outline">
+                <mat-form-field
+                  appearance="outline"
+                  [tcModified]="{ key: 'identifier', state: editState }"
+                >
                   <mat-label>Identifier</mat-label>
                   <input matInput formControlName="identifier" />
+                  <mat-icon
+                    *ngIf="editState.isChanged('identifier')"
+                    matSuffix
+                    class="modified-icon"
+                    [matTooltip]="
+                      'Old Value: ' + ('identifier' | oldValue : editState)
+                    "
+                    >edit</mat-icon
+                  >
                   <mat-error
                     *ngIf="catalogForm.get('identifier')?.hasError('required')"
                   >
@@ -239,18 +274,42 @@
                 </mat-form-field>
               </div>
               <div class="edit-input">
-                <mat-form-field appearance="outline">
+                <mat-form-field
+                  appearance="outline"
+                  [tcModified]="{ key: 'creator', state: editState }"
+                >
                   <mat-label>Creator</mat-label>
                   <input matInput formControlName="creator" />
+                  <mat-icon
+                    *ngIf="editState.isChanged('creator')"
+                    matSuffix
+                    class="modified-icon"
+                    [matTooltip]="
+                      'Old Value: ' + ('creator' | oldValue : editState)
+                    "
+                    >edit</mat-icon
+                  >
                   <mat-error
                     *ngIf="catalogForm.get('creator')?.hasError('required')"
                   >
                     Creator is required
                   </mat-error>
                 </mat-form-field>
-                <mat-form-field appearance="outline">
+                <mat-form-field
+                  appearance="outline"
+                  [tcModified]="{ key: 'conformsTo', state: editState }"
+                >
                   <mat-label>Conforms to</mat-label>
                   <input matInput formControlName="conformsTo" />
+                  <mat-icon
+                    *ngIf="editState.isChanged('conformsTo')"
+                    matSuffix
+                    class="modified-icon"
+                    [matTooltip]="
+                      'Old Value: ' + ('conformsTo' | oldValue : editState)
+                    "
+                    >edit</mat-icon
+                  >
                   <mat-error
                     *ngIf="catalogForm.get('conformsTo')?.hasError('required')"
                   >
@@ -259,9 +318,21 @@
                 </mat-form-field>
               </div>
               <div class="edit-input">
-                <mat-form-field appearance="outline">
+                <mat-form-field
+                  appearance="outline"
+                  [tcModified]="{ key: 'participantId', state: editState }"
+                >
                   <mat-label>Participant ID</mat-label>
                   <input matInput formControlName="participantId" />
+                  <mat-icon
+                    *ngIf="editState.isChanged('participantId')"
+                    matSuffix
+                    class="modified-icon"
+                    [matTooltip]="
+                      'Old Value: ' + ('participantId' | oldValue : editState)
+                    "
+                    >edit</mat-icon
+                  >
                   <mat-error
                     *ngIf="
                       catalogForm.get('participantId')?.hasError('required')
@@ -270,9 +341,21 @@
                     Participant ID is required
                   </mat-error>
                 </mat-form-field>
-                <mat-form-field appearance="outline">
+                <mat-form-field
+                  appearance="outline"
+                  [tcModified]="{ key: 'homepage', state: editState }"
+                >
                   <mat-label>Homepage</mat-label>
                   <input matInput formControlName="homepage" />
+                  <mat-icon
+                    *ngIf="editState.isChanged('homepage')"
+                    matSuffix
+                    class="modified-icon"
+                    [matTooltip]="
+                      'Old Value: ' + ('homepage' | oldValue : editState)
+                    "
+                    >edit</mat-icon
+                  >
                   <mat-error
                     *ngIf="catalogForm.get('homepage')?.hasError('required')"
                   >
@@ -307,6 +390,19 @@
                         maxlength="2"
                         pattern="[a-zA-Z ]*"
                       />
+                      <mat-icon
+                        *ngIf="
+                          editState.isChanged('description[' + i + '].language')
+                        "
+                        matSuffix
+                        class="modified-icon"
+                        [matTooltip]="
+                          'Old Value: ' +
+                          ('description[' + i + '].language'
+                            | oldValue : editState)
+                        "
+                        >edit</mat-icon
+                      >
                       <mat-error
                         *ngIf="desc.get('language')?.hasError('required')"
                       >
@@ -326,6 +422,19 @@
                           formControlName="value"
                           placeholder="Description"
                         ></textarea>
+                        <mat-icon
+                          *ngIf="
+                            editState.isChanged('description[' + i + '].value')
+                          "
+                          matSuffix
+                          class="modified-icon"
+                          [matTooltip]="
+                            'Old Value: ' +
+                            ('description[' + i + '].value'
+                              | oldValue : editState)
+                          "
+                          >edit</mat-icon
+                        >
                         <mat-error
                           *ngIf="desc.get('value')?.hasError('required')"
                         >
@@ -358,13 +467,29 @@
 
               <div formArrayName="keyword">
                 <div class="key">
-                  <div *ngFor="let keyword of keywordControls; let i = index">
+                  <div
+                    *ngFor="let keyword of keywordControls; let i = index"
+                    [tcModified]="{
+                      key: 'keyword[' + i + ']',
+                      state: editState
+                    }"
+                  >
                     <mat-form-field appearance="outline">
                       <input
                         matInput
                         [formControlName]="i"
                         placeholder="Keyword"
                       />
+                      <mat-icon
+                        *ngIf="editState.isChanged('keyword[' + i + ']')"
+                        matSuffix
+                        class="modified-icon"
+                        [matTooltip]="
+                          'Old Value: ' +
+                          ('keyword[' + i + ']' | oldValue : editState)
+                        "
+                        >edit</mat-icon
+                      >
                       <mat-error
                         *ngIf="
                           catalogForm
@@ -390,13 +515,26 @@
               <br />
               <div formArrayName="theme">
                 <div class="key">
-                  <div *ngFor="let theme of themeControls; let i = index">
+                  <div
+                    *ngFor="let theme of themeControls; let i = index"
+                    [tcModified]="{ key: 'theme[' + i + ']', state: editState }"
+                  >
                     <mat-form-field appearance="outline">
                       <input
                         matInput
                         [formControlName]="i"
                         placeholder="Theme"
                       />
+                      <mat-icon
+                        *ngIf="editState.isChanged('theme[' + i + ']')"
+                        matSuffix
+                        class="modified-icon"
+                        [matTooltip]="
+                          'Old Value: ' +
+                          ('theme[' + i + ']' | oldValue : editState)
+                        "
+                        >edit</mat-icon
+                      >
                       <mat-error
                         *ngIf="
                           catalogForm.get(['theme', i])?.hasError('required') &&

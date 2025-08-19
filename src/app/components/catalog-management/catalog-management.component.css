@@ -269,6 +269,34 @@ h1 {
   flex-direction: row;
 }
 
+/* Changes Indicator */
+.changes-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ff9800;
+  font-weight: 500;
+  margin-bottom: 20px;
+  padding: 12px;
+  background: #fff8e1;
+  border-radius: 8px;
+  border-left: 4px solid #ff9800;
+}
+
+/* Remove background/outline highlight; icons indicate changes */
+/* Keep classes as hooks for template conditions without visual changes */
+.field-modified .noop {
+  display: contents;
+}
+.array-item-modified .noop {
+  display: contents;
+}
+
+/* Modified icon styling */
+.modified-icon {
+  color: #ff9800;
+}
+
 /* No catalog content styling */
 .no-catalog-content {
   display: flex;

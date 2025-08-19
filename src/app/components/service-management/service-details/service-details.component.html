@@ -156,36 +156,100 @@
       <div *ngIf="editMode">
         <form [formGroup]="serviceForm">
           <div class="edit">
+            <unsaved-changes
+              [active]="editState.hasChanges()"
+            ></unsaved-changes>
             <br />
             <div class="edit-input">
-              <mat-form-field appearance="outline">
+              <mat-form-field
+                appearance="outline"
+                [tcModified]="{ key: 'title', state: editState }"
+              >
                 <mat-label>Title</mat-label>
                 <input matInput formControlName="title" />
+                <mat-icon
+                  *ngIf="editState.isChanged('title')"
+                  matSuffix
+                  class="modified-icon"
+                  [matTooltip]="
+                    'Old Value: ' + ('title' | oldValue : editState)
+                  "
+                  >edit</mat-icon
+                >
                 <mat-error
                   *ngIf="serviceForm.get('title')?.hasError('required')"
                 >
                   Title is required
                 </mat-error>
               </mat-form-field>
-              <mat-form-field appearance="outline">
+              <mat-form-field
+                appearance="outline"
+                [tcModified]="{ key: 'identifier', state: editState }"
+              >
                 <mat-label>Identifier</mat-label>
                 <input matInput formControlName="identifier" />
+                <mat-icon
+                  *ngIf="editState.isChanged('identifier')"
+                  matSuffix
+                  class="modified-icon"
+                  [matTooltip]="
+                    'Old Value: ' + ('identifier' | oldValue : editState)
+                  "
+                  >edit</mat-icon
+                >
               </mat-form-field>
             </div>
             <div class="edit-input">
-              <mat-form-field appearance="outline">
+              <mat-form-field
+                appearance="outline"
+                [tcModified]="{ key: 'creator', state: editState }"
+              >
                 <mat-label>Creator</mat-label>
                 <input matInput formControlName="creator" />
+                <mat-icon
+                  *ngIf="editState.isChanged('creator')"
+                  matSuffix
+                  class="modified-icon"
+                  [matTooltip]="
+                    'Old Value: ' + ('creator' | oldValue : editState)
+                  "
+                  >edit</mat-icon
+                >
               </mat-form-field>
-              <mat-form-field appearance="outline">
+              <mat-form-field
+                appearance="outline"
+                [tcModified]="{ key: 'conformsTo', state: editState }"
+              >
                 <mat-label>Conforms to</mat-label>
                 <input matInput formControlName="conformsTo" />
+                <mat-icon
+                  *ngIf="editState.isChanged('conformsTo')"
+                  matSuffix
+                  class="modified-icon"
+                  [matTooltip]="
+                    'Old Value: ' + ('conformsTo' | oldValue : editState)
+                  "
+                  >edit</mat-icon
+                >
               </mat-form-field>
             </div>
             <div class="edit-input">
-              <mat-form-field appearance="outline">
+              <mat-form-field
+                appearance="outline"
+                [tcModified]="{ key: 'endpointDescription', state: editState }"
+              >
                 <mat-label>Endpoint description</mat-label>
                 <input matInput formControlName="endpointDescription" />
+                <mat-icon
+                  *ngIf="editState.isChanged('endpointDescription')"
+                  matSuffix
+                  class="modified-icon"
+                  [matTooltip]="
+                    'Old Value: ' +
+                    ('endpointDescription' | oldValue : editState)
+                  "
+                  >edit</mat-icon
+                >
                 <mat-error
                   *ngIf="
                     serviceForm.get('endpointDescription')?.hasError('required')
@@ -194,9 +258,21 @@
                   Endpoint description is required
                 </mat-error>
               </mat-form-field>
-              <mat-form-field appearance="outline">
+              <mat-form-field
+                appearance="outline"
+                [tcModified]="{ key: 'endpointURL', state: editState }"
+              >
                 <mat-label>Endpoint URL</mat-label>
                 <input matInput formControlName="endpointURL" />
+                <mat-icon
+                  *ngIf="editState.isChanged('endpointURL')"
+                  matSuffix
+                  class="modified-icon"
+                  [matTooltip]="
+                    'Old Value: ' + ('endpointURL' | oldValue : editState)
+                  "
+                  >edit</mat-icon
+                >
                 <mat-error
                   *ngIf="serviceForm.get('endpointURL')?.hasError('required')"
                 >
@@ -236,6 +312,19 @@
                       maxlength="2"
                       pattern="[a-zA-Z ]*"
                     />
+                    <mat-icon
+                      *ngIf="
+                        editState.isChanged('description[' + i + '].language')
+                      "
+                      matSuffix
+                      class="modified-icon"
+                      [matTooltip]="
+                        'Old Value: ' +
+                        ('description[' + i + '].language'
+                          | oldValue : editState)
+                      "
+                      >edit</mat-icon
+                    >
                     <mat-error
                       *ngIf="desc.get('language')?.hasError('required')"
                     >
@@ -250,6 +339,19 @@
                         formControlName="value"
                         placeholder="Description"
                       ></textarea>
+                      <mat-icon
+                        *ngIf="
+                          editState.isChanged('description[' + i + '].value')
+                        "
+                        matSuffix
+                        class="modified-icon"
+                        [matTooltip]="
+                          'Old Value: ' +
+                          ('description[' + i + '].value'
+                            | oldValue : editState)
+                        "
+                        >edit</mat-icon
+                      >
                       <mat-error
                         *ngIf="desc.get('value')?.hasError('required')"
                       >
@@ -270,13 +372,26 @@
             <p><strong>Keyword:</strong></p>
             <div formArrayName="keyword">
               <div class="key">
-                <div *ngFor="let keyword of keywordControls; let i = index">
+                <div
+                  *ngFor="let keyword of keywordControls; let i = index"
+                  [tcModified]="{ key: 'keyword[' + i + ']', state: editState }"
+                >
                   <mat-form-field appearance="outline">
                     <input
                       matInput
                       [formControlName]="i"
                       placeholder="Keyword"
                     />
+                    <mat-icon
+                      *ngIf="editState.isChanged('keyword[' + i + ']')"
+                      matSuffix
+                      class="modified-icon"
+                      [matTooltip]="
+                        'Old Value: ' +
+                        ('keyword[' + i + ']' | oldValue : editState)
+                      "
+                      >edit</mat-icon
+                    >
                     <mat-error
                       *ngIf="
                         serviceForm.get(['keyword', i])?.hasError('required') &&
@@ -299,9 +414,22 @@
             <p><strong>Theme:</strong></p>
             <div formArrayName="theme">
               <div class="key">
-                <div *ngFor="let theme of themeControls; let i = index">
+                <div
+                  *ngFor="let theme of themeControls; let i = index"
+                  [tcModified]="{ key: 'theme[' + i + ']', state: editState }"
+                >
                   <mat-form-field appearance="outline">
                     <input matInput [formControlName]="i" placeholder="Theme" />
+                    <mat-icon
+                      *ngIf="editState.isChanged('theme[' + i + ']')"
+                      matSuffix
+                      class="modified-icon"
+                      [matTooltip]="
+                        'Old Value: ' +
+                        ('theme[' + i + ']' | oldValue : editState)
+                      "
+                      >edit</mat-icon
+                    >
                     <mat-error
                       *ngIf="
                         serviceForm.get(['theme', i])?.hasError('required') &&

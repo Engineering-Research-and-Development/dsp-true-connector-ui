@@ -113,11 +113,19 @@
                             </p>
                             <p>
                               <strong>Theme:</strong>
-                              {{ dataset.theme?.join(", ") || "N/A" }}
+                              {{
+                                (dataset.theme || []).length
+                                  ? (dataset.theme || []).join(", ")
+                                  : "N/A"
+                              }}
                             </p>
                             <p>
                               <strong>Keywords:</strong>
-                              {{ dataset.keyword?.join(", ") || "N/A" }}
+                              {{
+                                (dataset.keyword || []).length
+                                  ? (dataset.keyword || []).join(", ")
+                                  : "N/A"
+                              }}
                             </p>
                             <p>
                               <strong>Issued:</strong>
