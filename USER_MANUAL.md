@@ -199,6 +199,8 @@ Configure S3-compatible storage for artifact management:
 
 > The `s3.externalPresignedEndpoint` should reference your machine's local IP address (e.g., `http://192.168.x.x:9000`) for development environments, or the public URL for production deployments.
 
+> If needed to customize the main logo on application, change existing `tc_logo.png` in `ui_a_resources/assets/img` and `ui_b_resources/assets/img` and keep same name.
+
 #### Volume Mounts
 
 **Instance A Volume Configuration:**
@@ -209,6 +211,7 @@ Configure S3-compatible storage for artifact management:
 - Application Logs: `tc_a_log:/var/log/tc`
 - UI Configuration: `./ui_a_resources/nginx.conf:/etc/nginx/nginx.conf`
 - UI SSL Certificates: `./ui_a_resources/ssl:/etc/nginx/ssl:ro`
+- UI Custom logo: `./ui_a_resources/assets/img:/custom-assets:ro`
 - MongoDB Data: `mongodb-data_a:/data/db`
 - MongoDB Config: `mongodb-configdb_a:/data/configdb`
 - Minio S3: `minio_data:/data`
@@ -221,9 +224,12 @@ Configure S3-compatible storage for artifact management:
 - Application Logs: `tc_b_log:/var/log/tc`
 - UI Configuration: `./ui_b_resources/nginx.conf:/etc/nginx/nginx.conf`
 - UI SSL Certificates: `./ui_b_resources/ssl:/etc/nginx/ssl:ro`
+- UI Custom logo: `./ui_b_resources/assets/img:/custom-assets:ro`
 - MongoDB Data: `mongodb-data_b:/data/db`
 - MongoDB Config: `mongodb-configdb_b:/data/configdb`
 - Minio S3: `minio_data:/data`
+
+
 
 ### Getting Started
 
