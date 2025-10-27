@@ -1,6 +1,13 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
 .container {
-  height: calc(100vh - 64px);
+  flex: 1 1 auto;
   overflow-y: auto;
+  min-height: 0;
 }
 
 .sidenav-content {
@@ -24,9 +31,14 @@
 }
 
 .header-image {
-  width: 250px;
-  height: 50px;
-  margin-right: 10px;
+  width: 170px;
+  height: 35px;
+  margin: 10px 20px 10px 42px;
+}
+
+.header-image--custom {
+  height: 30px;
+  margin: 25px 20px 10px 42px;
 }
 
 .mat-expansion-panel:not([class*="mat-elevation-z"]) {
@@ -53,6 +65,25 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.app-footer {
+  display: flex;
+  align-items: center;
+  padding: 12px 24px;
+  background-color: #fafafa;
+  border-top: 1px solid #e0e0e0;
+  font-size: 0.875rem;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.app-footer a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.app-footer__spacer {
+  flex: 1;
 }
 
 .configuration {
