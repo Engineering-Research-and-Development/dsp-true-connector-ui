@@ -239,8 +239,7 @@ export class ArtifactDialogComponent {
    * If the artifact type is EXTERNAL, it includes the external URL and authorization if provided.
    * */
   onSubmit(): void {
-    console.log('Submitting artifact:', this.authorization);
-    console.log('Submitting artifact:', this.artifactType.toLowerCase);
+
     if (this.artifactType === 'FILE' && this.selectedFile) {
       this.dialogRef.close({
         artifactType: 'FILE',

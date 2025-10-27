@@ -134,7 +134,6 @@ export class CatalogService {
    * @example catalogService.updateCatalog(catalog).subscribe({ next: console.log, error: console.error, complete: () => console.log('completed') });
    * */
   updateCatalog(catalog: Catalog): Observable<Catalog> {
-    console.log('Updating catalog with id:', catalog);
     return this.http
       .put<GenericApiResponse<Catalog>>(
         this.catalogApiUrl + '/' + catalog['@id'],

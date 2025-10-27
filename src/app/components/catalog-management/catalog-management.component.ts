@@ -154,7 +154,7 @@ export class CatalogManagementComponent implements OnInit {
   updateCatalogData() {
     this.loading = true;
     this.catalogService
-      .updateCatalog(this.cleanFormData(this.catalogForm, 'update' ))
+      .updateCatalog(this.cleanFormData(this.catalogForm, 'update'))
       .subscribe({
         next: (data) => {
           this.catalogData = data;
@@ -484,7 +484,6 @@ export class CatalogManagementComponent implements OnInit {
    */
   updateForm(catalogData: Catalog | undefined): void {
     if (catalogData) {
-      console.log('Updating form with catalog data:', catalogData);
       this.catalogForm.patchValue({
         '@id': catalogData['@id'],
         type: catalogData.type,
@@ -509,7 +508,6 @@ export class CatalogManagementComponent implements OnInit {
       this.setFormArray('dataset', catalogData.dataset);
       this.setFormArray('service', catalogData.service);
 
-      console.log('Form after patching:', this.catalogForm.value);
       this.editState.init(this.catalogForm);
     }
   }
