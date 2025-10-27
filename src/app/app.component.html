@@ -8,8 +8,8 @@
         src="assets/img/tc_logo.png"
         alt="True Connector Logo"
         class="header-image"
+        [class.header-image--custom]="hasCustomLogo"
       />
-      V{{ appVersion }}
     </h1>
     <span class="spacer"></span>
 
@@ -145,3 +145,11 @@
 
   <div><router-outlet></router-outlet></div>
 </mat-sidenav-container>
+<footer class="app-footer" *ngIf="isUserLoggedIn">
+  <span>
+    © {{ currentYear }} TRUE Connector created by
+    <a href="https://www.eng.it/en" target="_blank" rel="noopener">Engineering</a>
+  </span>
+  <span class="app-footer__spacer"></span>
+  <span>Version {{ appVersion }}</span>
+</footer>

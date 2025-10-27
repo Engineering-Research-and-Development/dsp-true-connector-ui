@@ -49,12 +49,10 @@ export class DatasetService {
     } else if (externalURL) {
       formData.append('url', externalURL);
       if (authorization) {
-        console.log('authorization', authorization);
         formData.append('authorization', authorization);
       }
     }
 
-    console.log('formData', formData.getAll('dataset'));
     return this.http
       .post<GenericApiResponse<Dataset>>(this.datasetApiUrl, formData)
       .pipe(
@@ -137,11 +135,6 @@ export class DatasetService {
     const formData = new FormData();
     formData.append('dataset', JSON.stringify(dataset));
 
-    console.log('dataset', dataset);
-    console.log('file', file);
-    console.log('externalURL', externalURL);
-    console.log('authorization', authorization);
-    console.log('formData', formData.getAll('dataset'));
     // Add file or external URL if provided
     if (file) {
       formData.append('file', file);

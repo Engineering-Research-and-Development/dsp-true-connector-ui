@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+# [0.2.1] - 27-10-2025
+
+### Added
+
+- Support for changing main logo of the application for tailored projects directly from resources
+
+### Changed
+
+- Fix bug not getting catalog ID when sending PUT request for update
+- Added section about importing custom logo in USER_MANUAL.md file
+
 # [0.2.0] - 08-08-2025
 
 ### Added

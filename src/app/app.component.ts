@@ -43,6 +43,8 @@ import { AuthService } from './services/auth/auth.service';
 export class AppComponent implements OnInit {
   title = 'TRUE Connector UI';
   appVersion = environment.APP_VERSION;
+  currentYear = new Date().getFullYear();
+  hasCustomLogo = environment.CUSTOM_LOGO_PRESENT === 'true';
   isExpanded = true;
   isUserLoggedIn = true;
 

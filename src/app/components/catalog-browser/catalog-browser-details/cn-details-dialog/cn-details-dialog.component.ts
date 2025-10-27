@@ -17,7 +17,6 @@ export class CnDetailsDialogComponent {
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.type = data.type;
-    console.log(data);
   }
 
   /**

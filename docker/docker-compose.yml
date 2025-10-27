@@ -51,6 +51,7 @@ services:
     volumes:
       - ./ui_a_resources/nginx.conf:/etc/nginx/nginx.conf
       - ./ui_a_resources/ssl:/etc/nginx/ssl:ro
+      - ./ui_a_resources/assets/img:/custom-assets:ro
 
   mongodb-a:
     container_name: mongodb-a
@@ -115,6 +116,7 @@ services:
     volumes:
       - ./ui_b_resources/nginx.conf:/etc/nginx/nginx.conf
       - ./ui_b_resources/ssl:/etc/nginx/ssl:ro
+      - ./ui_b_resources/assets/img:/custom-assets:ro
       
   mongodb-b:
     container_name: mongodb-b

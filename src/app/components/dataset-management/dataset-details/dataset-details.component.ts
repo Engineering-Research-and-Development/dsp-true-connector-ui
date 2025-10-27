@@ -303,10 +303,6 @@ export class DatasetDetailsComponent implements OnDestroy {
       this.datasetArtifact.artifactType === 'EXTERNAL'
     ) {
       // Use external artifact
-      console.log(
-        'Using external artifact',
-        this.datasetArtifact.authorization
-      );
       this.datasetService
         .createDataset(
           cleanedData,
@@ -567,7 +563,6 @@ export class DatasetDetailsComponent implements OnDestroy {
    */
   updateForm(dataset: Dataset): void {
     if (dataset) {
-      console.log('Updating form with dataset:', dataset);
       this.initializingForm = true;
       this.datasetForm.patchValue({
         '@id': dataset['@id'],
@@ -706,7 +701,6 @@ export class DatasetDetailsComponent implements OnDestroy {
    * @returns The cleaned and prepared form data.
    * */
   cleanFormData(formGroup: FormGroup): any {
-    console.log('Cleaning and preparing form data:', formGroup.value);
     const cleanedData = { ...formGroup.value };
 
     // Remove metadata fields that shouldn't be sent
@@ -766,7 +760,6 @@ export class DatasetDetailsComponent implements OnDestroy {
       });
     }
 
-    console.log('Cleaned and prepared data:', cleanedData);
     return cleanedData;
   }
 
