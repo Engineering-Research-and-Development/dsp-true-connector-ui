@@ -203,8 +203,6 @@ export class DistributionDetailsComponent implements OnInit {
    * */
   saveDistributionData() {
     this.loading = true;
-    console.log('Saving new distribution', this.cleanFormData(this.distributionForm));
-    console.log('Form data:', this.distributionForm.value);
     this.distributionService
       .createDistribution(this.cleanFormData(this.distributionForm))
       .subscribe({
