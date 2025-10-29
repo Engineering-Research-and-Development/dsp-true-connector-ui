@@ -77,6 +77,26 @@ export class CatalogManagementComponent implements OnInit {
   allDatasets: Dataset[] = [];
   allPolicies: any[] = [];
 
+  get missingCatalogSections(): string[] {
+    if (!this.catalogData) {
+      return [];
+    }
+
+    const sections = [
+      { data: this.catalogData.service, label: 'Service' },
+      { data: this.catalogData.dataset, label: 'Dataset' },
+      { data: this.catalogData.distribution, label: 'Distribution' },
+    ];
+
+    return sections
+      .filter((section) => !this.hasItems(section.data))
+      .map((section) => section.label);
+  }
+
+  get showMissingSectionsAlert(): boolean {
+    return !this.editMode && this.missingCatalogSections.length > 0;
+  }
+
   // Change tracking handled by EditStateService
 
   constructor(
@@ -196,7 +216,6 @@ export class CatalogManagementComponent implements OnInit {
       dataset: [],
       service: [],
       participantId: '',
-      homepage: '',
     };
 
     this.catalogData = emptyCatalog;
@@ -358,6 +377,10 @@ export class CatalogManagementComponent implements OnInit {
     return Array.from(languagesSet);
   }
 
+  private hasItems(collection: unknown[] | undefined | null): boolean {
+    return Array.isArray(collection) && collection.length > 0;
+  }
+
   /**
    * Handles the language selection event.
    * Sets the description value based on the selected language.
@@ -465,7 +488,6 @@ export class CatalogManagementComponent implements OnInit {
       creator: [null, Validators.required],
       conformsTo: [null],
       participantId: ['', Validators.required],
-      homepage: [null],
       createdBy: [null],
       lastModifiedBy: [null],
       version: [null],
@@ -492,7 +514,6 @@ export class CatalogManagementComponent implements OnInit {
         creator: catalogData.creator,
         conformsTo: catalogData.conformsTo,
         participantId: catalogData.participantId,
-        homepage: catalogData.homepage,
         createdBy: catalogData.createdBy,
         lastModifiedBy: catalogData.lastModifiedBy,
         version: catalogData.version,

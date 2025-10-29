@@ -346,3 +346,35 @@ h1 {
 .action-button mat-icon {
   margin-right: 8px !important;
 }
+
+.catalog-validation-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 20px 0;
+  padding: 16px;
+  border-radius: 8px;
+  background-color: #fdecea;
+  color: #b71c1c;
+  border-left: 4px solid #d32f2f;
+}
+
+.catalog-validation-alert mat-icon {
+  color: #d32f2f;
+}
+
+.catalog-validation-alert p {
+  margin: 0;
+  color: inherit;
+}
+
+.catalog-validation-alert ul {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  color: inherit;
+}
+
+.alert-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}

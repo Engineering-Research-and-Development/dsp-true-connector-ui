@@ -108,6 +108,25 @@
           </div>
         </div>
 
+        <div
+          *ngIf="showMissingSectionsAlert"
+          class="catalog-validation-alert"
+          role="alert"
+        >
+          <mat-icon color="warn" aria-hidden="true">error_outline</mat-icon>
+          <div>
+            <p class="alert-title">Catalog is not valid</p>
+            <p>
+              Add next missing things to the catalog:
+            </p>
+            <ul>
+              <li *ngFor="let section of missingCatalogSections">
+                {{ section }}
+              </li>
+            </ul>
+          </div>
+        </div>
+
         <div *ngIf="!editMode">
           <mat-tab-group>
             <mat-tab label="Basic info">
@@ -141,9 +160,6 @@
 
                   <strong>Participant ID</strong>
                   <span> {{ catalogData.participantId }}</span>
-
-                  <strong>Homepage</strong>
-                  <span>{{ catalogData.homepage }}</span>
                 </div>
               </div>
             </mat-tab>
@@ -211,17 +227,6 @@
           </mat-tab-group>
         </div>
 
-        <div
-          *ngIf="
-            !editMode &&
-            (catalogData.service.length < 1 ||
-              catalogData.distribution.length < 1 ||
-              catalogData.dataset.length < 1)
-          "
-        >
-          The catalog is missing one of next things: Distribution, Service or
-          Dataset, please assign to it to be valid.
-        </div>
         <div class="content-flex">
           <div *ngIf="editMode">
             <unsaved-changes
@@ -341,27 +346,7 @@
                     Participant ID is required
                   </mat-error>
                 </mat-form-field>
-                <mat-form-field
-                  appearance="outline"
-                  [tcModified]="{ key: 'homepage', state: editState }"
-                >
-                  <mat-label>Homepage</mat-label>
-                  <input matInput formControlName="homepage" />
-                  <mat-icon
-                    *ngIf="editState.isChanged('homepage')"
-                    matSuffix
-                    class="modified-icon"
-                    [matTooltip]="
-                      'Old Value: ' + ('homepage' | oldValue : editState)
-                    "
-                    >edit</mat-icon
-                  >
-                  <mat-error
-                    *ngIf="catalogForm.get('homepage')?.hasError('required')"
-                  >
-                    Homepage is required
-                  </mat-error>
-                </mat-form-field>
+
               </div>
               <p *ngIf="catalogForm.get('description')?.value.length > 0">
                 <strong>Description*:</strong>
