@@ -68,7 +68,6 @@
         }
       ],
       "participantId": "urn:example:DataProviderA",
-      "homepage": "https://www.homepage.com/test",
       "createdBy": "admin@mail.com",
       "lastModifiedBy": "admin@mail.com",
       "version": 0
