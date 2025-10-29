@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Support for changing main logo of the application for tailored projects directly from resources
+- Catalog Management aligned with the DSP 2025-01 protocol specification
 
 ### Changed
 

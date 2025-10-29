@@ -4,6 +4,7 @@
 ### Added
 
 - Support for easily changing application logo
+- Support for DSP 2025-01 protocol specification
 - Bug fixing
 
 # [0.2.0] - 08-08-2025
