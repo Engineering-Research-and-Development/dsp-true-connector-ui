@@ -52,7 +52,7 @@ export const MOCK_DATA_SERVICE: DataService = {
 
 export const MOCK_DISTRIBUTION: Distribution = {
   '@id': 'urn:uuid:f159416c-1996-423c-bd0c-b71d4f356506',
-  accessService: [MOCK_DATA_SERVICE],
+  accessService: MOCK_DATA_SERVICE,
   description: [
     {
       value: 'For test',
@@ -65,8 +65,6 @@ export const MOCK_DISTRIBUTION: Distribution = {
   hasPolicy: [
     {
       '@id': 'urn:offer_id',
-      assignee: null,
-      assigner: null,
       permission: [
         {
           action: 'USE',
@@ -77,12 +75,8 @@ export const MOCK_DISTRIBUTION: Distribution = {
               rightOperand: '5',
             },
           ],
-          assignee: null,
-          assigner: null,
-          target: null,
         },
       ],
-      target: null,
     },
   ],
   issued: '2024-04-23T18:26:00+02:00',
@@ -161,8 +155,6 @@ export const MOCK_CATALOG: Catalog = {
   hasPolicy: [
     {
       '@id': 'urn:offer_id',
-      assignee: null,
-      assigner: null,
       permission: [
         {
           action: 'USE',
@@ -173,18 +165,13 @@ export const MOCK_CATALOG: Catalog = {
               rightOperand: '5',
             },
           ],
-          assignee: null,
-          assigner: null,
-          target: null,
         },
       ],
-      target: null,
     },
   ],
   dataset: [MOCK_DATASET],
   service: [MOCK_DATA_SERVICE],
   participantId: 'urn:example:DataProviderA',
-  homepage: 'https://provider-a.com/connector',
   type: 'dcat:Catalog',
   version: 1,
   createdBy: 'admin@admin.com',
@@ -279,8 +266,6 @@ export const MOCK_OFFER: Offer = {
   assignee: 'urn:uuid:ASSIGNEE_CONSUMER',
   assigner: 'urn:uuid:ASSIGNER_PROVIDER',
   permission: [MOCK_PERMISSION],
-  providerPid: 'urn:uuid:PROVIDER_PID',
-  consumerPid: 'urn:uuid:CONSUMER_PID',
 };
 
 export const MOCK_CONTRACT_NEGOTIATION: ContractNegotiation = {

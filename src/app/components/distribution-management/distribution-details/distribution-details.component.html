@@ -159,8 +159,11 @@
                 appearance="outline"
                 [tcModified]="{ key: 'accessService', state: editState }"
               >
-                <mat-label>Select Access Services</mat-label>
-                <mat-select formControlName="accessService" multiple>
+                <mat-label>Select Access Service</mat-label>
+                <mat-select
+                  formControlName="accessService"
+                  [compareWith]="compareServices"
+                >
                   <mat-option
                     *ngFor="let service of allServices"
                     [value]="service"
@@ -264,28 +267,24 @@
           class="expansion-panel"
           *ngIf="
             !editMode &&
-            distribution.accessService &&
-            distribution.accessService.length > 0
+            distribution.accessService
           "
         >
           <mat-expansion-panel-header>
             <mat-panel-title>Access services</mat-panel-title>
           </mat-expansion-panel-header>
-          <div
-            *ngFor="let service of distribution.accessService"
-            class="resource-section"
-          >
+        
             <div>
-              <p>{{ service.title }}</p>
-              <button mat-button (click)="navigateToServiceDetails(service)">
+              <p>{{ distribution.accessService.title }}</p>
+              <button mat-button (click)="navigateToServiceDetails(distribution.accessService)">
                 <mat-icon>visibility</mat-icon>
               </button>
             </div>
             <hr />
-          </div>
+   
         </mat-expansion-panel>
-
-        <mat-expansion-panel
+<!-- Currently not implemented -->
+        <!-- <mat-expansion-panel
           class="expansion-panel"
           *ngIf="
             !editMode &&
@@ -301,14 +300,14 @@
             class="resource-section"
           >
             <div>
-              <p>{{ policy.title }}</p>
+              <p>{{ policy }}</p>
               <button mat-button (click)="navigateToPolicyDetails(policy)">
                 <mat-icon>visibility</mat-icon>
               </button>
             </div>
             <hr />
           </div>
-        </mat-expansion-panel>
+        </mat-expansion-panel> -->
       </div>
     </mat-card-content>
   </mat-card>

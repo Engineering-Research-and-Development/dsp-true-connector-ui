@@ -203,6 +203,8 @@ export class DistributionDetailsComponent implements OnInit {
    * */
   saveDistributionData() {
     this.loading = true;
+    console.log('Saving new distribution', this.cleanFormData(this.distributionForm));
+    console.log('Form data:', this.distributionForm.value);
     this.distributionService
       .createDistribution(this.cleanFormData(this.distributionForm))
       .subscribe({
@@ -312,6 +314,13 @@ export class DistributionDetailsComponent implements OnInit {
     });
   }
 
+  compareServices(option: DataService | null, selected: DataService | null): boolean {
+    if (!option || !selected) {
+      return option === selected;
+    }
+    return option['@id'] === selected['@id'];
+  }
+
   /**
    * Navigates to the policy details page.
    * @param policy The policy to navigate
@@ -344,7 +353,7 @@ export class DistributionDetailsComponent implements OnInit {
       issued: null,
       modified: null,
       hasPolicy: this.fb.array([]),
-      accessService: [[], Validators.required],
+      accessService: [null, Validators.required],
     });
   }
 
@@ -362,15 +371,9 @@ export class DistributionDetailsComponent implements OnInit {
         version: distribution.version,
         issued: distribution.issued,
         modified: distribution.modified,
+        accessService: distribution.accessService,
       });
 
-      this.distributionForm
-        .get('accessService')
-        ?.setValue(
-          distribution.accessService.map((service) =>
-            this.allServices.find((s) => s['@id'] === service['@id'])
-          )
-        );
       this.setFormArray('hasPolicy', distribution.hasPolicy || []);
       if (distribution.description.length === 0) {
         this.addDescription();
