@@ -1,4 +1,10 @@
 
+# [0.2.1] - 03-11-2025
+
+### Changed
+
+- Fix bug with vertical scrolling in style.css
+
 # [0.2.1] - 27-10-2025
 
 ### Added

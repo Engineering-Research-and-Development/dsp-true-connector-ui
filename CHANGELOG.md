@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+# [0.2.2] - 03-11-2025
+
+### Changed
+
+- Fix bug with vertical scrolling
+
 # [0.2.1] - 27-10-2025
 
 ### Added
