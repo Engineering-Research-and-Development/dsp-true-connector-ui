@@ -1,3 +1,11 @@
+
+# [0.2.1] - 27-10-2025
+
+### Added
+
+- Support for easily changing application logo
+- Bug fixing
+
 # [0.2.0] - 08-08-2025
 
 ### Added

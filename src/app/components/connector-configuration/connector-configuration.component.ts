@@ -60,9 +60,6 @@ export class ConnectorConfigurationComponent implements OnInit {
     this.applicationPropertiesService.getProperties().subscribe({
       next: (properties) => {
         this.properties = properties;
-        console.log('Loaded properties:', properties);
-        console.log('Groups found:', this.groupKeys);
-        console.log('Grouped properties:', this.groupedProperties);
         this.storeOriginalValues();
         this.loading = false;
       },

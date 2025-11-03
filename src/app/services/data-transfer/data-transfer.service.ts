@@ -404,7 +404,6 @@ export class DataTransferService {
    * @returns   Observable<any>
    */
   viewArtifact(presignedUrl: string): Observable<any> {
-    console.log('Downloading artifact for process id:', presignedUrl);
     return this.http
       .get(presignedUrl, {
         responseType: 'blob',

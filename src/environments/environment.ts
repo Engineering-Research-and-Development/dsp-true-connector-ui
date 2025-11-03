@@ -1,5 +1,6 @@
 export const environment = {
-  APP_VERSION: '0.2.0',
+  APP_VERSION: '0.2.1-dev',
+  CUSTOM_LOGO_PRESENT: 'CUSTOM_LOGO_PRESENT_PLACEHOLDER',
   TC_ROOT_API_URL: 'TC_ROOT_API_URL_PLACEHOLDER',
   CATALOG_API_URL: () => `${environment.TC_ROOT_API_URL}/catalogs`,
   DATASET_API_URL: () => `${environment.TC_ROOT_API_URL}/datasets`,

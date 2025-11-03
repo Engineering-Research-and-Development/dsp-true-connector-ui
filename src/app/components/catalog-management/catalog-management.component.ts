@@ -109,7 +109,6 @@ export class CatalogManagementComponent implements OnInit {
     this.catalogService.getCatalog().subscribe({
       next: (data) => {
         console.log('Catalog data fetched');
-
         this.catalogData = data;
         this.languages = this.extractLanguages(this.catalogData.description);
         this.updateForm(this.catalogData);
@@ -130,7 +129,7 @@ export class CatalogManagementComponent implements OnInit {
   saveCatalogData() {
     this.loading = true;
     this.catalogService
-      .createCatalog(this.cleanFormData(this.catalogForm))
+      .createCatalog(this.cleanFormData(this.catalogForm, 'create'))
       .subscribe({
         next: (data) => {
           this.catalogData = data;
@@ -155,7 +154,7 @@ export class CatalogManagementComponent implements OnInit {
   updateCatalogData() {
     this.loading = true;
     this.catalogService
-      .updateCatalog(this.cleanFormData(this.catalogForm))
+      .updateCatalog(this.cleanFormData(this.catalogForm, 'update'))
       .subscribe({
         next: (data) => {
           this.catalogData = data;
@@ -546,10 +545,12 @@ export class CatalogManagementComponent implements OnInit {
    * @param formGroup The form group to clean.
    * @returns The cleaned form group.
    * */
-  cleanFormData(formGroup: FormGroup): any {
+  cleanFormData(formGroup: FormGroup, operation: 'create' | 'update'): any {
     const cleanedData = { ...formGroup.value };
 
+    if (operation === 'create') {
     delete cleanedData['@id'];
+    }
     delete cleanedData.createdBy;
     delete cleanedData.lastModifiedBy;
     delete cleanedData.version;

@@ -3,6 +3,8 @@
 set -e  # Exit on error
 
 ENV_DIR="/usr/share/nginx/html/browser"
+CUSTOM_ASSETS_DIR="/custom-assets"
+TARGET_LOGO="${ENV_DIR}/assets/img/tc_logo.png"
 
 # Find all JavaScript files (main and chunks)
 JS_FILES=$(find "$ENV_DIR" -name '*.js' -type f)
@@ -79,7 +81,21 @@ echo "============================================================"
 # Replace placeholders with environment variables
 replace_placeholder 'TC_ROOT_API_URL_PLACEHOLDER' "$TC_ROOT_API_URL"
 
+custom_logo_present="false"
+
+# Apply custom logo override when provided via bind mount
+if [ -f "${CUSTOM_ASSETS_DIR}/tc_logo.png" ]; then
+    echo "Custom tc_logo.png detected, overriding default logo"
+    cp "${CUSTOM_ASSETS_DIR}/tc_logo.png" "${TARGET_LOGO}"
+    custom_logo_present="true"
+else
+    echo "No custom tc_logo.png supplied, keeping bundled logo"
+fi
+
+replace_placeholder 'CUSTOM_LOGO_PRESENT_PLACEHOLDER' "$custom_logo_present"
+
 echo "============================================================"
 echo "Environment variables applied!"
+echo "Custom logo present: ${custom_logo_present}"
 
 exec "$@"

@@ -169,7 +169,6 @@ export class ContractNegotiationService {
    *
    * */
   approveNegotiation(negotiationId: string): Observable<ContractNegotiation> {
-    console.log('negotiationId', negotiationId);
     return this.http
       .put<GenericApiResponse<ContractNegotiation>>(
         this.apiUrl + '/' + negotiationId + '/approve',
