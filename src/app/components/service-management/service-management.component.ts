@@ -118,7 +118,6 @@ export class ServiceManagementComponent implements OnInit {
       title: '',
       endpointDescription: '',
       endpointURL: '',
-      servesDataset: [],
     };
     this.router.navigate(['/catalog-management/service-management/details'], {
       state: { service: newService, editMode: true },

@@ -136,7 +136,7 @@ export class CatalogBrowserDetailsComponent {
     distribution: Distribution,
     datasetId: string
   ): any {
-    const endpointURL = distribution.accessService[0].endpointURL;
+    const endpointURL = distribution.accessService.endpointURL;
     const baseEndpoint = endpointURL.endsWith('/')
       ? endpointURL
       : endpointURL + '/';

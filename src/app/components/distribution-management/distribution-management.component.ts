@@ -118,7 +118,7 @@ export class DistributionManagementComponent implements OnInit {
     const newDistribution: Distribution = {
       title: '',
       description: [],
-      accessService: [],
+      accessService: {} as any,
       hasPolicy: [],
     };
     this.router.navigate(

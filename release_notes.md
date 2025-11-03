@@ -1,3 +1,8 @@
+# [0.6.0] - 03-11-2025
+
+### Changed
+
+- Support for DSP 2025-1 protocol specification
 
 # [0.2.1] - 03-11-2025
 

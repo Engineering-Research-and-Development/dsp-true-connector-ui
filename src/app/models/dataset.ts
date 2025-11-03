@@ -5,11 +5,10 @@ import { Offer } from './offer';
 
 export interface Dataset {
   '@id': string;
-  type?: string;
+  readonly type?: string;
   title: string;
   description: Multilanguage[];
   keyword: string[];
-  // value: string;
   distribution: Distribution[];
   hasPolicy: Offer[];
   conformsTo?: string;

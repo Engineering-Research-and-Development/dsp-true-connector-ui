@@ -58,16 +58,16 @@
               <span>Manage Services</span>
             </mat-list-item>
           </a>
-          <a routerLink="/catalog-management/dataset-management">
-            <mat-list-item>
-              <mat-icon>dataset</mat-icon>
-              <span>Manage Datasets</span>
-            </mat-list-item>
-          </a>
           <a routerLink="/catalog-management/distribution-management">
             <mat-list-item>
               <mat-icon>share</mat-icon>
               <span>Manage Distributions</span>
+            </mat-list-item>
+          </a>
+          <a routerLink="/catalog-management/dataset-management">
+            <mat-list-item>
+              <mat-icon>dataset</mat-icon>
+              <span>Manage Datasets</span>
             </mat-list-item>
           </a>
           <!-- <a routerLink="/under-construction">
@@ -148,7 +148,9 @@
 <footer class="app-footer" *ngIf="isUserLoggedIn">
   <span>
     © {{ currentYear }} TRUE Connector created by
-    <a href="https://www.eng.it/en" target="_blank" rel="noopener">Engineering</a>
+    <a href="https://www.eng.it/en" target="_blank" rel="noopener"
+      >Engineering</a
+    >
   </span>
   <span class="app-footer__spacer"></span>
   <span>Version {{ appVersion }}</span>

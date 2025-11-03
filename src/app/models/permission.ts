@@ -1,8 +1,9 @@
 export interface Permission {
-  assigner: string;
-  assignee: string;
+  readonly type?: string;
+  assigner?: string;
+  assignee?: string;
   action: string;
-  constraint: Constraint[];
+  constraint?: Constraint[];
   target?: string;
 }
 

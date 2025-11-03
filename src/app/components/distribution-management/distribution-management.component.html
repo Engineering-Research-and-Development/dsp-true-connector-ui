@@ -59,15 +59,15 @@
                 {{ distribution.modified | date : "d MMMM y, HH:mm:ss" }}
               </p>
               <p>
-                <strong>Access services:</strong>
-                {{ distribution.accessService.length || 0 }}
+                <strong>Access service:</strong>
+                {{ distribution.accessService.title }}
               </p>
-
-              <p>
+<!-- Currently not implemented-->
+              <!-- <p>
                 <strong>Offers:</strong>
 
                 {{ distribution.hasPolicy?.length || 0 }}
-              </p>
+              </p> -->
             </div>
             <div class="btn-action">
               <button
