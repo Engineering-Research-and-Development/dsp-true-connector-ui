@@ -184,7 +184,8 @@
               >
                 <mat-progress-spinner diameter="24" mode="indeterminate">
                 </mat-progress-spinner>
-                <p>Downloading...</p>
+                <p *ngIf="userType === 'provider' && dataTransfer.format === 'HttpData-PUSH'">Pushing data...</p>
+                <p *ngIf="!(userType === 'provider' && dataTransfer.format === 'HttpData-PUSH')">Downloading...</p>
               </div>
               <ng-container *ngIf="!isDownloading(dataTransfer['@id'])">
                 <button
@@ -194,11 +195,57 @@
                     dataTransfer.state === dataTransferState.INITIALIZED &&
                     userType === 'consumer'
                   "
-                  (click)="onRequest(dataTransfer, 'HttpData-PULL')"
+                  [matMenuTriggerFor]="requestMenu"
+                  (click)="loadRequestFormats(dataTransfer)"
                 >
                   <mat-icon>check</mat-icon>
                   <p>Request</p>
                 </button>
+                <mat-menu
+                  #requestMenu="matMenu"
+                  (menuOpened)="loadRequestFormats(dataTransfer)"
+                >
+                  <ng-container
+                    *ngIf="requestFormatsLoading[dataTransfer['@id']]; else formatsContent"
+                  >
+                    <button mat-menu-item disabled>
+                      <mat-progress-spinner
+                        diameter="18"
+                        mode="indeterminate"
+                      ></mat-progress-spinner>
+                      <span>Loading formats…</span>
+                    </button>
+                  </ng-container>
+                  <ng-template #formatsContent>
+                    <ng-container
+                      *ngIf="
+                        requestFormatsMap[dataTransfer['@id']]?.length;
+                        else noFormats
+                      "
+                    >
+                      <button
+                        mat-menu-item
+                        *ngFor="
+                          let formatOption of requestFormatsMap[
+                            dataTransfer['@id']
+                          ]
+                        "
+                        (click)="onRequest(dataTransfer, formatOption)"
+                      >
+                        {{ formatOption }}
+                      </button>
+                    </ng-container>
+                  </ng-template>
+                  <ng-template #noFormats>
+                    <button
+                      mat-menu-item
+                      disabled
+                      *ngIf="requestFormatsLoaded[dataTransfer['@id']]"
+                    >
+                      No formats available
+                    </button>
+                  </ng-template>
+                </mat-menu>
                 <button
                   mat-button
                   matTooltip="Start data transfer"
@@ -216,13 +263,44 @@
                   mat-button
                   [matTooltip]="
                     isDownloading(dataTransfer['@id'])
+                      ? 'Pushing data in progress...'
+                      : 'Push data to consumer'
+                  "
+                  *ngIf="
+                    dataTransfer.state === dataTransferState.STARTED &&
+                    userType === 'provider' &&
+                    dataTransfer.format === 'HttpData-PUSH'
+                  "
+                  (click)="onDownload(dataTransfer)"
+                  [disabled]="isDownloading(dataTransfer['@id'])"
+                >
+                  <mat-progress-spinner
+                    *ngIf="isDownloading(dataTransfer['@id'])"
+                    diameter="20"
+                    mode="indeterminate"
+                  >
+                  </mat-progress-spinner>
+
+                  <mat-icon *ngIf="!isDownloading(dataTransfer['@id'])"
+                    >upload</mat-icon
+                  >
+
+                  <p>
+                    {{ isDownloading(dataTransfer["@id"]) ? "" : "Push data" }}
+                  </p>
+                </button>
+                <button
+                  mat-button
+                  [matTooltip]="
+                    isDownloading(dataTransfer['@id'])
                       ? 'Downloading in progress...'
                       : 'Download artifact'
                   "
                   *ngIf="
                     dataTransfer.state === dataTransferState.STARTED &&
                     userType === 'consumer' &&
-                    dataTransfer.downloaded === false
+                    dataTransfer.downloaded === false &&
+                    !(userType === 'consumer' && dataTransfer.format === 'HttpData-PUSH' && dataTransfer.state === dataTransferState.STARTED)
                   "
                   (click)="onDownload(dataTransfer)"
                   [disabled]="isDownloading(dataTransfer['@id'])"
@@ -246,7 +324,7 @@
                   mat-button
                   matTooltip="View artifact"
                   *ngIf="
-                    dataTransfer.state === dataTransferState.STARTED &&
+                    dataTransfer.state === dataTransferState.COMPLETED &&
                     userType === 'consumer' &&
                     dataTransfer.downloaded === true
                   "
@@ -258,7 +336,10 @@
                 <button
                   mat-button
                   matTooltip="Complete data transfer"
-                  *ngIf="dataTransfer.state === dataTransferState.STARTED"
+                  *ngIf="
+                    dataTransfer.state === dataTransferState.STARTED &&
+                    !(userType === 'consumer' && dataTransfer.format === 'HttpData-PUSH' && dataTransfer.state === dataTransferState.STARTED)
+                  "
                   (click)="onComplete(dataTransfer)"
                 >
                   <mat-icon>verified</mat-icon>
@@ -284,7 +365,8 @@
                   matTooltip="Terminate data transfer"
                   *ngIf="
                     dataTransfer.state !== dataTransferState.COMPLETED &&
-                    dataTransfer.state !== dataTransferState.TERMINATED
+                    dataTransfer.state !== dataTransferState.TERMINATED &&
+                    dataTransfer.state !== dataTransferState.INITIALIZED
                   "
                   (click)="onTerminate(dataTransfer)"
                 >

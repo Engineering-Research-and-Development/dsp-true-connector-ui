@@ -3,8 +3,8 @@ import { Multilanguage } from './multilanguage';
 
 export interface Distribution {
   '@id'?: string;
-  title: string;
-  description: Multilanguage[];
+  title?: string;
+  description?: Multilanguage[];
   issued?: string;
   modified?: string;
   createdBy?: string;
@@ -13,5 +13,5 @@ export interface Distribution {
   accessService: DataService[];
   hasPolicy?: any[];
   type?: string;
-  format?: any;
+  format: any;
 }

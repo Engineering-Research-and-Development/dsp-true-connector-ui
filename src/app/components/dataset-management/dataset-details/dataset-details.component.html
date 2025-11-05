@@ -407,64 +407,34 @@
               >
                 <div class="edit">
                   <br />
-                  <div class="edit-input">
-                    <mat-form-field
-                      appearance="outline"
-                      [class.field-modified]="
-                        isPolicyFieldModified(i, 'assigner')
+                  <mat-form-field
+                    appearance="outline"
+                    [class.field-modified]="
+                      isPolicyFieldModified(i, 'assigner')
+                    "
+                  >
+                    <mat-label>Assigner</mat-label>
+                    <input
+                      matInput
+                      formControlName="assigner"
+                      placeholder="Assigner"
+                    />
+                    <mat-icon
+                      *ngIf="isPolicyFieldModified(i, 'assigner')"
+                      matSuffix
+                      class="modified-icon"
+                      [matTooltip]="
+                        'Old Value: ' +
+                        getOldValueForPolicyField(i, 'assigner')
                       "
+                      >edit</mat-icon
                     >
-                      <mat-label>Assigner</mat-label>
-                      <input
-                        matInput
-                        formControlName="assigner"
-                        placeholder="Assigner"
-                      />
-                      <mat-icon
-                        *ngIf="isPolicyFieldModified(i, 'assigner')"
-                        matSuffix
-                        class="modified-icon"
-                        [matTooltip]="
-                          'Old Value: ' +
-                          getOldValueForPolicyField(i, 'assigner')
-                        "
-                        >edit</mat-icon
-                      >
-                      <mat-error
-                        *ngIf="policy.get('assigner')?.hasError('required')"
-                      >
-                        Assigner is required
-                      </mat-error>
-                    </mat-form-field>
-                    <mat-form-field
-                      appearance="outline"
-                      [class.field-modified]="
-                        isPolicyFieldModified(i, 'assignee')
-                      "
+                    <mat-error
+                      *ngIf="policy.get('assigner')?.hasError('required')"
                     >
-                      <mat-label>Assignee</mat-label>
-                      <input
-                        matInput
-                        formControlName="assignee"
-                        placeholder="Assignee"
-                      />
-                      <mat-icon
-                        *ngIf="isPolicyFieldModified(i, 'assignee')"
-                        matSuffix
-                        class="modified-icon"
-                        [matTooltip]="
-                          'Old Value: ' +
-                          getOldValueForPolicyField(i, 'assignee')
-                        "
-                        >edit</mat-icon
-                      >
-                      <mat-error
-                        *ngIf="policy.get('assignee')?.hasError('required')"
-                      >
-                        Assignee is required
-                      </mat-error>
-                    </mat-form-field>
-                  </div>
+                      Assigner is required
+                    </mat-error>
+                  </mat-form-field>
                 </div>
                 <!-- Permissions -->
                 <div formArrayName="permission">

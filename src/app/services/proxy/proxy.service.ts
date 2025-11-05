@@ -66,19 +66,20 @@ export class ProxyService {
   getRemoteDatasetFormats(
     url: string,
     dataSetId: string
-  ): Observable<String[]> {
+  ): Observable<string[]> {
     let body = {
       'Forward-To': url,
     };
     return this.http
-      .post<GenericApiResponse<String[]>>(
+      .post<GenericApiResponse<string[]>>(
         this.proxyUrl + '/datasets/' + dataSetId + '/formats',
         body,
         this.httpOptions
       )
       .pipe(
-        map((response: GenericApiResponse<String[]>) => {
+        map((response: GenericApiResponse<string[]>) => {
           if (response.success && response.data) {
+            console.log('Remote dataset formats retrieved:', response.data);
             return response.data;
           } else {
             this.snackBarService.openSnackBar(
