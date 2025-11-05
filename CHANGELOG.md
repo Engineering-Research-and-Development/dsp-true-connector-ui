@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-# [0.2.3] - 05-11-2025
+# [0.2.3] - 06-11-2025
 
 ### Added
 
@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 - Flow for requesting datatransfer - user must choose distribution format
 - Inital_data.json aligned with new data
 - Rearranged side menu order in Catalog Management
+
 # [0.2.2] - 03-11-2025
 
 ### Changed
