@@ -36,7 +36,9 @@
         "TRUEConnector team information",
         "ConnectorB"
       ],
-      "theme": ["Data"],
+      "theme": [
+        "Data"
+      ],
       "conformsTo": "conformsToSomething",
       "creator": "Engineering Informatica S.p.A.",
       "description": [
@@ -48,11 +50,15 @@
       "identifier": "Unique identifier for test ConnectorB Catalog",
       "issued": "2024-04-23T16:26:00.000Z",
       "modified": "2024-04-23T16:26:00.000Z",
-      "title": "Test catalog - TRUEConnector team information",
+      "title": "Testcatalog - TRUEConnector team information",
       "distribution": [
         {
           "$ref": "distributions",
-          "$id": "urn:uuid:1dc45797-pdff-4932-8baf-ab7fd66ql4d5"
+          "$id": "urn:uuid:1dc45797-pull-4932-8baf-ab7fd66ql4d5"
+        },
+        {
+          "$ref": "distributions",
+          "$id": "urn:uuid:1dc45797-push-4932-8baf-ab7fd66ql4d5"
         }
       ],
       "dataset": [
@@ -84,10 +90,12 @@
         "TRUEConnector team",
         "REST"
       ],
-      "theme": ["Data"],
+      "theme": [
+        "Data"
+      ],
       "description": [
         {
-          "value": "Dataset offering TRUEConnector team information on ConnectorB",
+          "value": "Dataset offering TRUEConnector team information",
           "language": "en"
         }
       ],
@@ -118,7 +126,11 @@
       "distribution": [
         {
           "$ref": "distributions",
-          "$id": "urn:uuid:1dc45797-pdff-4932-8baf-ab7fd66ql4d5"
+          "$id": "urn:uuid:1dc45797-pull-4932-8baf-ab7fd66ql4d5"
+        },
+        {
+          "$ref": "distributions",
+          "$id": "urn:uuid:1dc45797-push-4932-8baf-ab7fd66ql4d5"
         }
       ],
       "artifact": {
@@ -134,8 +146,13 @@
     {
       "_id": "urn:uuid:1dc45797-4444-conn-8baf-ab7fd66ac4d5",
       "_class": "it.eng.catalog.model.DataService",
-      "keyword": ["REST", "transfer"],
-      "theme": ["Data"],
+      "keyword": [
+        "REST",
+        "transfer"
+      ],
+      "theme": [
+        "Data"
+      ],
       "conformsTo": "conformsToSomething",
       "creator": "Engineering Informatica S.p.A.",
       "description": [
@@ -157,11 +174,30 @@
   ],
   "distributions": [
     {
-      "_id": "urn:uuid:1dc45797-pdff-4932-8baf-ab7fd66ql4d5",
+      "_id": "urn:uuid:1dc45797-pull-4932-8baf-ab7fd66ql4d5",
       "_class": "it.eng.catalog.model.Distribution",
       "title": "HTTP Data PULL",
       "format": {
         "_id": "HttpData-PULL"
+      },
+      "accessService": [
+        {
+          "$ref": "dataservices",
+          "$id": "urn:uuid:1dc45797-4444-conn-8baf-ab7fd66ac4d5"
+        }
+      ],
+      "createdBy": "admin@mail.com",
+      "lastModifiedBy": "admin@mail.com",
+      "issued": "2024-04-23T16:26:00.000Z",
+      "modified": "2024-04-23T16:26:00.000Z",
+      "version": 0
+    },
+    {
+      "_id": "urn:uuid:1dc45797-push-4932-8baf-ab7fd66ql4d5",
+      "_class": "it.eng.catalog.model.Distribution",
+      "title": "HTTP Data PUSH",
+      "format": {
+        "_id": "HttpData-PUSH"
       },
       "accessService": [
         {
@@ -273,6 +309,72 @@
       "mandatory": false,
       "issued": "2024-06-24T16:26:00.000Z",
       "modified": "2024-06-24T16:26:00.000Z",
+      "version": 0
+    },
+    {
+      "_id": "application.dspace.version.path",
+      "value": "/",
+      "label": "Dspace Version path",
+      "group": "DspaceVersion",
+      "tooltip": "Dspace Version path",
+      "mandatory": false,
+      "issued": "2025-09-15T16:26:00.000Z",
+      "modified": "2025-09-15T16:26:00.000Z",
+      "version": 0
+    },
+    {
+      "_id": "application.dspace.version.identifierType",
+      "value": "",
+      "label": "Dspace Version identifierType",
+      "group": "DspaceVersion",
+      "tooltip": "Dspace Version identifierType",
+      "mandatory": false,
+      "issued": "2025-09-15T16:26:00.000Z",
+      "modified": "2025-09-15T16:26:00.000Z",
+      "version": 0
+    },
+    {
+      "_id": "application.dspace.version.serviceId",
+      "value": "",
+      "label": "Dspace Version serviceId",
+      "group": "DspaceVersion",
+      "tooltip": "Dspace Version serviceId",
+      "mandatory": false,
+      "issued": "2025-09-15T16:26:00.000Z",
+      "modified": "2025-09-15T16:26:00.000Z",
+      "version": 0
+    },
+    {
+      "_id": "application.dspace.version.auth.protocol",
+      "value": "https",
+      "label": "Dspace Version Auth protocol",
+      "group": "DspaceVersion",
+      "tooltip": "Dspace Version Authentication protocol",
+      "mandatory": false,
+      "issued": "2025-09-15T16:26:00.000Z",
+      "modified": "2025-09-15T16:26:00.000Z",
+      "version": 0
+    },
+    {
+      "_id": "application.dspace.version.auth.version",
+      "value": "2024-01",
+      "label": "Dspace Version Auth version",
+      "group": "DspaceVersion",
+      "tooltip": "Dspace Version Authentication version",
+      "mandatory": false,
+      "issued": "2025-09-15T16:26:00.000Z",
+      "modified": "2025-09-15T16:26:00.000Z",
+      "version": 0
+    },
+    {
+      "_id": "application.dspace.version.auth.profile",
+      "value": "authorization_code,refresh_token",
+      "label": "Dspace Version Auth profile",
+      "group": "DspaceVersion",
+      "tooltip": "Dspace Version Authentication profile, comma separated list of strings",
+      "mandatory": false,
+      "issued": "2025-09-15T16:26:00.000Z",
+      "modified": "2025-09-15T16:26:00.000Z",
       "version": 0
     }
   ]
