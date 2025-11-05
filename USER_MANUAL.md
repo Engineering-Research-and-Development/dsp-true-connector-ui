@@ -197,7 +197,7 @@ Configure S3-compatible storage for artifact management:
 
 **Important Configuration Note:**
 
-> The `s3.externalPresignedEndpoint` should reference your machine's local IP address (e.g., `http://192.168.x.x:9000`) for development environments, or the public URL for production deployments.
+> The `s3.externalPresignedEndpoint` should reference your machine's local IP address e.g., `http://192.168.x.x:9000` (IP address can be obtained with `ipconfig` command in terminal) for development environments, or the public URL for production deployments.
 
 > If needed to customize the main logo on application, change existing `tc_logo.png` in `ui_a_resources/assets/img` and `ui_b_resources/assets/img` and keep same name. **After replacing the logo file, you must restart the containers for the changes to take effect, as the replacement happens in the `replace-env.sh` startup script.**
 
@@ -562,7 +562,6 @@ The Catalog Browser enables discovery and exploration of external provider catal
 2. **Offer Configuration**:
 
    - Select desired dataset offer
-   - Choose appropriate data format from available options
    - Review associated policies and constraints
 
 3. **Negotiation Launch**:
@@ -649,16 +648,25 @@ Provider transfers manage outbound data delivery to consumers who have successfu
 
 <p align="center">Provider Data Transfer Dashboard</p>
 
+
+![TP Provider](/screenshots/tp_provider_push.png)
+
+<p align="center">Provider Data Transfer Dashboard with HttpData-PUSH</p>
 **Provider Transfer Management:**
 
 - Monitor outbound transfer requests
 - Validate transfer authorization against agreements
-- Manage data delivery processes
+- Manage data delivery processes 
+- Push data to consumer if that type of format is chosen
 - Track transfer completion status
 
 ### Consumer Transfer Operations
 
 Consumer transfers handle inbound data reception from providers following successful contract negotiations.
+
+![TP Consumer](/screenshots/tp_consumer_request.png)
+
+<p align="center">Consumer Data Transfer Request</p>
 
 ![TP Consumer](/screenshots/tp_consumer.png)
 
@@ -667,6 +675,7 @@ Consumer transfers handle inbound data reception from providers following succes
 **Consumer Transfer Management:**
 
 - Monitor inbound transfer processes
+- Chooses which type of format wants to use for exchange data
 - Manage data reception and storage
 - Validate received data integrity
 - Access downloaded artifacts

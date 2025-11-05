@@ -1,5 +1,16 @@
+# [0.2.3] - 05-11-2025
 
-# [0.2.1] - 03-11-2025
+### Added
+
+- Support for HttpData-PUSH Datatransfer format
+
+### Changed
+
+- Choosing distribution moved from Catalog Browser to Data Transfers when requesting
+- Minor cosmetic changes and attribute removal
+
+
+# [0.2.2] - 03-11-2025
 
 ### Changed
 
