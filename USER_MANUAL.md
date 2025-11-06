@@ -63,7 +63,7 @@ To ensure optimal performance and stability, your system must meet the following
 
 - **Container Platform**: Docker Engine 20.10+ and Docker Compose 2.0+
 - **Memory**: 16GB RAM (minimum)
-- **Processing Power**: 8-thread processor (recommended: Intel i7 or AMD Ryzen 7)
+- **Processing Power**: 8-thread processor (recommended: Intel i3 or AMD Ryzen 3)
 - **Storage**: 5GB available disk space
 - **Network**: Stable internet connection for external communications
 
@@ -93,7 +93,7 @@ The system utilizes isolated network segments for enhanced security:
 
 **Connector A Service**
 
-- **Image**: `ghcr.io/engineering-research-and-development/dsp-true-connector:latests`
+- **Image**: `ghcr.io/engineering-research-and-development/dsp-true-connector:latest`
 - **Port Mapping**:
   - FTP Service: `8888:2222`
   - HTTP API: `8080:8080`
@@ -114,17 +114,11 @@ The system utilizes isolated network segments for enhanced security:
 - **Port Mapping**: `27017:27017`
 - **Storage**: Persistent volumes for metadata and configuration
 
-**Minio S3 storage**
-
-- **Image**: `minio/minio:RELEASE.2025-04-22T22-12-26Z`
-- **Port Mapping**: `9000:9000`
-- **Storage**: Persistent S3 storage for artifacts
-
 #### Instance B
 
 **Connector B Service**
 
-- **Image**: `ghcr.io/engineering-research-and-development/dsp-true-connector:test`
+- **Image**: `ghcr.io/engineering-research-and-development/dsp-true-connector:latest`
 - **Port Mapping**:
   - FTP Service: `8889:2222`
   - HTTP API: `8090:8080`
@@ -135,7 +129,7 @@ The system utilizes isolated network segments for enhanced security:
 
 **UI B Interface**
 
-- **Image**: `ghcr.io/engineering-research-and-development/dsp-true-connector-ui:0.0.1`
+- **Image**: `ghcr.io/engineering-research-and-development/dsp-true-connector-ui:latest`
 - **Port Mapping**: `4300:80`
 - **Features**: Custom nginx configuration with SSL support
 
@@ -145,11 +139,14 @@ The system utilizes isolated network segments for enhanced security:
 - **Port Mapping**: `27018:27017`
 - **Storage**: Persistent volumes for data and configuration
 
+#### Shared service
+
 **Minio S3 storage**
 
 - **Image**: `minio/minio:RELEASE.2025-04-22T22-12-26Z`
 - **Port Mapping**: `9000:9000`
 - **Storage**: Persistent S3 storage for artifacts
+
 
 ### Configuration
 
@@ -197,7 +194,7 @@ Configure S3-compatible storage for artifact management:
 
 **Important Configuration Note:**
 
-> The `s3.externalPresignedEndpoint` should reference your machine's local IP address e.g., `http://192.168.x.x:9000` (IP address can be obtained with `ipconfig` command in terminal) for development environments, or the public URL for production deployments.
+> The `s3.externalPresignedEndpoint` should reference your machine's local IP address e.g., `http://192.168.x.x:9000` (IP address can be obtained with `ipconfig` command in Windows terminal or `ip` in Linux terminal) for development environments, or the public URL for production deployments.
 
 > If needed to customize the main logo on application, change existing `tc_logo.png` in `ui_a_resources/assets/img` and `ui_b_resources/assets/img` and keep same name. **After replacing the logo file, you must restart the containers for the changes to take effect, as the replacement happens in the `replace-env.sh` startup script.**
 
@@ -227,9 +224,15 @@ Configure S3-compatible storage for artifact management:
 - UI Custom logo: `./ui_b_resources/assets/img:/custom-assets:ro`
 - MongoDB Data: `mongodb-data_b:/data/db`
 - MongoDB Config: `mongodb-configdb_b:/data/configdb`
+
+
+**Instance A & B Volume Configuration:**
+
 - Minio S3: `minio_data:/data`
 
+**Important Note:**
 
+> Using a single MinIO S3 instance mimics AWS’s architecture, where multiple users access separate buckets.
 
 ### Getting Started
 
@@ -595,7 +598,7 @@ The Provider view manages incoming negotiation requests from external consumers 
 
 - Review incoming negotiation requests
 - Evaluate consumer proposals against policies
-- Accept, reject, or counter-propose agreements
+- Accept or reject agreements
 - Monitor negotiation progress and status
 
 ### Consumer Perspective
@@ -609,7 +612,7 @@ The Consumer view tracks outgoing negotiation requests initiated through the Cat
 **Consumer Operations:**
 
 - Monitor negotiation status and progress
-- Respond to provider counter-offers
+- Respond to provider offers
 - Accept or decline final agreements
 - Track negotiation outcomes
 
@@ -652,6 +655,7 @@ Provider transfers manage outbound data delivery to consumers who have successfu
 ![TP Provider](/screenshots/tp_provider_push.png)
 
 <p align="center">Provider Data Transfer Dashboard with HttpData-PUSH</p>
+
 **Provider Transfer Management:**
 
 - Monitor outbound transfer requests
