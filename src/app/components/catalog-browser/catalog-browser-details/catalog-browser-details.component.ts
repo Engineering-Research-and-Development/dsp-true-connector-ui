@@ -194,7 +194,7 @@ export class CatalogBrowserDetailsComponent {
         });
     } else {
       this.snackBarService.openSnackBar(
-        'Please select a distribution.',
+        'Please select an offer.',
         'OK',
         'center',
         'bottom',

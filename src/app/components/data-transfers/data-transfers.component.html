@@ -336,10 +336,7 @@
                 <button
                   mat-button
                   matTooltip="Complete data transfer"
-                  *ngIf="
-                    dataTransfer.state === dataTransferState.STARTED &&
-                    !(userType === 'consumer' && dataTransfer.format === 'HttpData-PUSH' && dataTransfer.state === dataTransferState.STARTED)
-                  "
+                  *ngIf="dataTransfer.state === dataTransferState.STARTED && !(userType === 'consumer' && dataTransfer.format === 'HttpData-PUSH')"
                   (click)="onComplete(dataTransfer)"
                 >
                   <mat-icon>verified</mat-icon>
