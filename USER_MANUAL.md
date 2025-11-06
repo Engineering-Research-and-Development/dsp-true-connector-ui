@@ -211,7 +211,6 @@ Configure S3-compatible storage for artifact management:
 - UI Custom logo: `./ui_a_resources/assets/img:/custom-assets:ro`
 - MongoDB Data: `mongodb-data_a:/data/db`
 - MongoDB Config: `mongodb-configdb_a:/data/configdb`
-- Minio S3: `minio_data:/data`
 
 **Instance B Volume Configuration:**
 
