@@ -59,8 +59,9 @@ export class DistributionManagementComponent implements OnInit {
   ngOnInit(): void {
     this.getAllDistributions();
     this.searchControl.valueChanges.subscribe((searchTerm) => {
+      const normalizedSearch = (searchTerm || '').toLowerCase();
       this.filteredDistributions = this.distributions.filter((distribution) =>
-        distribution.title.toLowerCase().includes(searchTerm!.toLowerCase())
+        (distribution.title || '').toLowerCase().includes(normalizedSearch)
       );
     });
   }
@@ -73,7 +74,7 @@ export class DistributionManagementComponent implements OnInit {
   getAllDistributions(): void {
     this.distributionService.getAllDistributions().subscribe({
       next: (data) => {
-        console.log('Datistributions fetched');
+        console.log('Distributions fetched');
         this.distributions = data;
         this.filteredDistributions = [...this.distributions];
         this.loading = false;
@@ -120,6 +121,7 @@ export class DistributionManagementComponent implements OnInit {
       description: [],
       accessService: [],
       hasPolicy: [],
+      format: ''
     };
     this.router.navigate(
       ['/catalog-management/distribution-management/details'],
@@ -173,5 +175,26 @@ export class DistributionManagementComponent implements OnInit {
             });
         }
       });
+  }
+
+  /**
+   * Extracts a readable format identifier from the stored format structure.
+   * @param format Format value received from the API.
+   * @returns The format identifier string.
+   */
+  getFormatLabel(format: Distribution['format']): string {
+    if (!format) {
+      return '';
+    }
+
+    if (typeof format === 'string') {
+      return format;
+    }
+
+    if (typeof format === 'object' && format['@id']) {
+      return format['@id'];
+    }
+
+    return '';
   }
 }

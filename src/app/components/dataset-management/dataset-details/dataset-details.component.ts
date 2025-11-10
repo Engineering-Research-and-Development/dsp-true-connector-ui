@@ -637,7 +637,6 @@ export class DatasetDetailsComponent implements OnDestroy {
         } else if (formArrayName === 'hasPolicy') {
           const policyGroup = this.fb.group({
             assigner: [value.assigner],
-            assignee: [value.assignee],
             permission: this.fb.array([]),
           });
           this.setNestedFormArray(
@@ -999,7 +998,6 @@ export class DatasetDetailsComponent implements OnDestroy {
   addPolicy() {
     const control = this.fb.group({
       assigner: [''],
-      assignee: [''],
       permission: this.fb.array([]), // Initialize the permission array
     });
     (this.datasetForm.get('hasPolicy') as FormArray).push(control);
@@ -1198,7 +1196,7 @@ export class DatasetDetailsComponent implements OnDestroy {
 
   public getOldValueForPolicyField(
     policyIndex: number,
-    field: 'assigner' | 'assignee'
+    field: 'assigner'
   ): string {
     if (!this.originalFormValue) return 'N/A';
     const policies: any[] = (this.originalFormValue['hasPolicy'] ||

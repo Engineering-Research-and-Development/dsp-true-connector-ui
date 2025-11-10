@@ -133,11 +133,10 @@ export class CatalogBrowserDetailsComponent {
    * */
   constructOfferNegotiationRequest(
     offer: Offer,
-    distribution: Distribution,
     datasetId: string
   ): any {
-    const endpointURL = distribution.accessService[0].endpointURL;
-    const baseEndpoint = endpointURL.endsWith('/')
+    const endpointURL = this.catalogData?.service[0].endpointURL;
+    const baseEndpoint = endpointURL && endpointURL.endsWith('/')
       ? endpointURL
       : endpointURL + '/';
     const negotiationRequest = {
@@ -175,10 +174,9 @@ export class CatalogBrowserDetailsComponent {
    * Starts the contract negotiation process.
    */
   startContractNegotiation(datasetId: string): void {
-    if (this.selectedOffer && this.selectedDistribution) {
+    if (this.selectedOffer) {
       const negotiationRequest = this.constructOfferNegotiationRequest(
         this.selectedOffer,
-        this.selectedDistribution,
         datasetId
       );
 
@@ -196,7 +194,7 @@ export class CatalogBrowserDetailsComponent {
         });
     } else {
       this.snackBarService.openSnackBar(
-        'Please select both an offer and a distribution.',
+        'Please select an offer.',
         'OK',
         'center',
         'bottom',

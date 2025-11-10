@@ -69,6 +69,7 @@ export class DistributionDetailsComponent implements OnInit {
   directEdit = false;
   loading = false;
   allServices: DataService[] = [];
+  readonly formatOptions: string[] = ['HttpData-PULL', 'HttpData-PUSH'];
 
   // Change tracking handled by EditStateService
 
@@ -151,7 +152,7 @@ export class DistributionDetailsComponent implements OnInit {
    * Sets the description value based on the selected language.
    */
   onLanguageSelected(): void {
-    const selectedDescription = this.distribution.description.find(
+    const selectedDescription = this.distribution.description?.find(
       (desc) => desc.language === this.selectedLanguage.toLowerCase()
     );
     this.descriptionValue = selectedDescription
@@ -209,7 +210,7 @@ export class DistributionDetailsComponent implements OnInit {
         next: (data) => {
           this.loading = false;
           this.distribution = data;
-          this.languages = this.extractLanguages(this.distribution.description);
+          this.languages = this.extractLanguages(this.distribution.description || []);
           this.onLanguageSelected();
           this.updateForm(this.distribution);
         },
@@ -237,7 +238,7 @@ export class DistributionDetailsComponent implements OnInit {
         next: (data) => {
           console.log('Distribution updated successfully');
           this.distribution = data;
-          this.languages = this.extractLanguages(this.distribution.description);
+          this.languages = this.extractLanguages(this.distribution.description || []);
           this.onLanguageSelected();
           this.updateForm(this.distribution);
           this.loading = false;
@@ -336,7 +337,7 @@ export class DistributionDetailsComponent implements OnInit {
   initForm(): void {
     this.distributionForm = this.fb.group({
       '@id': [''],
-      title: ['', Validators.required],
+      title: [''],
       description: this.fb.array([]),
       createdBy: null,
       lastModifiedBy: null,
@@ -345,6 +346,7 @@ export class DistributionDetailsComponent implements OnInit {
       modified: null,
       hasPolicy: this.fb.array([]),
       accessService: [[], Validators.required],
+      format: ['', Validators.required]
     });
   }
 
@@ -362,6 +364,7 @@ export class DistributionDetailsComponent implements OnInit {
         version: distribution.version,
         issued: distribution.issued,
         modified: distribution.modified,
+        format: this.getFormatLabel(distribution.format),
       });
 
       this.distributionForm
@@ -372,11 +375,7 @@ export class DistributionDetailsComponent implements OnInit {
           )
         );
       this.setFormArray('hasPolicy', distribution.hasPolicy || []);
-      if (distribution.description.length === 0) {
-        this.addDescription();
-      } else {
-        this.setFormArray('description', distribution.description);
-      }
+      this.setFormArray('description', distribution.description || []);
 
       this.editState.init(this.distributionForm);
     }
@@ -436,7 +435,32 @@ export class DistributionDetailsComponent implements OnInit {
       }
     });
 
+    if (cleanedData.format) {
+      cleanedData.format = { '@id': cleanedData.format };
+    }
+
     return cleanedData;
+  }
+
+  /**
+   * Normalizes the format value for template bindings.
+   * @param format Raw format value from the API or form.
+   * @returns The format identifier string.
+   */
+  getFormatLabel(format: Distribution['format']): string {
+    if (!format) {
+      return '';
+    }
+
+    if (typeof format === 'string') {
+      return format;
+    }
+
+    if (typeof format === 'object' && format['@id']) {
+      return format['@id'];
+    }
+
+    return '';
   }
 
   // ===== Old value helpers for tooltips =====

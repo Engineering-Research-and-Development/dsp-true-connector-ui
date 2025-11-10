@@ -64,9 +64,9 @@
               </p>
 
               <p>
-                <strong>Offers:</strong>
+                <strong>Format:</strong>
 
-                {{ distribution.hasPolicy?.length || 0 }}
+                {{ getFormatLabel(distribution.format) || 'N/A' }}
               </p>
             </div>
             <div class="btn-action">

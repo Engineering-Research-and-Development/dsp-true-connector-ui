@@ -15,7 +15,6 @@ services:
       - network-b
     container_name: connector-a
     ports:
-      - 0.0.0.0:8888:2222 #FTP
       - 8080:8080
     depends_on:
       - mongodb-a
@@ -34,7 +33,6 @@ services:
     volumes:
       - ./connector_a_resources:/config
       - ./tc_cert:/cert
-      - ./:/home/nobody/ftp
       - tc_a_log:/var/log/tc
   
   ui-a:
@@ -81,7 +79,6 @@ services:
       - network-b
     container_name: connector-b
     ports:
-      - 0.0.0.0:8889:2222 #FTP
       - 8090:8080
     depends_on:
       - mongodb-b
@@ -100,7 +97,6 @@ services:
     volumes:
       - ./connector_b_resources:/config
       - ./tc_cert:/cert
-      - ./:/home/nobody/ftp
       - tc_b_log:/var/log/tc
   ui-b:
     image: ghcr.io/engineering-research-and-development/dsp-true-connector-ui:latest
