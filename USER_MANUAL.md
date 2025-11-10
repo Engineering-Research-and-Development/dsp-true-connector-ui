@@ -63,7 +63,7 @@ To ensure optimal performance and stability, your system must meet the following
 
 - **Container Platform**: Docker Engine 20.10+ and Docker Compose 2.0+
 - **Memory**: 16GB RAM (minimum)
-- **Processing Power**: 8-thread processor (recommended: Intel i3 or AMD Ryzen 3)
+- **Processing Power**: Minimum 4 Cores multithread processor
 - **Storage**: 5GB available disk space
 - **Network**: Stable internet connection for external communications
 
@@ -95,7 +95,6 @@ The system utilizes isolated network segments for enhanced security:
 
 - **Image**: `ghcr.io/engineering-research-and-development/dsp-true-connector:latest`
 - **Port Mapping**:
-  - FTP Service: `8888:2222`
   - HTTP API: `8080:8080`
 - **Resource Allocation**:
   - CPU Limit: 1 core
@@ -120,7 +119,6 @@ The system utilizes isolated network segments for enhanced security:
 
 - **Image**: `ghcr.io/engineering-research-and-development/dsp-true-connector:latest`
 - **Port Mapping**:
-  - FTP Service: `8889:2222`
   - HTTP API: `8090:8080`
 - **Resource Allocation**:
   - CPU Limit: 1 core
@@ -185,7 +183,7 @@ Configure S3-compatible storage for artifact management:
 
 **Core Properties:**
 
-- `s3.endpoint`: S3 service endpoint URL (MinIO/AWS S3/compatible services)
+- `s3.endpoint`: S3 service endpoint URL (MinIO services)
 - `s3.accessKey`: Authentication access key identifier
 - `s3.secretKey`: Authentication secret access key
 - `s3.region`: Storage region identifier (e.g., us-east-1, eu-west-1)
@@ -204,7 +202,6 @@ Configure S3-compatible storage for artifact management:
 
 - Connector Configuration: `./connector_a_resources:/config`
 - Security Certificates: `./tc_cert:/cert`
-- FTP Data Directory: `./:/home/nobody/ftp`
 - Application Logs: `tc_a_log:/var/log/tc`
 - UI Configuration: `./ui_a_resources/nginx.conf:/etc/nginx/nginx.conf`
 - UI SSL Certificates: `./ui_a_resources/ssl:/etc/nginx/ssl:ro`
@@ -216,7 +213,6 @@ Configure S3-compatible storage for artifact management:
 
 - Connector Configuration: `./connector_b_resources:/config`
 - Security Certificates: `./tc_cert:/cert`
-- FTP Data Directory: `./:/home/nobody/ftp`
 - Application Logs: `tc_b_log:/var/log/tc`
 - UI Configuration: `./ui_b_resources/nginx.conf:/etc/nginx/nginx.conf`
 - UI SSL Certificates: `./ui_b_resources/ssl:/etc/nginx/ssl:ro`
