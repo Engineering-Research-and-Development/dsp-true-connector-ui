@@ -183,37 +183,6 @@
                               </div>
                             </mat-expansion-panel>
 
-                            <mat-expansion-panel
-                              class="expansion-panel"
-                              *ngIf="
-                                dataset.distribution &&
-                                dataset.distribution.length > 0
-                              "
-                            >
-                              <mat-expansion-panel-header>
-                                <mat-panel-title>Distribution</mat-panel-title>
-                              </mat-expansion-panel-header>
-                              <div
-                                *ngFor="
-                                  let distribution of dataset.distribution
-                                "
-                                class="resource-section"
-                              >
-                                <div>
-                                  <mat-checkbox
-                                    [checked]="
-                                      isSelectedDistribution(distribution)
-                                    "
-                                    (change)="
-                                      onDistributionSelected(distribution)
-                                    "
-                                  >
-                                    <p>{{ distribution.title }}</p>
-                                  </mat-checkbox>
-                                </div>
-                                <hr />
-                              </div>
-                            </mat-expansion-panel>
                           </div>
 
                           <div class="btn-action">

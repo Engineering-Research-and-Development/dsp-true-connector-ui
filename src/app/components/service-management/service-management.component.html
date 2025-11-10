@@ -59,8 +59,8 @@
                 {{ service.modified | date : "d MMMM y, HH:mm:ss" }}
               </p>
               <p>
-                <strong>Serves datasets:</strong>
-                {{ service.servesDataset?.length || 0 }}
+                <strong>Endpoint URL:</strong>
+                {{ service.endpointURL }}
               </p>
             </div>
             <div class="btn-action">

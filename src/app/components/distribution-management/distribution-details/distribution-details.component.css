@@ -143,12 +143,13 @@ h1 {
   color: rgb(162, 162, 162);
 }
 .edit-input {
-  display: flex;
-  flex-wrap: nowrap;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  align-items: start;
 }
 .edit-input mat-form-field {
-  width: 45%;
+  width: 100%;
 }
 .desc-text ::ng-deep mat-form-field {
   width: 95%;

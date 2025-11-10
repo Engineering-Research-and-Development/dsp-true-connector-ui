@@ -73,6 +73,10 @@
               <span>
                 {{ distribution.type }}
               </span>
+               <strong>Format</strong>
+              <span>
+                {{ getFormatLabel(distribution.format) || 'N/A' }}
+              </span>
             </div></mat-tab
           >
           <mat-tab
@@ -80,7 +84,7 @@
             label="Description"
           >
             <div>
-              <div *ngIf="distribution.description.length > 0">
+              <div *ngIf="(distribution.description?.length ?? 0) > 0">
                 <br />
                 <mat-form-field appearance="outline">
                   <mat-label>Select Language</mat-label>
@@ -150,11 +154,7 @@
                   "
                   >edit</mat-icon
                 >
-                <mat-error
-                  *ngIf="distributionForm.get('title')?.hasError('required')"
-                >
-                  Title is required
-                </mat-error> </mat-form-field
+              </mat-form-field
               ><mat-form-field
                 appearance="outline"
                 [tcModified]="{ key: 'accessService', state: editState }"
@@ -181,6 +181,32 @@
                   "
                 >
                   Access service is required
+                </mat-error>
+              </mat-form-field>
+              <mat-form-field
+                appearance="outline"
+                [tcModified]="{ key: 'format', state: editState }"
+              >
+                <mat-label>Select Format</mat-label>
+                <mat-select formControlName="format">
+                  <mat-option
+                    *ngFor="let option of formatOptions"
+                    [value]="option"
+                  >
+                    {{ option }}
+                  </mat-option>
+                </mat-select>
+                <mat-icon
+                  *ngIf="editState.isChanged('format')"
+                  matSuffix
+                  class="modified-icon"
+                  [matTooltip]="'Old Value: ' + ('format' | oldValue : editState)"
+                  >edit</mat-icon
+                >
+                <mat-error
+                  *ngIf="distributionForm.get('format')?.hasError('required')"
+                >
+                  Format is required
                 </mat-error>
               </mat-form-field>
             </div>

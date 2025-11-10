@@ -63,7 +63,7 @@ To ensure optimal performance and stability, your system must meet the following
 
 - **Container Platform**: Docker Engine 20.10+ and Docker Compose 2.0+
 - **Memory**: 16GB RAM (minimum)
-- **Processing Power**: 8-thread processor (recommended: Intel i7 or AMD Ryzen 7)
+- **Processing Power**: Minimum 4 Cores multithread processor
 - **Storage**: 5GB available disk space
 - **Network**: Stable internet connection for external communications
 
@@ -93,9 +93,8 @@ The system utilizes isolated network segments for enhanced security:
 
 **Connector A Service**
 
-- **Image**: `ghcr.io/engineering-research-and-development/dsp-true-connector:latests`
+- **Image**: `ghcr.io/engineering-research-and-development/dsp-true-connector:latest`
 - **Port Mapping**:
-  - FTP Service: `8888:2222`
   - HTTP API: `8080:8080`
 - **Resource Allocation**:
   - CPU Limit: 1 core
@@ -114,19 +113,12 @@ The system utilizes isolated network segments for enhanced security:
 - **Port Mapping**: `27017:27017`
 - **Storage**: Persistent volumes for metadata and configuration
 
-**Minio S3 storage**
-
-- **Image**: `minio/minio:RELEASE.2025-04-22T22-12-26Z`
-- **Port Mapping**: `9000:9000`
-- **Storage**: Persistent S3 storage for artifacts
-
 #### Instance B
 
 **Connector B Service**
 
-- **Image**: `ghcr.io/engineering-research-and-development/dsp-true-connector:test`
+- **Image**: `ghcr.io/engineering-research-and-development/dsp-true-connector:latest`
 - **Port Mapping**:
-  - FTP Service: `8889:2222`
   - HTTP API: `8090:8080`
 - **Resource Allocation**:
   - CPU Limit: 1 core
@@ -135,7 +127,7 @@ The system utilizes isolated network segments for enhanced security:
 
 **UI B Interface**
 
-- **Image**: `ghcr.io/engineering-research-and-development/dsp-true-connector-ui:0.0.1`
+- **Image**: `ghcr.io/engineering-research-and-development/dsp-true-connector-ui:latest`
 - **Port Mapping**: `4300:80`
 - **Features**: Custom nginx configuration with SSL support
 
@@ -145,11 +137,14 @@ The system utilizes isolated network segments for enhanced security:
 - **Port Mapping**: `27018:27017`
 - **Storage**: Persistent volumes for data and configuration
 
+#### Shared service
+
 **Minio S3 storage**
 
 - **Image**: `minio/minio:RELEASE.2025-04-22T22-12-26Z`
 - **Port Mapping**: `9000:9000`
 - **Storage**: Persistent S3 storage for artifacts
+
 
 ### Configuration
 
@@ -188,7 +183,7 @@ Configure S3-compatible storage for artifact management:
 
 **Core Properties:**
 
-- `s3.endpoint`: S3 service endpoint URL (MinIO/AWS S3/compatible services)
+- `s3.endpoint`: S3 service endpoint URL (MinIO services)
 - `s3.accessKey`: Authentication access key identifier
 - `s3.secretKey`: Authentication secret access key
 - `s3.region`: Storage region identifier (e.g., us-east-1, eu-west-1)
@@ -197,7 +192,7 @@ Configure S3-compatible storage for artifact management:
 
 **Important Configuration Note:**
 
-> The `s3.externalPresignedEndpoint` should reference your machine's local IP address (e.g., `http://192.168.x.x:9000`) for development environments, or the public URL for production deployments.
+> The `s3.externalPresignedEndpoint` should reference your machine's local IP address e.g., `http://192.168.x.x:9000` (IP address can be obtained with `ipconfig` command in Windows terminal or `ip` in Linux terminal) for development environments, or the public URL for production deployments.
 
 > If needed to customize the main logo on application, change existing `tc_logo.png` in `ui_a_resources/assets/img` and `ui_b_resources/assets/img` and keep same name. **After replacing the logo file, you must restart the containers for the changes to take effect, as the replacement happens in the `replace-env.sh` startup script.**
 
@@ -207,29 +202,32 @@ Configure S3-compatible storage for artifact management:
 
 - Connector Configuration: `./connector_a_resources:/config`
 - Security Certificates: `./tc_cert:/cert`
-- FTP Data Directory: `./:/home/nobody/ftp`
 - Application Logs: `tc_a_log:/var/log/tc`
 - UI Configuration: `./ui_a_resources/nginx.conf:/etc/nginx/nginx.conf`
 - UI SSL Certificates: `./ui_a_resources/ssl:/etc/nginx/ssl:ro`
 - UI Custom logo: `./ui_a_resources/assets/img:/custom-assets:ro`
 - MongoDB Data: `mongodb-data_a:/data/db`
 - MongoDB Config: `mongodb-configdb_a:/data/configdb`
-- Minio S3: `minio_data:/data`
 
 **Instance B Volume Configuration:**
 
 - Connector Configuration: `./connector_b_resources:/config`
 - Security Certificates: `./tc_cert:/cert`
-- FTP Data Directory: `./:/home/nobody/ftp`
 - Application Logs: `tc_b_log:/var/log/tc`
 - UI Configuration: `./ui_b_resources/nginx.conf:/etc/nginx/nginx.conf`
 - UI SSL Certificates: `./ui_b_resources/ssl:/etc/nginx/ssl:ro`
 - UI Custom logo: `./ui_b_resources/assets/img:/custom-assets:ro`
 - MongoDB Data: `mongodb-data_b:/data/db`
 - MongoDB Config: `mongodb-configdb_b:/data/configdb`
+
+
+**Instance A & B Volume Configuration:**
+
 - Minio S3: `minio_data:/data`
 
+**Important Note:**
 
+> Using a single MinIO S3 instance mimics AWS’s architecture, where multiple users access separate buckets.
 
 ### Getting Started
 
@@ -562,7 +560,6 @@ The Catalog Browser enables discovery and exploration of external provider catal
 2. **Offer Configuration**:
 
    - Select desired dataset offer
-   - Choose appropriate data format from available options
    - Review associated policies and constraints
 
 3. **Negotiation Launch**:
@@ -596,7 +593,7 @@ The Provider view manages incoming negotiation requests from external consumers 
 
 - Review incoming negotiation requests
 - Evaluate consumer proposals against policies
-- Accept, reject, or counter-propose agreements
+- Accept or reject agreements
 - Monitor negotiation progress and status
 
 ### Consumer Perspective
@@ -610,7 +607,7 @@ The Consumer view tracks outgoing negotiation requests initiated through the Cat
 **Consumer Operations:**
 
 - Monitor negotiation status and progress
-- Respond to provider counter-offers
+- Respond to provider offers
 - Accept or decline final agreements
 - Track negotiation outcomes
 
@@ -649,16 +646,26 @@ Provider transfers manage outbound data delivery to consumers who have successfu
 
 <p align="center">Provider Data Transfer Dashboard</p>
 
+
+![TP Provider](/screenshots/tp_provider_push.png)
+
+<p align="center">Provider Data Transfer Dashboard with HttpData-PUSH</p>
+
 **Provider Transfer Management:**
 
 - Monitor outbound transfer requests
 - Validate transfer authorization against agreements
-- Manage data delivery processes
+- Manage data delivery processes 
+- Push data to consumer if that type of format is chosen
 - Track transfer completion status
 
 ### Consumer Transfer Operations
 
 Consumer transfers handle inbound data reception from providers following successful contract negotiations.
+
+![TP Consumer](/screenshots/tp_consumer_request.png)
+
+<p align="center">Consumer Data Transfer Request</p>
 
 ![TP Consumer](/screenshots/tp_consumer.png)
 
@@ -667,6 +674,7 @@ Consumer transfers handle inbound data reception from providers following succes
 **Consumer Transfer Management:**
 
 - Monitor inbound transfer processes
+- Chooses which type of format wants to use for exchange data
 - Manage data reception and storage
 - Validate received data integrity
 - Access downloaded artifacts
