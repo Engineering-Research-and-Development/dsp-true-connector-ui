@@ -15,11 +15,13 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatMenuModule } from '@angular/material/menu';
 import { Router } from '@angular/router';
 import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
 import { DataTransfer } from '../../models/dataTransfer';
 import { DataTransferState } from '../../models/enums/dataTransferState';
 import { DataTransferService } from '../../services/data-transfer/data-transfer.service';
+import { ProxyService } from '../../services/proxy/proxy.service';
 import {
   FilterExpansionState,
   PaginationHelper,
@@ -48,6 +50,7 @@ import {
     MatSelectModule,
     MatPaginatorModule,
     MatSortModule,
+    MatMenuModule,
   ],
   templateUrl: './data-transfers.component.html',
   styleUrl: './data-transfers.component.css',
@@ -72,11 +75,16 @@ export class DataTransfersComponent {
     PaginationHelper.createFilterExpansionState();
 
   dataTransferState = DataTransferState;
+  readonly defaultRequestFormats: string[] = ['HttpData-PULL', 'HttpData-PUSH'];
+  requestFormatsMap: Record<string, string[]> = {};
+  requestFormatsLoading: Record<string, boolean> = {};
+  requestFormatsLoaded: Record<string, boolean> = {};
 
   constructor(
     private router: Router,
     private location: Location,
-    private dataTransferService: DataTransferService
+    private dataTransferService: DataTransferService,
+    private proxyService: ProxyService
   ) {
     const navigation = this.router.getCurrentNavigation();
     if (navigation?.extras.state) {
@@ -84,6 +92,46 @@ export class DataTransfersComponent {
     } else {
       this.goBack();
     }
+  }
+
+  /**
+   * Load request formats for a specific data transfer
+   * @param dataTransfer The data transfer object
+   */
+  loadRequestFormats(dataTransfer: DataTransfer): void {
+    const transferId = dataTransfer['@id'];
+    if (this.requestFormatsMap[transferId] || this.requestFormatsLoading[transferId]) {
+      return;
+    }
+
+    const callbackAddress = dataTransfer.callbackAddress;
+    const datasetId = dataTransfer.datasetId;
+
+    if (!callbackAddress || !datasetId) {
+      this.requestFormatsMap[transferId] = this.defaultRequestFormats;
+      this.requestFormatsLoaded[transferId] = true;
+      this.requestFormatsLoading[transferId] = false;
+      return;
+    }
+
+    this.requestFormatsLoading[transferId] = true;
+    this.requestFormatsLoaded[transferId] = false;
+    this.proxyService
+      .getRemoteDatasetFormats(callbackAddress, datasetId)
+      .subscribe({
+        next: (formats) => {
+          this.requestFormatsMap[transferId] =
+            formats && formats.length > 0 ? formats : this.defaultRequestFormats;
+          this.requestFormatsLoading[transferId] = false;
+          this.requestFormatsLoaded[transferId] = true;
+        },
+        error: (error) => {
+          console.error('Error fetching dataset formats:', error);
+          this.requestFormatsMap[transferId] = this.defaultRequestFormats;
+          this.requestFormatsLoading[transferId] = false;
+          this.requestFormatsLoaded[transferId] = true;
+        },
+      });
   }
 
   /**

@@ -62,12 +62,12 @@
                 <strong>Access service:</strong>
                 {{ distribution.accessService.title }}
               </p>
-<!-- Currently not implemented-->
-              <!-- <p>
-                <strong>Offers:</strong>
 
-                {{ distribution.hasPolicy?.length || 0 }}
-              </p> -->
+              <p>
+                <strong>Format:</strong>
+
+                {{ getFormatLabel(distribution.format) || 'N/A' }}
+              </p>
             </div>
             <div class="btn-action">
               <button

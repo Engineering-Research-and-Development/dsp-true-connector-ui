@@ -9,6 +9,22 @@ All notable changes to this project will be documented in this file.
 - Catalog Management aligned with the DSP 2025-1 protocol specification
 - Version increased from 0.2.X to 0.6.X to align with releases on BE for easier tracking of compatibility
 
+# [0.2.3] - 10-11-2025
+
+### Added
+
+- Added support for HttpData-PUSH distribution, where logic for both provider/consumer response changed according to new BE implementation
+
+### Changed
+
+- Choosing distribution removed from Catalog Browser
+- Removed Serves Dataset value from service overview and replaced with endpointURL
+- Removed assignee from Dataset
+- Removed Assignee, Assigner from Offer details in Contract Negotiation
+- Flow for requesting datatransfer - user must choose distribution format
+- Inital_data.json aligned with new data
+- Rearranged side menu order in Catalog Management
+
 # [0.2.2] - 03-11-2025
 
 ### Changed

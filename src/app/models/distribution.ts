@@ -4,8 +4,8 @@ import { Offer } from './offer';
 
 export interface Distribution {
   '@id'?: string;
-  title: string;
-  description: Multilanguage[];
+  title?: string;
+  description?: Multilanguage[];
   issued?: string;
   modified?: string;
   createdBy?: string;
