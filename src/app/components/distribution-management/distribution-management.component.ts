@@ -12,12 +12,13 @@ import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
-import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
 import { Distribution } from '../../models/distribution';
 import { DistributionService } from '../../services/distribution/distribution.service';
 import { SnackbarService } from '../../services/snackbar/snackbar.service';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
+import { DataService } from '../../models/dataService';
 
 @Component({
     selector: 'app-distribution-management',
@@ -29,7 +30,7 @@ import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation
         MatExpansionModule,
         MatIconModule,
         MatButtonModule,
-        NgxSkeletonLoaderModule,
+        MatProgressSpinnerModule,
         MatInputModule,
         MatToolbarModule,
         MatFormFieldModule,
@@ -41,6 +42,15 @@ import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation
     styleUrl: './distribution-management.component.css'
 })
 export class DistributionManagementComponent implements OnInit {
+  /**
+   * Navigates to the service details page for the given service.
+   * @param service The DataService object to view details for.
+   */
+  navigateToServiceDetails(service: any): void {
+    this.router.navigate(['/service-management/details'], {
+      state: { service }
+    });
+  }
   distributions: Distribution[] = [];
   loading: boolean = true;
   searchControl = new FormControl('');
@@ -75,6 +85,7 @@ export class DistributionManagementComponent implements OnInit {
     this.distributionService.getAllDistributions().subscribe({
       next: (data) => {
         console.log('Distributions fetched');
+        console.log(data);
         this.distributions = data;
         this.filteredDistributions = [...this.distributions];
         this.loading = false;
@@ -119,7 +130,7 @@ export class DistributionManagementComponent implements OnInit {
     const newDistribution: Distribution = {
       title: '',
       description: [],
-      accessService: {} as any,
+      accessService: {} as DataService,
       hasPolicy: [],
       format: ''
     };

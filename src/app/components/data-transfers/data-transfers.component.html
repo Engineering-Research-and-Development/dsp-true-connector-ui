@@ -1,6 +1,8 @@
 <div *ngIf="loading" class="item">
   <mat-card class="service-card">
-    <ngx-skeleton-loader count="15" appearance="line" animation="pulse" />
+    <div class="loading-container">
+      <mat-spinner diameter="50"></mat-spinner>
+    </div>
   </mat-card>
 </div>
 
@@ -41,7 +43,7 @@
           </button>
         </div>
       </div>
-      <div class="filter-div">
+      <div class="filters-row">
         <mat-expansion-panel
           class="filter-expansion-panel"
           [(expanded)]="filterExpansionState.filtersExpanded"
@@ -124,60 +126,124 @@
             </div>
           </div>
         </mat-expansion-panel>
+
+        <!-- Sort Panel -->
+        <mat-expansion-panel
+          class="filter-expansion-panel sort-panel"
+          [(expanded)]="sortExpansionState.filtersExpanded"
+        >
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <mat-icon>sort</mat-icon>
+              Sort
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+
+          <div class="filter-content">
+            <div class="sort-content">
+              <div class="sort-option">
+                <mat-form-field appearance="outline" class="filter-field">
+                  <mat-label>Sort By</mat-label>
+                  <mat-select
+                    [value]="sortState.sortColumn"
+                    (selectionChange)="onSortColumnChange($event.value)"
+                  >
+                    <mat-option
+                      *ngFor="let column of sortColumns"
+                      [value]="column.value"
+                    >
+                      {{ column.label }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+
+              <div class="sort-option">
+                <mat-form-field appearance="outline" class="filter-field">
+                  <mat-label>Sort Direction</mat-label>
+                  <mat-select
+                    [value]="sortState.sortDirection"
+                    (selectionChange)="onSortDirectionChange($event.value)"
+                  >
+                    <mat-option value="asc">
+                      Ascending (oldest first)
+                    </mat-option>
+                    <mat-option value="desc">
+                      Descending (newest first)
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+            </div>
+          </div>
+        </mat-expansion-panel>
       </div>
       <div class="space-card">
-        <div *ngFor="let dataTransfer of dataTransfers">
+        <div *ngFor="let dataTransfer of dataTransfers" class="card-wrapper">
           <div class="card">
-            <div class="title">
-              {{ dataTransfer["@id"] }}
-            </div>
-            <div class="subtitle">
-              {{ dataTransfer.type }}
-            </div>
-            <div class="content">
-              <p>
-                <strong>Agreement ID:</strong>
-                {{ dataTransfer.agreementId }}
-              </p>
-              <p>
-                <strong>Callback address:</strong>
-                {{ dataTransfer.callbackAddress }}
-              </p>
-              <p>
-                <strong>Dataset ID:</strong>
-                {{ dataTransfer.datasetId }}
-              </p>
-              <p>
-                <strong>Provider PID:</strong>
-                {{ dataTransfer.providerPid }}
-              </p>
-              <p>
-                <strong>Consumer PID:</strong>
-                {{ dataTransfer.consumerPid }}
-              </p>
-              <!-- <p>
-                <strong>Data address:</strong>
-                {{ dataTransfer.dataAddress }}
-              </p> -->
-              <p>
-                <strong>Format:</strong>
-                {{ dataTransfer.format }}
-              </p>
-              <p>
-                <strong>Created:</strong>
-                {{ dataTransfer.created | date : "d MMMM y, HH:mm:ss" }}
-              </p>
-              <p>
-                <strong>Modified:</strong>
-                {{ dataTransfer.modified | date : "d MMMM y, HH:mm:ss" }}
-              </p>
-              <p>
-                <strong>State:</strong>
+            <!-- Card Header -->
+            <div class="card-header">
+              <div class="header-left">
+                <h2 class="card-title">{{ dataTransfer["@id"] }}</h2>
+                <p class="card-type">{{ dataTransfer.type }}</p>
+              </div>
+              <div class="state-badge" [ngClass]="'state-' + dataTransfer.state">
                 {{ dataTransfer.state }}
-              </p>
+              </div>
             </div>
 
-            <div class="btn-action">
+            <!-- Card Body -->
+            <div class="card-body">
+              <!-- Metadata Grid -->
+              <div class="metadata-grid">
+                <div class="metadata-item">
+                  <span class="metadata-label">Agreement ID</span>
+                  <span class="metadata-value">{{ dataTransfer.agreementId }}</span>
+                </div>
+                <div class="metadata-item">
+                  <span class="metadata-label">Dataset ID</span>
+                  <span class="metadata-value">{{ dataTransfer.datasetId }}</span>
+                </div>
+                <div class="metadata-item">
+                  <span class="metadata-label">Provider PID</span>
+                  <span class="metadata-value">{{ dataTransfer.providerPid }}</span>
+                </div>
+                <div class="metadata-item">
+                  <span class="metadata-label">Consumer PID</span>
+                  <span class="metadata-value">{{ dataTransfer.consumerPid }}</span>
+                </div>
+                <div class="metadata-item">
+                  <span class="metadata-label">Callback Address</span>
+                  <span class="metadata-value">{{ dataTransfer.callbackAddress }}</span>
+                </div>
+                <div class="metadata-item">
+                  <span class="metadata-label">Format</span>
+                  <span class="metadata-value">{{ dataTransfer.format }}</span>
+                </div>
+              </div>
+
+              <!-- Timestamps -->
+              <div class="timestamps">
+                <div class="timestamp-item">
+                  <mat-icon>schedule</mat-icon>
+                  <div class="timestamp-content">
+                    <span class="timestamp-label">Created</span>
+                    <span class="timestamp-value">{{ dataTransfer.created | date : "d MMM y, HH:mm" }}</span>
+                  </div>
+                </div>
+                <div class="timestamp-item">
+                  <mat-icon>update</mat-icon>
+                  <div class="timestamp-content">
+                    <span class="timestamp-label">Modified</span>
+                    <span class="timestamp-value">{{ dataTransfer.modified | date : "d MMM y, HH:mm" }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card Footer - Actions -->
+            <div class="card-footer">
+              <div class="btn-action">
               <div
                 *ngIf="isDownloading(dataTransfer['@id'])"
                 class="download-spinner"
@@ -189,7 +255,7 @@
               </div>
               <ng-container *ngIf="!isDownloading(dataTransfer['@id'])">
                 <button
-                  mat-button
+                  mat-icon-button
                   matTooltip="Request data transfer"
                   *ngIf="
                     dataTransfer.state === dataTransferState.INITIALIZED &&
@@ -197,9 +263,9 @@
                   "
                   [matMenuTriggerFor]="requestMenu"
                   (click)="loadRequestFormats(dataTransfer)"
+                  class="action-btn action-request"
                 >
-                  <mat-icon>check</mat-icon>
-                  <p>Request</p>
+                  <mat-icon>cloud_sync</mat-icon>
                 </button>
                 <mat-menu
                   #requestMenu="matMenu"
@@ -247,7 +313,7 @@
                   </ng-template>
                 </mat-menu>
                 <button
-                  mat-button
+                  mat-icon-button
                   matTooltip="Start data transfer"
                   *ngIf="
                     (dataTransfer.state === dataTransferState.REQUESTED &&
@@ -255,12 +321,12 @@
                     dataTransfer.state === dataTransferState.SUSPENDED
                   "
                   (click)="onStart(dataTransfer)"
+                  class="action-btn action-start"
                 >
                   <mat-icon>play_arrow</mat-icon>
-                  <p>Start</p>
                 </button>
                 <button
-                  mat-button
+                  mat-icon-button
                   [matTooltip]="
                     isDownloading(dataTransfer['@id'])
                       ? 'Pushing data in progress...'
@@ -271,8 +337,9 @@
                     userType === 'provider' &&
                     dataTransfer.format === 'HttpData-PUSH'
                   "
-                  (click)="onDownload(dataTransfer)"
+                  (click)="onPush(dataTransfer)"
                   [disabled]="isDownloading(dataTransfer['@id'])"
+                  class="action-btn action-push"
                 >
                   <mat-progress-spinner
                     *ngIf="isDownloading(dataTransfer['@id'])"
@@ -284,13 +351,9 @@
                   <mat-icon *ngIf="!isDownloading(dataTransfer['@id'])"
                     >upload</mat-icon
                   >
-
-                  <p>
-                    {{ isDownloading(dataTransfer["@id"]) ? "" : "Push data" }}
-                  </p>
                 </button>
                 <button
-                  mat-button
+                  mat-icon-button
                   [matTooltip]="
                     isDownloading(dataTransfer['@id'])
                       ? 'Downloading in progress...'
@@ -304,6 +367,7 @@
                   "
                   (click)="onDownload(dataTransfer)"
                   [disabled]="isDownloading(dataTransfer['@id'])"
+                  class="action-btn action-download"
                 >
                   <mat-progress-spinner
                     *ngIf="isDownloading(dataTransfer['@id'])"
@@ -315,13 +379,9 @@
                   <mat-icon *ngIf="!isDownloading(dataTransfer['@id'])"
                     >download</mat-icon
                   >
-
-                  <p>
-                    {{ isDownloading(dataTransfer["@id"]) ? "" : "Download" }}
-                  </p>
                 </button>
                 <button
-                  mat-button
+                  mat-icon-button
                   matTooltip="View artifact"
                   *ngIf="
                     dataTransfer.state === dataTransferState.COMPLETED &&
@@ -329,36 +389,22 @@
                     dataTransfer.downloaded === true
                   "
                   (click)="onView(dataTransfer)"
+                  [disabled]="isViewing(dataTransfer['@id'])"
+                  class="action-btn action-view"
                 >
-                  <mat-icon>pageview</mat-icon>
-                  <p>View</p>
+                  <mat-icon>{{ isViewing(dataTransfer['@id']) ? 'hourglass_empty' : 'pageview' }}</mat-icon>
                 </button>
                 <button
-                  mat-button
+                  mat-icon-button
                   matTooltip="Complete data transfer"
                   *ngIf="dataTransfer.state === dataTransferState.STARTED && !(userType === 'consumer' && dataTransfer.format === 'HttpData-PUSH')"
                   (click)="onComplete(dataTransfer)"
+                  class="action-btn action-complete"
                 >
                   <mat-icon>verified</mat-icon>
-                  <p>Complete</p>
                 </button>
-                <!-- <button
-                mat-button
-                matTooltip="Suspend data transfer"
-                 *ngIf="
-                  dataTransfer.state === dataTransferState.STARTED &&
-                  !(
-                    userType === 'consumer' && dataTransfer.downloaded === true
-                  ) &&
-                  !isDownloading(dataTransfer['@id'])
-                "
-                (click)="onSuspend(dataTransfer)"
-              >
-                <mat-icon>pause</mat-icon>
-                <p>Suspend</p>
-              </button> -->
                 <button
-                  mat-button
+                  mat-icon-button
                   matTooltip="Terminate data transfer"
                   *ngIf="
                     dataTransfer.state !== dataTransferState.COMPLETED &&
@@ -366,11 +412,12 @@
                     dataTransfer.state !== dataTransferState.INITIALIZED
                   "
                   (click)="onTerminate(dataTransfer)"
+                  class="action-btn action-terminate"
                 >
                   <mat-icon>cancel</mat-icon>
-                  <p>Terminate</p>
                 </button>
               </ng-container>
+              </div>
             </div>
           </div>
         </div>

@@ -1,6 +1,8 @@
 <div *ngIf="loading" class="item">
   <mat-card class="service-card">
-    <ngx-skeleton-loader count="15" appearance="line" animation="pulse" />
+    <div class="loading-container">
+      <mat-spinner diameter="50"></mat-spinner>
+    </div>
   </mat-card>
 </div>
 
@@ -160,6 +162,23 @@
                 <mat-datepicker-toggle matSuffix [for]="toPicker">
                 </mat-datepicker-toggle>
                 <mat-datepicker #toPicker></mat-datepicker>
+              </mat-form-field>
+
+              <!-- Sort Order Filter -->
+              <mat-form-field appearance="outline" class="filter-field">
+                <mat-label>Sort Order</mat-label>
+                <mat-select
+                  [(value)]="selectedSortOrder"
+                  placeholder="Select sort order"
+                  (selectionChange)="onSortOrderChange()"
+                >
+                  <mat-option
+                    *ngFor="let option of sortOrderOptions"
+                    [value]="option.value"
+                  >
+                    {{ option.label }}
+                  </mat-option>
+                </mat-select>
               </mat-form-field>
 
               <!-- Filter Action Buttons -->

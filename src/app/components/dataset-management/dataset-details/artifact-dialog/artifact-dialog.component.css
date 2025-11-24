@@ -1,3 +1,46 @@
+/* Dialog Header */
+.dialog-header {
+  background: linear-gradient(135deg, #f5f3ff 0%, #fef9f3 100%);
+  padding: 32px 28px;
+  border-bottom: 1px solid #e8dff5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dialog-title {
+  font-size: 26px;
+  font-weight: 700;
+  margin: 0;
+  color: #383838;
+  display: flex;
+  align-items: center;
+}
+
+.dialog-title mat-icon {
+  margin-right: 14px;
+  color: #6200ea;
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+}
+
+.header-close-button {
+  color: #9b9b9b;
+  transition: all 0.2s ease;
+}
+
+.header-close-button:hover {
+  color: #6200ea;
+  background-color: rgba(98, 0, 234, 0.08);
+}
+
+/* Dialog Content */
+mat-dialog-content {
+  min-height: 400px;
+  padding: 28px;
+}
+
 .full-width {
   width: 100%;
 }
@@ -12,21 +55,22 @@
 }
 
 .file-dropzone {
-  border: 2px dashed #ccc;
-  border-radius: 6px;
+  border: 2px dashed #d8d0f0;
+  border-radius: 12px;
   height: 200px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  background-color: #fafafa;
+  background: linear-gradient(135deg, #f8f6ff 0%, #f0ebff 100%);
   margin: 15px 0;
 }
 
 .file-dropzone.active {
-  border-color: #3f51b5;
-  background-color: rgba(63, 81, 181, 0.05);
+  border-color: #6200ea;
+  background: linear-gradient(135deg, #f5f3ff 0%, #ebe6ff 100%);
+  box-shadow: 0 4px 12px rgba(98, 0, 234, 0.15);
 }
 
 .dropzone-content {
@@ -44,11 +88,28 @@
   width: 48px;
   height: 48px;
   margin-bottom: 15px;
-  color: #3f51b5;
+  color: #6200ea;
 }
 
 .dropzone-content p {
   margin: 5px 0;
+}
+
+.dropzone-content button[mat-raised-button] {
+  background: linear-gradient(140deg, #8a9eed 0%, #b1c0ff 100%) !important;
+  color: #ffffff;
+  border-radius: 999px;
+  box-shadow: 0 10px 20px -12px rgba(138, 158, 237, 0.6);
+  padding: 0 24px !important;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  height: 40px !important;
+  margin-top: 10px;
+}
+
+.dropzone-content button[mat-raised-button]:hover {
+  box-shadow: 0 16px 26px -12px rgba(138, 158, 237, 0.75);
+  transform: translateY(-1px);
 }
 
 .selected-file-info {
@@ -78,6 +139,55 @@
   color: #f44336 !important;
 }
 
-mat-dialog-content {
-  min-height: 400px;
+/* Dialog Actions */
+mat-dialog-actions {
+  padding: 20px 28px;
+  border-top: 1px solid #e8dff5;
+  background: linear-gradient(135deg, #f5f3ff 0%, #fef9f3 100%);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+mat-dialog-actions button {
+  height: 40px;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+mat-dialog-actions button[mat-button] {
+  color: #6200ea;
+  font-weight: 500;
+  border-radius: 999px;
+  padding: 0 24px !important;
+  transition: all 0.2s ease;
+}
+
+mat-dialog-actions button[mat-button]:hover {
+  background-color: rgba(98, 0, 234, 0.08);
+  color: #6200ea;
+}
+
+mat-dialog-actions button[mat-raised-button] {
+  background: linear-gradient(140deg, #8a9eed 0%, #b1c0ff 100%);
+  color: #ffffff;
+  border-radius: 999px;
+  box-shadow: 0 10px 20px -12px rgba(138, 158, 237, 0.6);
+  padding: 0 28px !important;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+mat-dialog-actions button[mat-raised-button]:hover {
+  box-shadow: 0 16px 26px -12px rgba(138, 158, 237, 0.75);
+  transform: translateY(-1px);
+}
+
+mat-dialog-actions button[mat-raised-button]:disabled {
+  background: linear-gradient(140deg, #ccc 0%, #ddd 100%);
+  box-shadow: none;
+  color: #999;
+  transform: none;
+  cursor: not-allowed;
 }

@@ -12,8 +12,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
-import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
 import { Dataset } from '../../models/dataset';
 import { ArtifactService } from '../../services/artifact/artifact.service';
 import { DatasetService } from '../../services/dataset/dataset.service';
@@ -30,7 +30,7 @@ import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation
         MatExpansionModule,
         MatIconModule,
         MatButtonModule,
-        NgxSkeletonLoaderModule,
+        MatProgressSpinnerModule,
         MatInputModule,
         MatToolbarModule,
         MatFormFieldModule,

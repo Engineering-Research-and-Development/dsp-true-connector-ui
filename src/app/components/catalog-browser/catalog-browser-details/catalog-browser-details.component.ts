@@ -8,10 +8,9 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
-import { MatTabsModule } from '@angular/material/tabs';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
-import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
 import { Catalog } from '../../../models/catalog';
 import { Distribution } from '../../../models/distribution';
 import { Action } from '../../../models/enums/action.enum';
@@ -28,9 +27,8 @@ import { CnDetailsDialogComponent } from './cn-details-dialog/cn-details-dialog.
     imports: [
         CommonModule,
         MatTooltipModule,
-        MatTabsModule,
         MatCardModule,
-        NgxSkeletonLoaderModule,
+        MatProgressSpinnerModule,
         MatIconModule,
         FormsModule,
         ReactiveFormsModule,
@@ -63,6 +61,13 @@ export class CatalogBrowserDetailsComponent {
     if (navigation?.extras.state) {
       this.catalogData = navigation.extras.state['catalog'];
       this.languages = this.extractLanguages(this.catalogData!.description);
+      
+      // Pre-select the first language
+      if (this.languages.length > 0) {
+        this.selectedLanguage = this.languages[0].toUpperCase();
+        this.onLanguageSelected();
+      }
+      
       this.loading = false;
     } else {
       this.goBack();
@@ -135,8 +140,8 @@ export class CatalogBrowserDetailsComponent {
     offer: Offer,
     datasetId: string
   ): any {
-    const endpointURL = distribution.accessService.endpointURL;
-    const baseEndpoint = endpointURL.endsWith('/')
+    const endpointURL = this.catalogData?.service[0].endpointURL;
+    const baseEndpoint = endpointURL && endpointURL.endsWith('/')
       ? endpointURL
       : endpointURL + '/';
     const negotiationRequest = {
@@ -185,7 +190,7 @@ export class CatalogBrowserDetailsComponent {
         .subscribe({
           next: (response) => {
             this.router.navigate(['/contract-negotiation'], {
-              state: { userType: 'consumer' },
+              queryParams: { userType: 'consumer' },
             });
           },
           error: (error) => {

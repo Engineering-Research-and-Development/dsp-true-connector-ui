@@ -66,7 +66,18 @@ h1 {
 
 .help-icon {
   color: #757575;
-  cursor: help;
+  transition: all 0.3s ease;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  width: 24px;
+}
+
+.help-icon:hover {
+  color: #6200ea;
+  transform: scale(1.15);
 }
 
 .buttons {
@@ -83,6 +94,7 @@ h1 {
   align-items: center !important;
   justify-content: center !important;
   padding: 0 8px !important;
+  border-radius: 999px !important;
 }
 
 /* Changes Indicator */
@@ -106,21 +118,23 @@ h1 {
 
 .expansion-panel {
   margin-top: 15px;
-  background-color: #fafafa;
+  background-color: #ffffff;
   border-radius: 10px;
   transition: box-shadow 0.3s;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #f0f0f0;
 }
 
 .expansion-panel ::ng-deep .mat-expansion-panel-header {
-  background-color: #ffffff;
-  border-radius: 10px;
+  background: linear-gradient(135deg, #f5f3ff 0%, #fef9f3 100%);
+  border-radius: 10px 10px 0 0;
   padding: 0 15px;
   height: 60px;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .mat-panel-title {
-  color: #8a9eed;
+  color: #6200ea;
   font-weight: 600;
   font-size: 1.2em;
   display: flex;
@@ -129,7 +143,7 @@ h1 {
 }
 
 .property-count {
-  color: #666;
+  color: #999;
   font-size: 0.9em;
   font-weight: 400;
   margin-left: 8px;
@@ -141,11 +155,12 @@ h1 {
   flex-direction: column;
   gap: 15px;
   padding: 15px;
+  background-color: #ffffff;
 }
 
 .property-item {
   padding: 15px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid #f0f0f0;
   border-radius: 10px;
   background: #ffffff;
   transition: all 0.3s ease;
@@ -157,9 +172,9 @@ h1 {
 }
 
 .property-item:hover {
-  background-color: #f8f9fa;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border-color: #8a9eed;
+  background-color: #fafafa;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-color: #e8e8e8;
 }
 
 .property-modified {

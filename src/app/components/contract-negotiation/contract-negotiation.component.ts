@@ -1,5 +1,5 @@
 import { CommonModule, Location } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -11,11 +11,12 @@ import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
-import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Router } from '@angular/router';
-import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { ActivatedRoute } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { ContractNegotiation } from '../../models/contractNegotiation';
 import { ContractNegotiationState } from '../../models/enums/contractNegotiationState';
 import { ContractNegotiationService } from '../../services/contract-negotiation/contract-negotiation.service';
@@ -36,7 +37,7 @@ import {
     MatExpansionModule,
     MatIconModule,
     MatButtonModule,
-    NgxSkeletonLoaderModule,
+    MatProgressSpinnerModule,
     MatInputModule,
     MatToolbarModule,
     MatFormFieldModule,
@@ -45,12 +46,11 @@ import {
     MatTooltipModule,
     MatSelectModule,
     MatPaginatorModule,
-    MatSortModule,
   ],
   templateUrl: './contract-negotiation.component.html',
   styleUrls: ['./contract-negotiation.component.css'],
 })
-export class ContractNegotiationComponent implements OnInit {
+export class ContractNegotiationComponent implements OnInit, OnDestroy {
   userType!: string;
   loading = false;
   contractNegotiations: ContractNegotiation[] = [];
@@ -62,36 +62,76 @@ export class ContractNegotiationComponent implements OnInit {
     PaginationHelper.createInitialPaginationState();
   sortState: SortState = PaginationHelper.createInitialSortState();
 
-  // Filter expansion state using shared utility
+  // Filter expansion state using shared utility - filters collapsed by default
   filterExpansionState: FilterExpansionState =
-    PaginationHelper.createFilterExpansionState();
+    PaginationHelper.createFilterExpansionState(false);
+
+  // Sort expansion state - sort collapsed by default
+  sortExpansionState: FilterExpansionState =
+    PaginationHelper.createFilterExpansionState(false);
+
+  // Sort options
+  sortColumns = [
+    { value: 'created', label: 'Creation Date' },
+    { value: 'modified', label: 'Last Modified' },
+  ];
 
   // Filters
   offerIdFilter: string = '';
   providerPidFilter: string = '';
   consumerPidFilter: string = '';
 
-  contractNegotiationState = ContractNegotiationState;
+  private destroy$ = new Subject<void>();
+  private previousUserType: string | null = null;
+
+  // Expose enum to template
+  readonly contractNegotiationState = ContractNegotiationState;
 
   constructor(
-    private router: Router,
+    private route: ActivatedRoute,
     private location: Location,
     private contractNegotiationService: ContractNegotiationService
-  ) {
-    const navigation = this.router.getCurrentNavigation();
-    if (navigation?.extras.state) {
-      this.userType = navigation.extras.state['userType'];
-    } else {
-      this.goBack();
-    }
-  }
+  ) {}
 
   /**
    * Initializes the component by fetching all contract negotiations from the server based on the user type.
+   * Subscribes to query parameter changes to detect role switches between consumer and provider.
    * */
   ngOnInit(): void {
-    this.loading = true;
-    this.fetchContractNegotiations();
+    this.route.queryParams
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(params => {
+        const newUserType = params['userType'];
+        if (!newUserType) {
+          this.goBack();
+          return;
+        }
+        
+        // If userType has changed, reset filters and pagination
+        if (this.previousUserType !== null && this.previousUserType !== newUserType) {
+          this.selectedState = null;
+          this.offerIdFilter = '';
+          this.providerPidFilter = '';
+          this.consumerPidFilter = '';
+          this.paginationState = PaginationHelper.createInitialPaginationState();
+          this.sortState = PaginationHelper.createInitialSortState();
+          this.filterExpansionState = PaginationHelper.createFilterExpansionState(false);
+          this.sortExpansionState = PaginationHelper.createFilterExpansionState(false);
+        }
+        
+        this.userType = newUserType;
+        this.previousUserType = newUserType;
+        this.loading = true;
+        this.fetchContractNegotiations();
+      });
+  }
+
+  /**
+   * Cleanup subscriptions when component is destroyed
+   */
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   /**
@@ -145,10 +185,6 @@ export class ContractNegotiationComponent implements OnInit {
    * Apply filters and fetch contract negotiations with filtering and pagination
    */
   applyFilters() {
-    // Keep the expansion panel open when applying filters
-    this.filterExpansionState = PaginationHelper.keepFilterExpansionOpen(
-      this.filterExpansionState
-    );
     // Reset to first page when applying filters
     this.paginationState = PaginationHelper.resetToFirstPage(
       this.paginationState
@@ -160,11 +196,6 @@ export class ContractNegotiationComponent implements OnInit {
    * Clear all filters and fetch all contract negotiations
    */
   clearFilters() {
-    // Keep the expansion panel open after clearing filters
-    this.filterExpansionState = PaginationHelper.keepFilterExpansionOpen(
-      this.filterExpansionState
-    );
-
     this.selectedState = null;
     this.offerIdFilter = '';
     this.providerPidFilter = '';
@@ -178,13 +209,28 @@ export class ContractNegotiationComponent implements OnInit {
   }
 
   /**
-   * Handle sort change
+   * Handle sorting column change
    */
-  onSortChange(sort: Sort) {
-    this.sortState = PaginationHelper.handleSortChange(
-      { active: sort.active, direction: sort.direction as 'asc' | 'desc' },
-      this.sortState
+  onSortColumnChange(column: string) {
+    this.sortState = {
+      ...this.sortState,
+      sortColumn: column,
+    };
+    // Reset to first page when sorting changes
+    this.paginationState = PaginationHelper.resetToFirstPage(
+      this.paginationState
     );
+    this.fetchContractNegotiations();
+  }
+
+  /**
+   * Handle sorting direction change
+   */
+  onSortDirectionChange(direction: 'asc' | 'desc') {
+    this.sortState = {
+      ...this.sortState,
+      sortDirection: direction,
+    };
     // Reset to first page when sorting changes
     this.paginationState = PaginationHelper.resetToFirstPage(
       this.paginationState
@@ -200,6 +246,9 @@ export class ContractNegotiationComponent implements OnInit {
       { pageIndex: event.pageIndex, pageSize: event.pageSize },
       this.paginationState
     );
+    // Collapse panels when changing pages
+    this.filterExpansionState.filtersExpanded = false;
+    this.sortExpansionState.filtersExpanded = false;
     this.fetchContractNegotiations();
   }
 
@@ -216,9 +265,9 @@ export class ContractNegotiationComponent implements OnInit {
    * Handle the approve event of the contract negotiation
    * @param contractNegotiation The contract negotiation
    * */
-  onApprove(contractNegotiation: ContractNegotiation) {
+  onAgree(contractNegotiation: ContractNegotiation) {
     this.contractNegotiationService
-      .approveNegotiation(contractNegotiation['@id'])
+      .agreeNegotiation(contractNegotiation['@id'])
       .subscribe({
         next: () => {
           this.fetchContractNegotiations();

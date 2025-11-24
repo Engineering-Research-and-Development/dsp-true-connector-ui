@@ -19,8 +19,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router, RouterModule } from '@angular/router';
-import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
 import { DataService } from '../../../models/dataService';
 import { Dataset } from '../../../models/dataset';
 import { Multilanguage } from '../../../models/multilanguage';
@@ -41,7 +41,7 @@ import { ConfirmationDialogComponent } from '../../confirmation-dialog/confirmat
     MatButtonModule,
     MatExpansionModule,
     MatToolbarModule,
-    NgxSkeletonLoaderModule,
+    MatProgressSpinnerModule,
     MatIconModule,
     FormsModule,
     ReactiveFormsModule,
@@ -100,6 +100,11 @@ export class ServiceDetailsComponent implements OnInit {
   ngOnInit(): void {
     this.initForm();
     this.getAllDataSets();
+    // Set the first language as default and update description value
+    if (this.languages.length > 0) {
+      this.selectedLanguage = this.languages[0].toUpperCase();
+      this.onLanguageSelected();
+    }
   }
 
   ngOnDestroy(): void {

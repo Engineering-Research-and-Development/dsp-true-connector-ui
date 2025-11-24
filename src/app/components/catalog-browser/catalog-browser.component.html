@@ -1,6 +1,8 @@
 <div *ngIf="loading" class="item">
   <mat-card class="service-card">
-    <ngx-skeleton-loader count="15" appearance="line" animation="pulse" />
+    <div class="loading-container">
+      <mat-spinner diameter="50"></mat-spinner>
+    </div>
   </mat-card>
 </div>
 
@@ -37,52 +39,79 @@
         </div>
       </div>
       <div class="space-card">
-        <div *ngFor="let catalog of filteredCatalogsData">
+        <div *ngFor="let catalog of filteredCatalogsData" class="card-wrapper">
           <div class="card">
-            <div class="title">
-              {{ catalog.title }}
+            <!-- Card Header -->
+            <div class="card-header">
+              <div class="header-left">
+                <h2 class="card-title">{{ catalog.title }}</h2>
+                <p class="card-type">{{ catalog.creator }}</p>
+              </div>
             </div>
-            <div class="subtitle">
-              {{ catalog.creator }}
+
+            <!-- Card Body -->
+            <div class="card-body">
+              <!-- Metadata Grid -->
+              <div class="metadata-grid">
+                <div class="metadata-item">
+                  <span class="metadata-label">Keywords</span>
+                  <span class="metadata-value">
+                    {{
+                      (catalog.keyword || []).length
+                        ? (catalog.keyword || []).join(", ")
+                        : "N/A"
+                    }}
+                  </span>
+                </div>
+                <div class="metadata-item">
+                  <span class="metadata-label">Datasets</span>
+                  <span class="metadata-value">{{ (catalog.dataset || []).length }}</span>
+                </div>
+              </div>
+
+              <!-- Timestamps -->
+              <div class="timestamps">
+                <div class="timestamp-item">
+                  <mat-icon>schedule</mat-icon>
+                  <div class="timestamp-content">
+                    <span class="timestamp-label">Issued</span>
+                    <span class="timestamp-value">
+                      {{
+                        catalog.issued
+                          ? (catalog.issued | date : "d MMMM y, HH:mm:ss")
+                          : "N/A"
+                      }}
+                    </span>
+                  </div>
+                </div>
+                <div class="timestamp-item">
+                  <mat-icon>update</mat-icon>
+                  <div class="timestamp-content">
+                    <span class="timestamp-label">Modified</span>
+                    <span class="timestamp-value">
+                      {{
+                        catalog.modified
+                          ? (catalog.modified | date : "d MMMM y, HH:mm:ss")
+                          : "N/A"
+                      }}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="content">
-              <p>
-                <strong>Keywords:</strong>
-                {{
-                  (catalog.keyword || []).length
-                    ? (catalog.keyword || []).join(", ")
-                    : "N/A"
-                }}
-              </p>
-              <p>
-                <strong>Issued:</strong>
-                {{
-                  catalog.issued
-                    ? (catalog.issued | date : "d MMMM y, HH:mm:ss")
-                    : "N/A"
-                }}
-              </p>
-              <p>
-                <strong>Modified:</strong>
-                {{
-                  catalog.modified
-                    ? (catalog.modified | date : "d MMMM y, HH:mm:ss")
-                    : "N/A"
-                }}
-              </p>
-              <p>
-                <strong>Datasets:</strong>
-                {{ (catalog.dataset || []).length }}
-              </p>
-            </div>
-            <div class="btn-action">
-              <button
-                mat-button
-                matTooltip="View details"
-                (click)="navigateToCatalogDetails(catalog)"
-              >
-                <mat-icon>visibility</mat-icon>
-              </button>
+
+            <!-- Card Footer - Actions -->
+            <div class="card-footer">
+              <div class="btn-action">
+                <button
+                  mat-icon-button
+                  matTooltip="View details"
+                  (click)="navigateToCatalogDetails(catalog)"
+                  class="action-btn action-view"
+                >
+                  <mat-icon>visibility</mat-icon>
+                </button>
+              </div>
             </div>
           </div>
         </div>

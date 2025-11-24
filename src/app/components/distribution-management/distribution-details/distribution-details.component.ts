@@ -19,15 +19,14 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router, RouterModule } from '@angular/router';
-import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
 import { DataService } from '../../../models/dataService';
 import { Multilanguage } from '../../../models/multilanguage';
 import { Offer } from '../../../models/offer';
 import { DataServiceService } from '../../../services/data-service/data-service.service';
 import { DistributionService } from '../../../services/distribution/distribution.service';
 import { EditStateService } from '../../../shared/edit-state.service';
-import { ModifiedFieldDirective } from '../../../shared/modified-field.directive';
 import { OldValuePipe } from '../../../shared/old-value.pipe';
 import { UnsavedChangesComponent } from '../../../shared/unsaved-changes/unsaved-changes.component';
 import { ConfirmationDialogComponent } from '../../confirmation-dialog/confirmation-dialog.component';
@@ -42,7 +41,7 @@ import { Distribution } from './../../../models/distribution';
     MatButtonModule,
     MatExpansionModule,
     MatToolbarModule,
-    NgxSkeletonLoaderModule,
+    MatProgressSpinnerModule,
     MatIconModule,
     FormsModule,
     ReactiveFormsModule,
@@ -51,7 +50,6 @@ import { Distribution } from './../../../models/distribution';
     MatInputModule,
     MatTooltipModule,
     MatTabsModule,
-    ModifiedFieldDirective,
     OldValuePipe,
     UnsavedChangesComponent,
   ],
@@ -102,6 +100,14 @@ export class DistributionDetailsComponent implements OnInit {
   ngOnInit(): void {
     this.initForm();
     this.getAllServices();
+    // Extract languages from distribution descriptions and set first as default
+    if (this.distribution && this.distribution.description && this.distribution.description.length > 0) {
+      this.languages = this.extractLanguages(this.distribution.description);
+      if (this.languages.length > 0) {
+        this.selectedLanguage = this.languages[0].toUpperCase();
+        this.onLanguageSelected();
+      }
+    }
   }
 
   ngOnDestroy(): void {
@@ -313,12 +319,12 @@ export class DistributionDetailsComponent implements OnInit {
     });
   }
 
-  compareServices(option: DataService | null, selected: DataService | null): boolean {
+  compareServices = (option: DataService, selected: DataService): boolean => {
     if (!option || !selected) {
       return option === selected;
     }
     return option['@id'] === selected['@id'];
-  }
+  };
 
   /**
    * Navigates to the policy details page.
@@ -352,7 +358,7 @@ export class DistributionDetailsComponent implements OnInit {
       issued: null,
       modified: null,
       hasPolicy: this.fb.array([]),
-      accessService: [[], Validators.required],
+      accessService: [null, Validators.required],
       format: ['', Validators.required]
     });
   }
@@ -371,16 +377,9 @@ export class DistributionDetailsComponent implements OnInit {
         version: distribution.version,
         issued: distribution.issued,
         modified: distribution.modified,
+        accessService: distribution.accessService || null,
         format: this.getFormatLabel(distribution.format),
       });
-
-      this.distributionForm
-        .get('accessService')
-        ?.setValue(
-          distribution.accessService.map((service) =>
-            this.allServices.find((s) => s['@id'] === service['@id'])
-          )
-        );
       this.setFormArray('hasPolicy', distribution.hasPolicy || []);
       this.setFormArray('description', distribution.description || []);
 
@@ -441,10 +440,6 @@ export class DistributionDetailsComponent implements OnInit {
         cleanedData[key] = [];
       }
     });
-
-    if (cleanedData.format) {
-      cleanedData.format = { '@id': cleanedData.format };
-    }
 
     return cleanedData;
   }

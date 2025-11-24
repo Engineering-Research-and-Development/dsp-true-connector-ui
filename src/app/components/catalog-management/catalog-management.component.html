@@ -1,10 +1,8 @@
 <div *ngIf="loading" class="item">
   <mat-card class="service-card">
-    <ngx-skeleton-loader
-      count="15"
-      appearance="line"
-      animation="pulse"
-    ></ngx-skeleton-loader>
+    <div class="loading-container">
+      <mat-spinner diameter="50"></mat-spinner>
+    </div>
   </mat-card>
 </div>
 <div *ngIf="!loading && catalogData === undefined">
@@ -60,11 +58,21 @@
       <mat-card-content>
         <div class="headtitle">
           <div class="back">
+            <button
+              mat-button
+              *ngIf="editMode"
+              (click)="
+                directEdit ? goBack() : editMode ? cancelEdit() : goBack()
+              "
+            >
+              <mat-icon>keyboard_arrow_left</mat-icon>
+              Back
+            </button>
             <h1>Manage Catalog data</h1>
             <mat-icon
               class="help-icon"
               matTooltip="Catalog data is consisted out of crucial data for functioning catalog such are metadata, services, datasets and distributions. 
-              Here you can view, edit, download, or delete the existing catalog. Use the tabs and buttons to navigate and manage the data."
+              Here you can view, edit, download, or delete the existing catalog. Use the cards and buttons to navigate and manage the data."
               aria-label="Help regarding catalog management"
               >help_outline</mat-icon
             >
@@ -128,50 +136,56 @@
         </div>
 
         <div *ngIf="!editMode">
-          <mat-tab-group>
-            <mat-tab label="Basic info">
-              <div class="bc-blue">
-                <br />
-                <h2>{{ catalogData.title }}</h2>
-                <div class="table-info">
-                  <strong>ID</strong> <span>{{ catalogData["@id"] }}</span>
-                  <strong>Identifier</strong
-                  ><span>{{ catalogData.identifier }}</span>
-                  <strong>Type</strong
-                  ><span>
-                    {{ catalogData.type }}
-                  </span>
-                  <strong>Conforms to</strong>
-                  <span>{{ catalogData.conformsTo }}</span>
+          <!-- Catalog Cards Grid -->
+          <div class="catalog-cards-container">
+            <!-- Basic Info Card -->
+            <div class="catalog-card basic-info-card">
+              <div class="card-header">
+                <div class="header-left">
+                  <h2 class="card-title">{{ catalogData.title }}</h2>
+                  <p class="card-type">{{ catalogData.type }}</p>
+                </div>
+                <mat-icon class="card-icon">info</mat-icon>
+              </div>
 
-                  <strong>Keyword</strong>
-                  <span>{{
-                    (catalogData.keyword || []).length
-                      ? (catalogData.keyword || []).join(", ")
-                      : "N/A"
-                  }}</span>
-
-                  <strong>Theme</strong>
-                  <span>{{
-                    (catalogData.theme || []).length
-                      ? (catalogData.theme || []).join(", ")
-                      : "N/A"
-                  }}</span>
-
-                  <strong>Participant ID</strong>
-                  <span> {{ catalogData.participantId }}</span>
+              <div class="card-body">
+                <div class="metadata-grid">
+                  <div class="metadata-item">
+                    <span class="metadata-label">ID</span>
+                    <span class="metadata-value" [title]="catalogData['@id']">{{ catalogData["@id"] }}</span>
+                  </div>
+                  <div class="metadata-item">
+                    <span class="metadata-label">Identifier</span>
+                    <span class="metadata-value" [title]="catalogData.identifier">{{ catalogData.identifier }}</span>
+                  </div>
+                  <div class="metadata-item">
+                    <span class="metadata-label">Conforms to</span>
+                    <span class="metadata-value" [title]="catalogData.conformsTo">{{ catalogData.conformsTo }}</span>
+                  </div>
+                  <div class="metadata-item">
+                    <span class="metadata-label">Participant ID</span>
+                    <span class="metadata-value" [title]="catalogData.participantId">{{ catalogData.participantId }}</span>
+                  </div>
                 </div>
               </div>
-            </mat-tab>
-            <mat-tab label="Description">
-              <div class="desc">
-                <br />
-                <mat-form-field appearance="outline">
+            </div>
+
+            <!-- Description Card -->
+            <div class="catalog-card description-card">
+              <div class="card-header">
+                <div class="header-left">
+                  <h2 class="card-title">Description</h2>
+                  <p class="card-type">{{ languages.length }} language(s)</p>
+                </div>
+                <mat-icon class="card-icon">description</mat-icon>
+              </div>
+
+              <div class="card-body">
+                <mat-form-field appearance="outline" class="language-select">
                   <mat-label>Select Language</mat-label>
                   <mat-select
                     [(value)]="selectedLanguage"
                     (selectionChange)="onLanguageSelected()"
-                    outline
                   >
                     <mat-option
                       *ngFor="let language of languages"
@@ -180,51 +194,200 @@
                     >
                   </mat-select>
                 </mat-form-field>
-
-                <p *ngIf="descriptionValue">{{ descriptionValue }}</p>
+                <div class="description-content" *ngIf="descriptionValue">
+                  <p>{{ descriptionValue }}</p>
+                </div>
+                <div class="description-empty" *ngIf="!descriptionValue">
+                  <p class="empty-message">No description available</p>
+                </div>
               </div>
-            </mat-tab>
-            <mat-tab label="Metadata info">
-              <div>
-                <br />
-                <div class="page-wrraper">
-                  <div class="bc-grey">
-                    <div class="table-info">
-                      <strong>Creator</strong>
-                      <span>{{ catalogData.creator }} </span>
+            </div>
 
-                      <strong>Created by</strong>
-                      <span> {{ catalogData.createdBy }}</span>
+            <!-- Metadata Info Card -->
+            <div class="catalog-card metadata-info-card">
+              <div class="card-header">
+                <div class="header-left">
+                  <h2 class="card-title">Metadata</h2>
+                  <p class="card-type">Version info</p>
+                </div>
+                <mat-icon class="card-icon">tag</mat-icon>
+              </div>
 
-                      <strong>Issued</strong>
-                      <span>
-                        {{
-                          catalogData.issued
-                            ? (catalogData.issued | date : "d MMMM y, HH:mm:ss")
-                            : "N/A"
-                        }}
-                      </span>
-
-                      <strong>Modified</strong>
-                      <span>
-                        {{
-                          catalogData.modified
-                            ? (catalogData.modified
-                              | date : "d MMMM y, HH:mm:ss")
-                            : "N/A"
-                        }}
-                      </span>
-
-                      <strong>Last modified by</strong>
-                      <span>
-                        {{ catalogData.lastModifiedBy }}
-                      </span>
-                    </div>
+              <div class="card-body">
+                <div class="metadata-grid">
+                  <div class="metadata-item">
+                    <span class="metadata-label">Creator</span>
+                    <span class="metadata-value" [title]="catalogData.creator">{{ catalogData.creator }}</span>
+                  </div>
+                  <div class="metadata-item">
+                    <span class="metadata-label">Created by</span>
+                    <span class="metadata-value" [title]="catalogData.createdBy">{{ catalogData.createdBy }}</span>
+                  </div>
+                  <div class="metadata-item">
+                    <span class="metadata-label">Issued</span>
+                    <span class="metadata-value">
+                      {{
+                        catalogData.issued
+                          ? (catalogData.issued | date : "d MMMM y, HH:mm:ss")
+                          : "N/A"
+                      }}
+                    </span>
+                  </div>
+                  <div class="metadata-item">
+                    <span class="metadata-label">Modified</span>
+                    <span class="metadata-value">
+                      {{
+                        catalogData.modified
+                          ? (catalogData.modified | date : "d MMMM y, HH:mm:ss")
+                          : "N/A"
+                      }}
+                    </span>
+                  </div>
+                  <div class="metadata-item">
+                    <span class="metadata-label">Last Modified by</span>
+                    <span class="metadata-value" [title]="catalogData.lastModifiedBy">{{ catalogData.lastModifiedBy }}</span>
                   </div>
                 </div>
-              </div></mat-tab
-            >
-          </mat-tab-group>
+              </div>
+            </div>
+
+            <!-- Keywords & Themes Card -->
+            <div class="catalog-card keywords-themes-card">
+              <div class="card-header">
+                <div class="header-left">
+                  <h2 class="card-title">Keywords & Themes</h2>
+                  <p class="card-type">{{ (catalogData.keyword || []).length + (catalogData.theme || []).length }} items</p>
+                </div>
+                <mat-icon class="card-icon">label</mat-icon>
+              </div>
+
+              <div class="card-body">
+                <div class="keywords-section" *ngIf="(catalogData.keyword || []).length > 0">
+                  <h3 class="metadata-label">Keywords</h3>
+                  <div class="tags-container">
+                    <span *ngFor="let keyword of catalogData.keyword" class="tag keyword-tag">
+                      {{ keyword }}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="themes-section" *ngIf="(catalogData.theme || []).length > 0">
+                  <h3 class="metadata-label">Themes</h3>
+                  <div class="tags-container">
+                    <span *ngFor="let theme of catalogData.theme" class="tag theme-tag">
+                      {{ theme }}
+                    </span>
+                  </div>
+                </div>
+
+                <div *ngIf="(catalogData.keyword || []).length === 0 && (catalogData.theme || []).length === 0" class="empty-message">
+                  <p>No keywords or themes defined</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Resources Section -->
+          <div class="resources-section">
+            <!-- Services Card -->
+            <div class="resource-card services-card" *ngIf="catalogData.service.length > 0">
+              <div class="card-header">
+                <div class="header-left">
+                  <h2 class="card-title">
+                    Services
+                    <span class="count-badge">{{ catalogData.service.length }}</span>
+                  </h2>
+                </div>
+              </div>
+
+              <div class="card-body resources-body">
+                <div class="resource-list">
+                  <div
+                    *ngFor="let service of catalogData.service"
+                    class="resource-item"
+                  >
+                    <div class="resource-content">
+                      <h4 class="resource-title">{{ service.title }}</h4>
+                    </div>
+                    <button
+                      mat-icon-button
+                      matTooltip="View details"
+                      (click)="navigateToServiceDetails(service)"
+                      class="action-btn action-view"
+                    >
+                      <mat-icon>visibility</mat-icon>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Datasets Card -->
+            <div class="resource-card datasets-card" *ngIf="catalogData.dataset.length > 0">
+              <div class="card-header">
+                <div class="header-left">
+                  <h2 class="card-title">
+                    Datasets
+                    <span class="count-badge">{{ catalogData.dataset.length }}</span>
+                  </h2>
+                </div>
+              </div>
+
+              <div class="card-body resources-body">
+                <div class="resource-list">
+                  <div
+                    *ngFor="let dataset of catalogData.dataset"
+                    class="resource-item"
+                  >
+                    <div class="resource-content">
+                      <h4 class="resource-title">{{ dataset.title }}</h4>
+                    </div>
+                    <button
+                      mat-icon-button
+                      matTooltip="View details"
+                      (click)="navigateToDatasetDetails(dataset)"
+                      class="action-btn action-view"
+                    >
+                      <mat-icon>visibility</mat-icon>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Distributions Card -->
+            <div class="resource-card distributions-card" *ngIf="catalogData.distribution.length > 0">
+              <div class="card-header">
+                <div class="header-left">
+                  <h2 class="card-title">
+                    Distributions
+                    <span class="count-badge">{{ catalogData.distribution.length }}</span>
+                  </h2>
+                </div>
+              </div>
+
+              <div class="card-body resources-body">
+                <div class="resource-list">
+                  <div
+                    *ngFor="let distribution of catalogData.distribution"
+                    class="resource-item"
+                  >
+                    <div class="resource-content">
+                      <h4 class="resource-title">{{ distribution.title }}</h4>
+                    </div>
+                    <button
+                      mat-icon-button
+                      matTooltip="View details"
+                      (click)="navigateToDistributionDetails(distribution)"
+                      class="action-btn action-view"
+                    >
+                      <mat-icon>visibility</mat-icon>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="content-flex">
@@ -354,7 +517,6 @@
               <p *ngIf="catalogForm.get('description')?.value.length < 1">
                 <strong style="color: red">Description*:</strong>
               </p>
-              <br />
               <mat-error
                 *ngIf="catalogForm.get('description')?.value.length < 1"
               >
@@ -444,7 +606,6 @@
               <p *ngIf="catalogForm.get('keyword')?.value.length < 1">
                 <strong style="color: red">Keywords*:</strong>
               </p>
-              <br />
 
               <mat-error *ngIf="catalogForm.get('keyword')?.value.length < 1">
                 Keywords is required
@@ -497,7 +658,6 @@
               </button>
 
               <p><strong>Themes:</strong></p>
-              <br />
               <div formArrayName="theme">
                 <div class="key">
                   <div
@@ -540,82 +700,6 @@
               </button>
             </div>
           </div>
-        </div>
-        <div class="sdd">
-          <mat-expansion-panel
-            class="expansion-panel"
-            *ngIf="!editMode && catalogData.service.length > 0"
-          >
-            <mat-expansion-panel-header>
-              <mat-panel-title>Services</mat-panel-title>
-            </mat-expansion-panel-header>
-            <div
-              *ngFor="let service of catalogData.service"
-              class="resource-section"
-            >
-              <div>
-                <p>{{ service.title }}</p>
-                <button
-                  mat-button
-                  matTooltip="View details"
-                  (click)="navigateToServiceDetails(service)"
-                >
-                  <mat-icon>visibility</mat-icon>
-                </button>
-              </div>
-              <hr />
-            </div>
-          </mat-expansion-panel>
-
-          <mat-expansion-panel
-            class="expansion-panel"
-            *ngIf="!editMode && catalogData.dataset.length > 0"
-          >
-            <mat-expansion-panel-header>
-              <mat-panel-title>Datasets</mat-panel-title>
-            </mat-expansion-panel-header>
-            <div
-              *ngFor="let dataset of catalogData.dataset"
-              class="resource-section"
-            >
-              <div>
-                <p>{{ dataset.title }}</p>
-                <button
-                  mat-button
-                  matTooltip="View details"
-                  (click)="navigateToDatasetDetails(dataset)"
-                >
-                  <mat-icon>visibility</mat-icon>
-                </button>
-              </div>
-              <hr />
-            </div>
-          </mat-expansion-panel>
-
-          <mat-expansion-panel
-            class="expansion-panel"
-            *ngIf="!editMode && catalogData.distribution.length > 0"
-          >
-            <mat-expansion-panel-header>
-              <mat-panel-title>Distributions</mat-panel-title>
-            </mat-expansion-panel-header>
-            <div
-              *ngFor="let distribution of catalogData.distribution"
-              class="resource-section"
-            >
-              <div>
-                <p>{{ distribution.title }}</p>
-                <button
-                  mat-button
-                  matTooltip="View details"
-                  (click)="navigateToDistributionDetails(distribution)"
-                >
-                  <mat-icon>visibility</mat-icon>
-                </button>
-              </div>
-              <hr />
-            </div>
-          </mat-expansion-panel>
         </div>
       </mat-card-content>
     </mat-card>

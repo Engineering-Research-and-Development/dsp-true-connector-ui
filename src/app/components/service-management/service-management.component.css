@@ -1,28 +1,4 @@
-.resource-card-container {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  padding: 10px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.resource-card {
-  background: #ffffff;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 25px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.resource-card:hover {
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
-}
-
+/* Container and card styles */
 .item {
   margin: 20px;
 }
@@ -30,22 +6,11 @@
 .service-card {
   margin: 20px;
   padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.service-title {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0px;
-}
-
-.service-title h2 {
-  margin: 0;
-  color: #6200ea;
-  font-weight: 700;
-  font-size: 1.5em;
+  background-color: #ffffff;
+  border-radius: 15px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* Header styles */
@@ -65,77 +30,323 @@
 }
 
 h1 {
-  margin: 10px 0;
+  margin: 0;
 }
 
 .help-icon {
   color: #757575;
-  cursor: help;
+  transition: all 0.3s ease;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  width: 24px;
+  pointer-events: auto;
+}
+
+.help-icon:hover {
+  color: #6200ea !important;
+  transform: scale(1.15);
+}
+
+button[mat-button] {
+  padding: 10px 15px;
+  font-size: 1em;
+  font-weight: 300;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #383838;
+  border-radius: 999px;
+  line-height: 1 !important;
+  vertical-align: middle !important;
+}
+
+button[mat-button]:hover {
+  background-color: #8a9eed5c;
+}
+
+button[mat-button] mat-icon {
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .buttons {
   display: flex;
   gap: 10px;
-  align-items: stretch;
+  align-items: center;
+  min-height: 40px;
 }
 
+.buttons button[mat-button] {
+  height: 36px !important;
+  min-height: 36px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 8px !important;
+  border-radius: 999px !important;
+  font-size: 1em;
+  font-weight: 300;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s, box-shadow 0.3s;
+  color: #383838;
+}
+
+.buttons button[mat-button]:hover {
+  background-color: #8a9eed5c;
+}
+
+/* Space Card Grid */
 .space-card {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 20px;
-  padding: 10px;
+  padding: 20px 10px;
   width: 100%;
-  max-width: 100%;
   box-sizing: border-box;
+  align-items: start;
 }
 
+.card-wrapper {
+  display: flex;
+  align-self: start;
+}
+
+/* Card Styles */
 .space-card .card {
+  display: flex;
+  flex-direction: column;
   background: #ffffff;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 25px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
   width: 100%;
   box-sizing: border-box;
-  height: auto;
-  min-height: 310px;
+  overflow: visible;
+  height: fit-content;
 }
 
 .space-card .card:hover {
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(-4px);
 }
 
-.space-card .card .title {
-  color: #383838;
-  font-weight: bold;
-  font-size: 18px;
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-.space-card .card .subtitle {
-  color: rgb(155, 155, 155);
-}
-
-.space-card .card .content {
-  margin-bottom: 20px;
-  min-height: 150px;
-}
-.mat-mdc-button > .mat-icon {
-  margin-right: 0;
-}
-.space-card .card .btn-action {
-  margin-top: 25px;
+/* Card Header */
+.card-header {
   display: flex;
-  gap: 15px;
-  justify-content: space-around;
-  padding-top: 20px;
-  border-top: 1px solid #eee;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 24px;
+  border-bottom: 1px solid #f0f0f0;
+  background: linear-gradient(135deg, #f5f3ff 0%, #fef9f3 100%);
 }
 
-button[mat-button]:hover {
-  background-color: #8a9eed5c;
+.header-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-title {
+  margin: 0 0 8px 0;
+  color: #383838;
+  font-size: 16px;
+  font-weight: 600;
+  word-break: break-word;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.card-type {
+  margin: 0;
+  color: #9b9b9b;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Card Body */
+.card-body {
+  flex: 1;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow: visible;
+}
+
+/* Metadata Grid */
+.metadata-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.metadata-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.metadata-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #9b9b9b;
+}
+
+.metadata-value {
+  font-size: 13px;
+  color: #383838;
+  word-break: break-word;
+  font-weight: 500;
+}
+
+/* Endpoint Section */
+.endpoint-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  border-left: 3px solid #6200ea;
+}
+
+.section-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #9b9b9b;
+}
+
+.endpoint-value {
+  font-size: 13px;
+  color: #383838;
+  word-break: break-all;
+  font-weight: 500;
+  font-family: 'Courier New', monospace;
+}
+
+/* Timestamps */
+.timestamps {
+  display: flex;
+  gap: 20px;
+  padding: 12px;
+  background-color: #f9f5ff;
+  border-radius: 12px;
+}
+
+.timestamp-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  flex: 1;
+}
+
+.timestamp-item mat-icon {
+  color: #d946a6;
+  margin-top: 2px;
+  flex-shrink: 0;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.timestamp-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.timestamp-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #9b9b9b;
+  font-weight: 600;
+}
+
+.timestamp-value {
+  font-size: 13px;
+  color: #383838;
+  font-weight: 500;
+  word-break: break-word;
+}
+
+/* Card Footer - Actions */
+.card-footer {
+  padding: 0;
+  border-top: 1px solid #f0f0f0;
+  background: linear-gradient(135deg, #f5f3ff 0%, #fef9f3 100%);
+  min-height: 76px;
+  display: flex;
+  align-items: center;
+}
+
+.btn-action {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  flex-wrap: wrap;
+  width: 100%;
+  min-height: 44px;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  background-color: transparent;
+}
+
+.action-btn mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.action-view {
+  color: #6200ea;
+}
+
+.action-view:hover {
+  background-color: rgba(98, 0, 234, 0.1);
+  color: #4a2db6;
+}
+
+.action-edit {
+  color: #d946a6;
+}
+
+.action-edit:hover {
+  background-color: rgba(217, 70, 166, 0.1);
+  color: #d946a6;
+}
+
+.action-delete {
+  color: #f44336;
+}
+
+.action-delete:hover {
+  background-color: rgba(244, 67, 54, 0.1);
+  color: #f44336;
 }
 
 /* Input field styling */
@@ -151,20 +362,6 @@ button[mat-button]:hover {
   border: none !important;
   border-radius: 4px;
   box-shadow: none !important;
-}
-
-.buttons
-  ::ng-deep
-  .mat-mdc-form-field
-  .mat-mdc-text-field-wrapper.mdc-text-field--focused {
-  background-color: #ffffff !important;
-  border: none !important;
-  box-shadow: none !important;
-}
-
-.buttons ::ng-deep .mat-mdc-form-field .mat-mdc-text-field-wrapper:hover {
-  background-color: #ffffff !important;
-  border: none !important;
 }
 
 .buttons ::ng-deep .mat-mdc-form-field .mdc-text-field__input {
@@ -189,32 +386,12 @@ button[mat-button]:hover {
   text-align: left !important;
 }
 
-/* Additional overrides to ensure white background in all states */
 .buttons ::ng-deep .mat-mdc-form-field .mdc-text-field {
   background-color: #ffffff !important;
 }
 
-.buttons ::ng-deep .mat-mdc-form-field .mdc-text-field--focused {
-  background-color: #ffffff !important;
-}
-
-.buttons ::ng-deep .mat-mdc-form-field .mdc-text-field:hover {
-  background-color: #ffffff !important;
-}
-
-.buttons ::ng-deep .mat-mdc-form-field .mdc-text-field--filled {
-  background-color: #ffffff !important;
-}
-
-.buttons ::ng-deep .mat-mdc-form-field .mdc-text-field--filled:hover {
-  background-color: #ffffff !important;
-}
-
-.buttons
-  ::ng-deep
-  .mat-mdc-form-field
-  .mdc-text-field--filled.mdc-text-field--focused {
-  background-color: #ffffff !important;
+.buttons ::ng-deep .mat-mdc-form-field .mdc-text-field--filled .mdc-floating-label {
+  display: none !important;
 }
 
 .buttons ::ng-deep .mat-mdc-form-field .mdc-text-field__ripple {
@@ -225,82 +402,19 @@ button[mat-button]:hover {
   background-color: transparent !important;
 }
 
-/* Button alignment with input field */
-.buttons button[mat-button] {
-  height: 32px !important;
-  min-height: 32px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 0 8px !important;
+.mat-mdc-button > .mat-icon {
+  margin-right: 0;
 }
 
-/* More aggressive overrides for Material Design */
-.buttons
-  ::ng-deep
-  .mat-mdc-form-field
-  .mdc-text-field--filled
-  .mdc-floating-label {
-  display: none !important;
-}
-
-.buttons
-  ::ng-deep
-  .mat-mdc-form-field
-  .mat-mdc-text-field-wrapper
-  .mat-mdc-form-field-flex
-  .mat-mdc-floating-label {
-  display: none !important;
-}
-
-.buttons ::ng-deep .mdc-text-field--filled:not(.mdc-text-field--disabled) {
-  background-color: #ffffff !important;
-}
-
-.buttons
-  ::ng-deep
-  .mdc-text-field--filled:not(.mdc-text-field--disabled):hover {
-  background-color: #ffffff !important;
-}
-
-.buttons
-  ::ng-deep
-  .mdc-text-field--filled:not(
-    .mdc-text-field--disabled
-  ).mdc-text-field--focused {
-  background-color: #ffffff !important;
-}
-
-.buttons
-  ::ng-deep
-  .mat-mdc-form-field-appearance-fill
-  .mat-mdc-form-field-flex {
-  background-color: #ffffff !important;
-}
-
-.buttons
-  ::ng-deep
-  .mat-mdc-form-field-appearance-fill:hover
-  .mat-mdc-form-field-flex {
-  background-color: #ffffff !important;
-}
-
-.buttons
-  ::ng-deep
-  .mat-mdc-form-field-appearance-fill.mat-focused
-  .mat-mdc-form-field-flex {
-  background-color: #ffffff !important;
-}
+/* Responsive Design */
 @media (max-width: 1400px) {
-  .space-card,
-  .resource-card-container {
-    grid-template-columns: repeat(2, 1fr);
+  .space-card {
+    grid-template-columns: repeat(2, minmax(350px, 1fr));
   }
 }
 
 @media (max-width: 900px) {
-  .space-card,
-  .resource-card-container {
+  .space-card {
     grid-template-columns: 1fr;
   }
 }
@@ -329,77 +443,26 @@ button[mat-button]:hover {
     margin: 10px;
     padding: 16px;
   }
-}
 
-/* Specific Material Design overrides - only for form fields */
-.buttons ::ng-deep .mat-mdc-form-field .mdc-text-field {
-  background-color: #ffffff !important;
-  background: #ffffff !important;
-}
+  .card-header {
+    padding: 16px;
+  }
 
-.buttons ::ng-deep .mat-mdc-form-field .mdc-text-field * {
-  background-color: #ffffff !important;
-  background: #ffffff !important;
-}
+  .card-body {
+    padding: 16px;
+    gap: 16px;
+  }
 
-.buttons ::ng-deep .mat-mdc-form-field .mat-mdc-text-field-wrapper {
-  background-color: #ffffff !important;
-  background: #ffffff !important;
-}
+  .card-footer {
+    padding: 12px 16px;
+  }
 
-.buttons ::ng-deep .mat-mdc-form-field .mat-mdc-form-field-flex {
-  background-color: #ffffff !important;
-  background: #ffffff !important;
-}
+  .metadata-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 
-.buttons ::ng-deep .mat-mdc-form-field .mat-mdc-form-field-appearance-fill {
-  background-color: #ffffff !important;
-  background: #ffffff !important;
-}
-
-/* Restore button hover effects */
-.buttons button[mat-button]:hover {
-  background-color: #8a9eed5c !important;
-}
-
-/* Additional comprehensive overrides for stubborn Material Design classes */
-.buttons ::ng-deep .mat-mdc-form-field {
-  background: transparent !important;
-}
-
-.buttons
-  ::ng-deep
-  .mat-mdc-form-field-appearance-fill
-  .mat-mdc-form-field-flex {
-  background: #ffffff !important;
-  background-color: #ffffff !important;
-}
-
-.buttons
-  ::ng-deep
-  .mat-mdc-form-field-appearance-fill:not(.mat-form-field-disabled)
-  .mat-mdc-form-field-flex:hover {
-  background: #ffffff !important;
-  background-color: #ffffff !important;
-}
-
-.buttons
-  ::ng-deep
-  .mat-mdc-form-field-appearance-fill.mat-focused
-  .mat-mdc-form-field-flex {
-  background: #ffffff !important;
-  background-color: #ffffff !important;
-}
-
-.buttons
-  ::ng-deep
-  .mdc-text-field:not(.mdc-text-field--disabled)
-  .mdc-text-field__input {
-  background: transparent !important;
-  background-color: transparent !important;
-}
-
-.buttons ::ng-deep .mdc-text-field--filled {
-  background: #ffffff !important;
-  background-color: #ffffff !important;
+  .timestamps {
+    flex-direction: column;
+    gap: 12px;
+  }
 }

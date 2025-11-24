@@ -12,8 +12,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
-import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
 import { DataServiceService } from '../../services/data-service/data-service.service';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
 import { DataService } from './../../models/dataService';
@@ -27,7 +27,7 @@ import { DataService } from './../../models/dataService';
         MatListModule,
         MatExpansionModule,
         MatIconModule,
-        NgxSkeletonLoaderModule,
+        MatProgressSpinnerModule,
         MatInputModule,
         MatToolbarModule,
         MatFormFieldModule,

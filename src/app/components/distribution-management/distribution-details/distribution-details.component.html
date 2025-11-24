@@ -1,6 +1,8 @@
 <div *ngIf="loading" class="item">
   <mat-card class="catalog-card">
-    <ngx-skeleton-loader count="15" appearance="line" animation="pulse" />
+    <div class="loading-container">
+      <mat-spinner diameter="50"></mat-spinner>
+    </div>
   </mat-card>
 </div>
 
@@ -9,22 +11,20 @@
     <mat-card-title class="service-title"> </mat-card-title>
     <mat-card-content>
       <div class="headtitle">
-        <div class="title-section">
-          <div class="back">
-            <button
-              mat-button
-              (click)="
-                directEdit ? goBack() : editMode ? cancelEdit() : goBack()
-              "
-            >
-              <mat-icon>keyboard_arrow_left</mat-icon>
-              Back
-            </button>
-          </div>
+        <div class="back">
+          <button
+            mat-button
+            (click)="
+              directEdit ? goBack() : editMode ? cancelEdit() : goBack()
+            "
+          >
+            <mat-icon>keyboard_arrow_left</mat-icon>
+            Back
+          </button>
           <h1>Distribution Details</h1>
           <mat-icon
             class="help-icon"
-            matTooltip=" Here you can view all information such as metadata and related access service, edit, or delete the chosen distribution. Use the tabs and buttons to navigate and manage the data."
+            matTooltip="Here you can view all information such as metadata and related access service, edit, or delete the chosen distribution. Use the cards and buttons to navigate and manage the data."
             aria-label="Help regarding distribution details"
             >help_outline</mat-icon
           >
@@ -34,7 +34,7 @@
           <button
             mat-button
             (click)="toggleEditMode()"
-            [matTooltip]="editMode ? 'Save changes' : 'Edit service'"
+            [matTooltip]="editMode ? 'Save changes' : 'Edit distribution'"
             [disabled]="editMode && !distributionForm.valid"
           >
             <mat-icon>{{ editMode ? "save" : "edit" }}</mat-icon>
@@ -59,76 +59,154 @@
       </div>
 
       <div *ngIf="!editMode">
-        <mat-tab-group>
-          <mat-tab label="Basic info">
-            <br />
-            <h2>{{ distribution.title }}</h2>
-            <div class="table-info">
-              <strong>ID</strong>
-              <span>
-                {{ distribution["@id"] }}
-              </span>
+        <!-- Distribution Cards Grid -->
+        <div class="distribution-cards-container">
+          <!-- Basic Info Card -->
+          <div class="distribution-card-item basic-info-card">
+            <div class="card-header">
+              <div class="header-left">
+                <h2 class="card-title">{{ distribution.title }}</h2>
+                <p class="card-type">{{ distribution.type }}</p>
+              </div>
+              <mat-icon class="card-icon">info</mat-icon>
+            </div>
 
-              <strong>Type</strong>
-              <span>
-                {{ distribution.type }}
-              </span>
-               <strong>Format</strong>
-              <span>
-                {{ getFormatLabel(distribution.format) || 'N/A' }}
-              </span>
-            </div></mat-tab
-          >
-          <mat-tab
-            *ngIf="distribution.description !== null"
-            label="Description"
-          >
-            <div>
-              <div *ngIf="(distribution.description?.length ?? 0) > 0">
-                <br />
-                <mat-form-field appearance="outline">
-                  <mat-label>Select Language</mat-label>
-                  <mat-select
-                    [(value)]="selectedLanguage"
-                    (selectionChange)="onLanguageSelected()"
-                    outline
-                  >
-                    <mat-option
-                      *ngFor="let language of languages"
-                      [value]="language.toUpperCase()"
-                      >{{ language | uppercase }}</mat-option
-                    >
-                  </mat-select>
-                </mat-form-field>
-
-                <p *ngIf="descriptionValue">{{ descriptionValue }}</p>
+            <div class="card-body">
+              <div class="metadata-grid">
+                <div class="metadata-item">
+                  <span class="metadata-label">ID</span>
+                  <span class="metadata-value">{{ distribution["@id"] }}</span>
+                </div>
+                <div class="metadata-item">
+                  <span class="metadata-label">Format</span>
+                  <span class="metadata-value">{{ getFormatLabel(distribution.format) || 'N/A' }}</span>
+                </div>
               </div>
             </div>
-          </mat-tab>
-          <mat-tab label="Metadata info">
-            <br />
-            <div class="table-info">
-              <strong>Issued</strong>
+          </div>
 
-              <span>
-                {{ distribution.issued | date : "d MMMM y, HH:mm:ss" }}
-              </span>
-              <strong>Modified:</strong>
-
-              <span>
-                {{ distribution.modified | date : "d MMMM y, HH:mm:ss" }} </span
-              ><strong>Created by:</strong>
-              <span>
-                {{ distribution.createdBy }}
-              </span>
-              <strong>Last modified by:</strong>
-
-              <span>
-                {{ distribution.lastModifiedBy }}
-              </span>
+          <!-- Description Card -->
+          <div class="distribution-card-item description-card" *ngIf="distribution.description !== null && (distribution.description?.length ?? 0) > 0">
+            <div class="card-header">
+              <div class="header-left">
+                <h2 class="card-title">Description</h2>
+                <p class="card-type">{{ languages.length }} language(s)</p>
+              </div>
+              <mat-icon class="card-icon">description</mat-icon>
             </div>
-          </mat-tab>
-        </mat-tab-group>
+
+            <div class="card-body">
+              <mat-form-field appearance="outline" class="language-select">
+                <mat-label>Select Language</mat-label>
+                <mat-select
+                  [(value)]="selectedLanguage"
+                  (selectionChange)="onLanguageSelected()"
+                >
+                  <mat-option
+                    *ngFor="let language of languages"
+                    [value]="language.toUpperCase()"
+                    >{{ language | uppercase }}</mat-option
+                  >
+                </mat-select>
+              </mat-form-field>
+              <div class="description-content" *ngIf="descriptionValue">
+                <p>{{ descriptionValue }}</p>
+              </div>
+              <div class="description-empty" *ngIf="!descriptionValue">
+                <p class="empty-message">No description available</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Metadata Info Card -->
+          <div class="distribution-card-item metadata-info-card">
+            <div class="card-header">
+              <div class="header-left">
+                <h2 class="card-title">Metadata</h2>
+                <p class="card-type">Version info</p>
+              </div>
+              <mat-icon class="card-icon">tag</mat-icon>
+            </div>
+
+            <div class="card-body">
+              <div class="metadata-grid">
+                <div class="metadata-item">
+                  <span class="metadata-label">Issued</span>
+                  <span class="metadata-value">{{ distribution.issued | date : "d MMMM y, HH:mm:ss" }}</span>
+                </div>
+                <div class="metadata-item">
+                  <span class="metadata-label">Modified</span>
+                  <span class="metadata-value">{{ distribution.modified | date : "d MMMM y, HH:mm:ss" }}</span>
+                </div>
+                <div class="metadata-item">
+                  <span class="metadata-label">Created by</span>
+                  <span class="metadata-value">{{ distribution.createdBy }}</span>
+                </div>
+                <div class="metadata-item">
+                  <span class="metadata-label">Last modified by</span>
+                  <span class="metadata-value">{{ distribution.lastModifiedBy }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Relations Section -->
+        <div class="relations-section">
+          <!-- Access Services Card -->
+          <div class="relation-card access-services-card" *ngIf="distribution.accessService">
+            <div class="card-header">
+              <div class="header-left">
+                <h2 class="card-title">
+                  <mat-icon class="inline-icon">api</mat-icon>
+                  Access Service
+                </h2>
+              </div>
+            </div>
+
+            <div class="card-body relations-body">
+              <div class="relation-list">
+                <div class="relation-item">
+                  <div class="relation-content">
+                    <p class="relation-title">{{ distribution.accessService.title }}</p>
+                  </div>
+                  <button class="action-btn" (click)="navigateToServiceDetails(distribution.accessService)" matTooltip="View service details">
+                    <mat-icon class="action-view">visibility</mat-icon>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Policies Card -->
+          <div class="relation-card policies-card" *ngIf="distribution.hasPolicy && distribution.hasPolicy.length > 0">
+            <div class="card-header">
+              <div class="header-left">
+                <h2 class="card-title">
+                  <mat-icon class="inline-icon">policy</mat-icon>
+                  Policies
+                  <span class="count-badge">{{ distribution.hasPolicy.length }}</span>
+                </h2>
+              </div>
+            </div>
+
+            <div class="card-body relations-body">
+              <div class="relation-list">
+                <div
+                  class="relation-item"
+                  *ngFor="let policy of distribution.hasPolicy"
+                >
+                  <div class="relation-content">
+                    <p class="relation-title">{{ policy["@id"] }}</p>
+                  </div>
+                  <button class="action-btn" (click)="navigateToPolicyDetails(policy)" matTooltip="View policy details">
+                    <mat-icon class="action-view">visibility</mat-icon>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div *ngIf="editMode">
@@ -141,7 +219,6 @@
             <div class="edit-input">
               <mat-form-field
                 appearance="outline"
-                [tcModified]="{ key: 'title', state: editState }"
               >
                 <mat-label>Title</mat-label>
                 <input matInput formControlName="title" />
@@ -157,27 +234,22 @@
               </mat-form-field
               ><mat-form-field
                 appearance="outline"
-                [tcModified]="{ key: 'accessService', state: editState }"
               >
                 <mat-label>Select Access Service</mat-label>
-                <mat-select
-                  formControlName="accessService"
-                  [compareWith]="compareServices"
-                >
+                <mat-select formControlName="accessService" [compareWith]="compareServices">
                   <mat-option
                     *ngFor="let service of allServices"
                     [value]="service"
                   >
-                    <span class="option-with-icon">
-                      {{ service.title }}
-                      <mat-icon
-                        *ngIf="editState.isChanged('accessService')"
-                        class="modified-icon"
-                        >edit</mat-icon
-                      >
-                    </span>
+                    {{ service.title }}
                   </mat-option>
                 </mat-select>
+                <mat-icon
+                  *ngIf="editState.isChanged('accessService')"
+                  matSuffix
+                  class="modified-icon"
+                  >edit</mat-icon
+                >
                 <mat-error
                   *ngIf="
                     distributionForm.get('accessService')?.hasError('required')
@@ -188,7 +260,6 @@
               </mat-form-field>
               <mat-form-field
                 appearance="outline"
-                [tcModified]="{ key: 'format', state: editState }"
               >
                 <mat-label>Select Format</mat-label>
                 <mat-select formControlName="format">
@@ -287,53 +358,6 @@
             </div>
           </div>
         </form>
-      </div>
-      <div class="sdd">
-        <mat-expansion-panel
-          class="expansion-panel"
-          *ngIf="
-            !editMode &&
-            distribution.accessService
-          "
-        >
-          <mat-expansion-panel-header>
-            <mat-panel-title>Access services</mat-panel-title>
-          </mat-expansion-panel-header>
-        
-            <div>
-              <p>{{ distribution.accessService.title }}</p>
-              <button mat-button (click)="navigateToServiceDetails(distribution.accessService)">
-                <mat-icon>visibility</mat-icon>
-              </button>
-            </div>
-            <hr />
-   
-        </mat-expansion-panel>
-<!-- Currently not implemented -->
-        <!-- <mat-expansion-panel
-          class="expansion-panel"
-          *ngIf="
-            !editMode &&
-            distribution.hasPolicy &&
-            distribution.hasPolicy.length > 0
-          "
-        >
-          <mat-expansion-panel-header>
-            <mat-panel-title>Policies</mat-panel-title>
-          </mat-expansion-panel-header>
-          <div
-            *ngFor="let policy of distribution.hasPolicy"
-            class="resource-section"
-          >
-            <div>
-              <p>{{ policy }}</p>
-              <button mat-button (click)="navigateToPolicyDetails(policy)">
-                <mat-icon>visibility</mat-icon>
-              </button>
-            </div>
-            <hr />
-          </div>
-        </mat-expansion-panel> -->
       </div>
     </mat-card-content>
   </mat-card>

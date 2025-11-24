@@ -114,8 +114,13 @@ export class DataTransferService {
       .pipe(
         map((response: GenericApiResponse<DataTransfer>) => {
           if (response.success && response.data) {
+            const isPush = format.toUpperCase().includes('PUSH');
+            const successMessage = isPush
+              ? 'Push transfer request initiated successfully!'
+              : 'Transfer request initiated successfully!';
+
             this.snackBarService.openSnackBar(
-              response.message,
+              successMessage,
               'OK',
               'center',
               'bottom',
@@ -356,6 +361,64 @@ export class DataTransferService {
                 } else {
                   this.snackBarService.openSnackBar(
                     'Download is taking longer than expected. Please check the transfer status manually.',
+                    'OK',
+                    'center',
+                    'bottom',
+                    'snackbar-warning'
+                  );
+                }
+              })
+            );
+          } else {
+            this.markAsCompleted(transferProcessId);
+            throw new Error(response.message);
+          }
+        }),
+        catchError((error) => {
+          this.markAsCompleted(transferProcessId);
+          return this.errorHandlerService.handleError(error);
+        })
+      );
+  }
+
+  /**
+   * Push artifact to consumer
+   * @param transferProcessId Base64.urlEncoded(consumerPid|providerPid) from TransferProcess message
+   */
+  pushArtifact(transferProcessId: string): Observable<boolean> {
+    this.markAsDownloading(transferProcessId);
+
+    return this.http
+      .get<GenericApiResponse<string>>(
+        this.apiUrl + '/' + transferProcessId + '/download',
+        this.httpOptions
+      )
+      .pipe(
+        switchMap((response: GenericApiResponse<string>) => {
+          if (response.success) {
+            this.snackBarService.openSnackBar(
+              'Push transfer started successfully. Please wait...',
+              'OK',
+              'center',
+              'bottom',
+              'snackbar-success'
+            );
+
+            // Start polling for completion
+            return this.pollForDownloadCompletion(transferProcessId).pipe(
+              tap((completed: boolean) => {
+                this.markAsCompleted(transferProcessId);
+                if (completed) {
+                  this.snackBarService.openSnackBar(
+                    'Data push completed successfully!',
+                    'OK',
+                    'center',
+                    'bottom',
+                    'snackbar-success'
+                  );
+                } else {
+                  this.snackBarService.openSnackBar(
+                    'Data push is taking longer than expected. Please check the transfer status manually.',
                     'OK',
                     'center',
                     'bottom',
