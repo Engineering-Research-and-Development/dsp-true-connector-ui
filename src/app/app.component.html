@@ -32,100 +32,87 @@
     <mat-nav-list>
       <div>
         <div class="configuration">
-          <a routerLink="/catalog-browser">
+          <a routerLink="/catalog-browser" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" [class.active-parent]="catalogBrowserActive">
             <mat-list-item>
               <mat-icon>find_in_page</mat-icon>
               <span>Catalog Browser</span>
             </mat-list-item>
           </a>
         </div>
-        <mat-expansion-panel #providerPanel>
+        <mat-expansion-panel #catalogManagementPanel>
           <mat-expansion-panel-header>
             <mat-panel-title>
               <mat-icon mat-list-icon>edit_document</mat-icon>
               <span>Catalog Management</span>
             </mat-panel-title>
           </mat-expansion-panel-header>
-          <a routerLink="/catalog-management">
+          <a routerLink="/catalog-management" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" [class.active-parent]="catalogManagementActive">
             <mat-list-item>
               <mat-icon>description</mat-icon>
               <span>Manage Catalog Data</span>
             </mat-list-item>
           </a>
-          <a routerLink="/catalog-management/service-management">
+          <a routerLink="/catalog-management/service-management" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" [class.active-parent]="serviceManagementActive">
             <mat-list-item>
               <mat-icon>service_toolbox</mat-icon>
               <span>Manage Services</span>
             </mat-list-item>
           </a>
-          <a routerLink="/catalog-management/distribution-management">
+          <a routerLink="/catalog-management/distribution-management" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" [class.active-parent]="distributionManagementActive">
             <mat-list-item>
               <mat-icon>share</mat-icon>
               <span>Manage Distributions</span>
             </mat-list-item>
           </a>
-          <a routerLink="/catalog-management/dataset-management">
+          <a routerLink="/catalog-management/dataset-management" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" [class.active-parent]="datasetManagementActive">
             <mat-list-item>
               <mat-icon>dataset</mat-icon>
               <span>Manage Datasets</span>
             </mat-list-item>
           </a>
-
-          <!-- <a routerLink="/under-construction">
-            <mat-list-item>
-              <mat-icon>contract</mat-icon>
-              <span>Manage Contract Offers</span>
-            </mat-list-item>
-          </a> -->
         </mat-expansion-panel>
-        <mat-expansion-panel>
+        <mat-expansion-panel #contractNegotiationPanel>
           <mat-expansion-panel-header>
             <mat-panel-title>
               <mat-icon mat-list-icon>gavel</mat-icon>
               <span>Contract Negotiation</span>
             </mat-panel-title>
           </mat-expansion-panel-header>
-          <a (click)="goToProviderContractNegotiation()">
+          <a routerLink="/contract-negotiation" [queryParams]="{ userType: 'provider' }" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
             <mat-list-item>
               <mat-icon>arrow_upload_progress</mat-icon>
               <span>Contract Negotiations as provider</span>
             </mat-list-item>
           </a>
-          <a (click)="goToConsumerContractNegotiation()">
+          <a routerLink="/contract-negotiation" [queryParams]="{ userType: 'consumer' }" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
             <mat-list-item>
               <mat-icon>downloading</mat-icon>
               <span>Contract Negotiations as consumer</span>
             </mat-list-item>
           </a>
         </mat-expansion-panel>
-        <mat-expansion-panel>
+        <mat-expansion-panel #dataTransfersPanel>
           <mat-expansion-panel-header>
             <mat-panel-title>
               <mat-icon mat-list-icon>cloud</mat-icon>
               <span>Data transfers</span>
             </mat-panel-title>
           </mat-expansion-panel-header>
-          <a (click)="goToProviderDataTransfers()">
+          <a routerLink="/data-transfer" [queryParams]="{ userType: 'provider' }" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
             <mat-list-item>
               <mat-icon>backup</mat-icon>
               <span>Data transfers as provider</span>
             </mat-list-item>
           </a>
-          <a (click)="goToConsumerDataTransfers()">
+          <a routerLink="/data-transfer" [queryParams]="{ userType: 'consumer' }" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
             <mat-list-item>
               <mat-icon>cloud_download</mat-icon>
               <span>Data transfer as consumer</span>
             </mat-list-item>
           </a>
-          <!-- <a routerLink="/under-construction">
-            <mat-list-item>
-              <mat-icon>data_usage</mat-icon>
-              <span>Data consumption as consumer</span>
-            </mat-list-item>
-          </a> -->
         </mat-expansion-panel>
         <div class="configuration">
-          <a routerLink="/audit-trail">
+          <a routerLink="/audit-trail" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
             <mat-list-item>
               <mat-icon>history</mat-icon>
               <span>Audit Trail</span>
@@ -133,7 +120,7 @@
           </a>
         </div>
         <div class="configuration">
-          <a routerLink="/connector-configuration">
+          <a routerLink="/connector-configuration" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
             <mat-list-item>
               <mat-icon>settings</mat-icon>
               <span>Connector configuration</span>

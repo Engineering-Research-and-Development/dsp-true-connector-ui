@@ -113,14 +113,6 @@ export const routes: Routes = [
     title: 'Data Transfer',
   },
   {
-    path: 'data-consumption',
-    loadComponent: () =>
-      import('./components/data-consumption/data-consumption.component').then(
-        (m) => m.DataConsumptionComponent
-      ),
-    title: 'Data Consumption',
-  },
-  {
     path: 'connector-configuration',
     loadComponent: () =>
       import(

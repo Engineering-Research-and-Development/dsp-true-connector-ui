@@ -30,6 +30,12 @@
   padding-right: 5px;
 }
 
+.toolbar mat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .header-image {
   width: 170px;
   height: 35px;
@@ -88,6 +94,60 @@
 
 .configuration {
   margin-left: 10px;
+}
+
+mat-list-item:hover {
+  background-color: #8a9eed5c;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+a.active mat-list-item {
+  color: #6200ea;
+  font-weight: 500;
+}
+
+a.active ::ng-deep .mat-list-item-title {
+  color: #6200ea !important;
+}
+
+a.active ::ng-deep .mdc-list-item__primary-text {
+  color: #6200ea !important;
+}
+
+a.active mat-list-item mat-icon {
+  color: #6200ea;
+}
+
+a.active-parent mat-list-item {
+  color: #6200ea;
+  font-weight: 500;
+}
+
+a.active-parent ::ng-deep .mat-list-item-title {
+  color: #6200ea !important;
+}
+
+a.active-parent ::ng-deep .mdc-list-item__primary-text {
+  color: #6200ea !important;
+}
+
+a.active-parent mat-list-item mat-icon {
+  color: #6200ea;
+}
+
+::ng-deep .mat-expansion-panel-header:hover {
+  background-color: #8a9eed5c !important;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+::ng-deep .mat-expansion-panel.expanded .mat-expansion-panel-header {
+  background-color: transparent;
+}
+
+::ng-deep .mat-expansion-panel-header {
+  transition: background-color 0.3s ease;
 }
 
 @media (max-width: 1200px) {
