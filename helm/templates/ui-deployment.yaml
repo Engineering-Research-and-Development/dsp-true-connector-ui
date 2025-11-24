@@ -1,0 +1,50 @@
+{{- if .Values.ui.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tc.fullname" . }}-ui
+  namespace: {{ .Values.global.namespace }}
+spec:
+  replicas: {{ .Values.ui.replicas }}
+  selector:
+    matchLabels: { app: {{ include "tc.fullname" . }}-ui }
+  template:
+    metadata:
+      labels: { app: {{ include "tc.fullname" . }}-ui }
+    spec:
+      containers:
+        - name: ui
+          image: {{ .Values.ui.image }}
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+          ports: [ { containerPort: 80 } ]
+          env:
+          {{- range $k, $v := .Values.ui.env }}
+            - name: {{ $k }}
+              value: {{ tpl $v $ | quote }}
+          {{- end }}
+          volumeMounts:
+            - name: nginx-conf
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+            - name: ssl
+              mountPath: /etc/nginx/ssl
+          readinessProbe:
+            httpGet: { path: /, port: 80 }
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: nginx-conf
+          configMap:
+            name: {{ tpl .Values.ui.nginx.configMapName . }}
+            items:
+              - key: nginx.conf
+                path: nginx.conf
+        - name: ssl
+          {{- if .Values.ui.tls.existingSecretName }}
+          secret:
+            secretName: {{ .Values.ui.tls.existingSecretName }}
+          {{- else }}
+          secret:
+            secretName: {{ tpl .Values.ui.tls.secretName . }}
+          {{- end }}
+{{- end }}

@@ -1,0 +1,21 @@
+{{- if .Values.connector.persistence.ftp.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "tc.fullname" . }}-connector-ftp
+  namespace: {{ .Values.global.namespace }}
+spec:
+  accessModes: [ReadWriteOnce]
+  resources: { requests: { storage: {{ .Values.connector.persistence.ftp.size }} } }
+---
+{{- end }}
+{{- if .Values.connector.persistence.logs.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "tc.fullname" . }}-connector-logs
+  namespace: {{ .Values.global.namespace }}
+spec:
+  accessModes: [ReadWriteOnce]
+  resources: { requests: { storage: {{ .Values.connector.persistence.logs.size }} } }
+{{- end }}

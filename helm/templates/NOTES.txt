@@ -1,0 +1,12 @@
+Thank you for installing {{ include "tc.fullname" . }}!
+
+Services:
+  - Connector:  {{ include "tc.fullname" . }}-connector (api={{ .Values.connector.service.apiPort }}, ftp={{ .Values.connector.service.ftpPort }})
+  - UI:         {{ include "tc.fullname" . }}-ui (port {{ .Values.ui.servicePort }})
+  - MongoDB:    {{- if .Values.mongo.enabled }} {{ include "tc.fullname" . }}-mongodb:{{ .Values.mongo.servicePort }} {{- else }} disabled {{- end }}
+
+TLS for UI:
+  - Provide base64 strings in values.yaml (ui.tls.crtB64/keyB64) OR set ui.tls.existingSecretName to reuse an existing secret.
+
+Deploy multiple connectors:
+  - helm install <release> ./true-connector -n {{ .Values.global.namespace }} -f values-<release>.yaml

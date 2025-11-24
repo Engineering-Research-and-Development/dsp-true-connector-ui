@@ -1,0 +1,69 @@
+{{- if .Values.minio.enabled -}}
+{{- $ns := default .Release.Namespace .Values.minio.namespace -}}
+{{- $name := tpl .Values.minio.name . -}}
+{{- $svc := lookup "v1" "Service" $ns $name -}}
+{{- $sts := lookup "apps/v1" "StatefulSet" $ns $name -}}
+
+{{- if and (not $svc) (not $sts) }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ $name }}
+  namespace: {{ $ns }}
+spec:
+  serviceName: {{ $name }}
+  replicas: 1
+  selector:
+    matchLabels: { app: {{ $name }} }
+  template:
+    metadata:
+      labels: { app: {{ $name }} }
+    spec:
+      containers:
+        - name: minio
+          image: {{ .Values.minio.image }}
+          args: ["server", "/data", "--console-address", ":{{ .Values.minio.service.consolePort }}"]
+          env:
+            - name: MINIO_ROOT_USER
+              valueFrom: { secretKeyRef: { name: {{ tpl .Values.minio.credentials.secretName . | quote }}, key: MINIO_ROOT_USER } }
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom: { secretKeyRef: { name: {{ tpl .Values.minio.credentials.secretName . | quote }}, key: MINIO_ROOT_PASSWORD } }
+          ports:
+            - containerPort: {{ .Values.minio.service.apiPort }}     # name: api
+              name: api
+            - containerPort: {{ .Values.minio.service.consolePort }} # name: console
+              name: console
+          volumeMounts:
+            - name: data
+              mountPath: /data
+  volumeClaimTemplates:
+    - metadata: { name: data }
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources: { requests: { storage: {{ .Values.minio.persistence.size }} } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  namespace: {{ $ns }}
+spec:
+  selector: { app: {{ $name }} }
+  ports:
+    - name: api
+      port: {{ .Values.minio.service.apiPort }}
+      targetPort: api
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}-console
+  namespace: {{ $ns }}
+spec:
+  selector: { app: {{ $name }} }
+  ports:
+    - name: console
+      port: {{ .Values.minio.service.consolePort }}
+      targetPort: console
+{{- end }}
+{{- end }}

@@ -1,0 +1,248 @@
+nameOverride: ""
+fullnameOverride: ""
+
+global:
+  namespace: divine-connectors
+  imagePullPolicy: IfNotPresent
+
+connector:
+  image: ghcr.io/engineering-research-and-development/dsp-true-connector:0.5.0
+  replicas: 1
+  service:
+    apiPort: 8080
+    ftpPort: 2222
+  resources:
+    requests: { cpu: "250m", memory: "512Mi" }
+    limits:   { cpu: "1",    memory: "1024Mi" }
+  env:
+    JDK_JAVA_OPTIONS: "-Xmx1024m"
+    CALLBACK_ADDRESS: "http://{{ .Release.Name }}-connector:8080"
+    KEYSTORE_NAME: "true-connector-keystore.jks"
+    KEY_PASSWORD: "keystore"
+    KEYSTORE_PASSWORD: "keystore"
+    KEYSTORE_ALIAS: "true-connector"
+    TRUSTSTORE_NAME: "true-connector-truststore.jks"
+    TRUSTSTORE_PASSWORD: "truststore"
+    MINIO_ENDPOINT: "http://{{ default .Release.Namespace .Values.minio.namespace | quote }}:ignored"
+    # endpoint reale: http://<svc>:<port>
+    MINIO_URL: "http://{{ tpl .Values.minio.name . }}:{{ .Values.minio.service.apiPort }}"
+    MINIO_BUCKET: "{{ tpl .Values.minio.bucket.nameTpl . }}"
+    MINIO_ACCESS_KEY: "<MINIO_ACCESS_KEY>"
+    MINIO_SECRET_KEY: "<MINIO_SECRET_KEY>"
+  persistence:
+    ftp:
+      enabled: true
+      size: 1Gi
+    logs:
+      enabled: true
+      size: 1Gi
+  certsSecret:
+    enabled: false
+    name: "true-connector-certs"
+    keystoreJksB64: "<BASE64_KEYSTORE_HERE>"
+    truststoreJksB64: "<BASE64_TRUSTSTORE_HERE>"
+  config:
+    create: true
+    name: "{{ .Release.Name }}-app-config"
+    applicationProperties: |
+      spring.application.name=connector
+      application.automatic.negotiation=false
+      server.port=8080
+      application.callback.address=${CALLBACK_ADDRESS}
+      spring.application.label=latest
+      spring.servlet.multipart.max-file-size=-1
+      spring.servlet.multipart.max-request-size=-1
+      spring.servlet.multipart.enabled=true
+
+      # MongoDB connection
+      spring.data.mongodb.host={{ include "tc.fullname" . }}-mongodb
+      spring.data.mongodb.port=27017
+      spring.data.mongodb.database=true_connector
+
+      application.encyption.key=5m7mlhmu65zsp6x
+
+      logging.level.org.springframework=INFO
+
+      # SSL
+      spring.ssl.bundle.jks.connector.key.alias=${KEYSTORE_ALIAS}
+      spring.ssl.bundle.jks.connector.key.password=${KEY_PASSWORD}
+      spring.ssl.bundle.jks.connector.keystore.location=/cert/${KEYSTORE_NAME}
+      spring.ssl.bundle.jks.connector.keystore.password=${KEYSTORE_PASSWORD}
+      spring.ssl.bundle.jks.connector.keystore.type=JKS
+      spring.ssl.bundle.jks.connector.truststore.type=JKS
+      spring.ssl.bundle.jks.connector.truststore.location=/cert/${TRUSTSTORE_NAME}
+      spring.ssl.bundle.jks.connector.truststore.password=${TRUSTSTORE_PASSWORD}
+
+      server.ssl.enabled=false
+      server.ssl.key-alias=${KEYSTORE_ALIAS}
+      server.ssl.key-password=${KEY_PASSWORD}
+      server.ssl.key-store=/cert/${KEYSTORE_NAME}
+      server.ssl.key-store-password=${KEYSTORE_PASSWORD}
+
+      # OCSP
+      application.ocsp.validation.enabled=false
+      application.ocsp.validation.soft-fail=true
+      application.ocsp.validation.default-cache-duration-minutes=60
+      application.ocsp.validation.timeout-seconds=10
+
+      management.endpoints.enabled-by-default=true
+      management.endpoint.info.enabled=true
+      management.endpoints.web.exposure.include=*
+      management.endpoint.env.post.enabled=true
+
+      application.connectorid={{ .Release.Name }}
+
+      # Usage Control
+      application.usagecontrol.enabled=true
+      application.usagecontrol.constraint.location=EU
+      application.usagecontrol.constraint.purpose=demo
+
+      # DAPS
+      spring.ssl.bundle.jks.daps.keystore.location=/cert/${DAPS_KEYSTORE_NAME}
+      spring.ssl.bundle.jks.daps.keystore.password=${DAPS_KEYSTORE_PASSWORD}
+      spring.ssl.bundle.jks.daps.key.alias=${DAPS_KEYSTORE_ALIAS}
+      spring.ssl.bundle.jks.daps.keystore.type=PKCS12
+
+      # FTP
+      application.ftp.host=localhost
+      application.ftp.defaultTimeoutSeconds=1001
+      application.ftp.serverPort=2222
+      application.ftp.serverUsername=ftp_server
+      application.ftp.serverFolder=
+      application.ftp.clientUsername=ftp_client
+      application.ftp.downloadFolder=
+
+      # Password policy
+      application.password.validator.minLength=8
+      application.password.validator.maxLength=16
+      application.password.validator.minLowerCase=1
+      application.password.validator.minUpperCase=1
+      application.password.validator.minDigit=1
+      application.password.validator.minSpecial=1
+
+      # S3 / MinIO
+      s3.endpoint=https://internal-minio.cluster1.alidalab.it
+      s3.accessKey=minioadmin
+      s3.secretKey=minioadminsecret
+      s3.region=us-east-1
+      s3.bucketName={{ .Release.Name }}-bucket
+      s3.externalPresignedEndpoint=https://internal-minio.cluster1.alidalab.it
+
+initialData:
+  catalog:
+    keywords: ["Information","Test","DefaultCreator catalog","{{ .Release.Name }}"]
+    conformsTo: "conformsToSomething"
+    creator: ""                    # default: .Release.Name
+    providerDisplayName: ""        # default: .Release.Name
+    description: ""                # default generated
+    identifier: ""                 # default generated
+    title: ""                      # default generated
+    participantId: "urn:example:DefaultCreator"
+    homepage: "https://www.example.com"
+  dataset:
+    keywords: ["dataset","REST"]
+    description: ""                # default generated
+    conformsTo: "conformsToSomething"
+    creator: "DefaultCreator"                    # default: .Release.Name
+    identifier: ""
+    title: ""
+  dataService:
+    conformsTo: "conformsToSomething"
+    creator: "DefaultCreator"                    # default: .Release.Name
+    description: ""                # default generated
+    identifier: ""
+    title: ""                      # default: .Release.Name
+    endpointDescription: "dspace:connector"
+    endpointURL: http://{{ include "tc.fullname" . }}-connector:8080/                # default: http://{{ include "tc.fullname" . }}:8080/
+  distribution:
+    title: "HTTP Data PULL"
+    formatId: "HttpData-PULL"
+  artifact:
+    filename: "ENG-employee.json"
+    contentType: "application/json"
+  appProps:
+    dapsJWKSUrl: "https://daps.aisec.fraunhofer.de/.well-known/jwks.json"
+    dapsUrl: "https://daps.aisec.fraunhofer.de/v2/token"
+    enabledDapsInteraction: "false"
+    extendedTokenValidation: "false"
+    fetchTokenOnStartup: "false"
+    tokenCaching: "false"
+    protocolAuthEnabled: "true"
+
+mongo:
+  enabled: true
+  image: mongo:7.0
+  servicePort: 27017
+  pvcSize: 2Gi
+
+ui:
+  enabled: true
+  image: ghcr.io/engineering-research-and-development/dsp-true-connector-ui:0.2.0
+  replicas: 1
+  servicePort: 80
+  env:
+    CONNECTOR_API_URL: "http://{{ .Release.Name }}-connector:8080"
+    TC_ROOT_API_URL: "/api/v1"
+  tls:
+    create: false
+    secretName: "{{ .Release.Name }}-ui-tls"
+    crtB64: "<BASE64_TLS_CERT_HERE>"
+    keyB64: "<BASE64_TLS_KEY_HERE>"
+    existingSecretName: "" # se valorizzato, ha priorità su create
+  nginx:
+    configMapName: "{{ .Release.Name }}-ui-nginx"
+    nginxConf: |
+      events { worker_connections 1024; }
+      http {
+        include /etc/nginx/mime.types;
+        server {
+          listen 80;
+          server_name _;
+          root /usr/share/nginx/html/browser;
+          index index.html index.htm;
+          location /api/v1/ {
+            proxy_pass http://{{ .Release.Name }}-connector:8080/api/v1/;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_cache_bypass $http_upgrade;
+          }
+          location / { try_files $uri $uri/ /index.html; }
+        }
+        server {
+          listen 443 ssl;
+          server_name _;
+          ssl_certificate /etc/nginx/ssl/tls.crt;
+          ssl_certificate_key /etc/nginx/ssl/tls.key;
+          root /usr/share/nginx/html/browser;
+          index index.html index.htm;
+          location /api/v1/ {
+            proxy_pass http://{{ .Release.Name }}-connector:8080/api/v1/;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_cache_bypass $http_upgrade;
+          }
+          location / { try_files $uri $uri/ /index.html; }
+        }
+      }
+
+minio:
+  enabled: true               # if true, deploy a MinIO instance
+  name: "shared-minio"        # name of the MinIO deployment
+  namespace: ""               # if set, deploy MinIO in this namespace (must be created beforehand); if empty, deploy in the same namespace as the connector
+  image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+  persistence:
+    size: 10Gi
+  service:
+    apiPort: 9000
+    consolePort: 9001
+  credentials:
+    secretName: "shared-minio-cred"
+    accessKey: "<MINIO_ACCESS_KEY>"         # change using .env or secret
+    secretKey: "<MINIO_SECRET_KEY>"   # change using .env or secret
+  bucket:
+    createPerRelease: true          # bucket for each release
+    nameTpl: "{{ .Release.Name }}-bucket"

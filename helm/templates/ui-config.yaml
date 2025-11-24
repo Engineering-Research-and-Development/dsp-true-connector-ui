@@ -1,0 +1,24 @@
+{{- if .Values.ui.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ tpl .Values.ui.nginx.configMapName . }}
+  namespace: {{ $.Values.global.namespace }}
+data:
+  nginx.conf: |
+{{ tpl .Values.ui.nginx.nginxConf . | indent 4 }}
+---
+{{- if .Values.ui.tls.existingSecretName }}
+# Secret TLS esistente: {{ .Values.ui.tls.existingSecretName }}
+{{- else if .Values.ui.tls.create }}
+apiVersion: v1
+kind: Secret
+type: kubernetes.io/tls
+metadata:
+  name: {{ tpl .Values.ui.tls.secretName . }}
+  namespace: {{ $.Values.global.namespace }}
+data:
+  tls.crt: {{ default "" .Values.ui.tls.crtB64 }}
+  tls.key: {{ default "" .Values.ui.tls.keyB64 }}
+{{- end }}
+{{- end }}
