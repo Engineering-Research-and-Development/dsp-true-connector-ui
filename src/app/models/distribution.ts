@@ -14,5 +14,5 @@ export interface Distribution {
   accessService: DataService;
   hasPolicy?: Offer[];
   readonly type?: string;
-  format?: any;
+  format?: string;
 }

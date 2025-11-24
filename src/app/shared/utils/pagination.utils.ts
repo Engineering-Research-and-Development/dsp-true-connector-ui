@@ -25,7 +25,7 @@ export class PaginationHelper {
   static readonly DEFAULT_PAGE_SIZE = 20;
   static readonly DEFAULT_PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
   static readonly DEFAULT_SORT_DIRECTION: 'asc' | 'desc' = 'desc';
-  static readonly DEFAULT_SORT_COLUMN = 'timestamp';
+  static readonly DEFAULT_SORT_COLUMN = 'created';
 
   /**
    * Create initial pagination state

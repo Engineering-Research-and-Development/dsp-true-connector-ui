@@ -16,6 +16,7 @@ import { SnackbarService } from '../snackbar/snackbar.service';
 export class DataTransferService {
   private apiUrl = environment.DATA_TRANSFER_API_URL();
   private downloadingTransfers = new Set<string>();
+  private viewingTransfers = new Set<string>();
 
   // Polling configuration
   private readonly POLLING_INTERVALS = [3000, 6000, 12000, 30000, 60000]; // 3s, 6s, 12s, 30s, 60s
@@ -46,6 +47,16 @@ export class DataTransferService {
    */
   isDownloading(transferId: string): boolean {
     return this.downloadingTransfers.has(transferId);
+  }
+
+  /**
+   * Check if a transfer is currently being viewed
+   * @param transferId - The id of the transfer
+   * @returns boolean - true if the transfer is being viewed, false otherwise
+   * @example dataTransferService.isViewing('1234');
+   */
+  isViewing(transferId: string): boolean {
+    return this.viewingTransfers.has(transferId);
   }
 
   /**
@@ -90,6 +101,7 @@ export class DataTransferService {
     transferProcessId: string,
     format: string
   ): Observable<DataTransfer> {
+    console.log('Requesting data transfer with ID:', transferProcessId, 'and format:', format);
     return this.http
       .post<GenericApiResponse<any>>(
         this.apiUrl,
@@ -399,11 +411,38 @@ export class DataTransferService {
   }
 
   /**
-   * View artifact after it has been downloaded
-   * @param presignedUrl
-   * @returns   Observable<any>
+   * View artifact - downloads file from presigned URL
+   * Provides immediate feedback and disables button during download
+   * @param presignedUrl - The presigned S3 URL
+   * @param transferId - The transfer ID to track viewing state
+   * @returns Observable<any>
    */
-  viewArtifact(presignedUrl: string): Observable<any> {
+  viewArtifact(presignedUrl: string, transferId: string): Observable<any> {
+    // Check if already viewing this transfer
+    if (this.viewingTransfers.has(transferId)) {
+      this.snackBarService.openSnackBar(
+        'Download already in progress for this transfer.',
+        'OK',
+        'center',
+        'bottom',
+        'snackbar-warning'
+      );
+      return of(false);
+    }
+
+    // Mark as viewing
+    this.viewingTransfers.add(transferId);
+
+    // Show immediate feedback to user
+    this.snackBarService.openSnackBar(
+      'Preparing download... Please wait.',
+      'OK',
+      'center',
+      'bottom',
+      'snackbar-success'
+    );
+
+    // Download the file asynchronously
     return this.http
       .get(presignedUrl, {
         responseType: 'blob',
@@ -416,6 +455,7 @@ export class DataTransferService {
             'Content-Disposition'
           );
 
+          // Extract filename from Content-Disposition header
           let filename = 'download';
           if (contentDisposition) {
             const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(
@@ -426,15 +466,25 @@ export class DataTransferService {
             }
           }
 
+          // Create a download link and trigger it
           const url = window.URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = url;
           link.download = filename;
           link.click();
           window.URL.revokeObjectURL(url);
+
+          // Mark as completed
+          this.viewingTransfers.delete(transferId);
+
           return response;
         }),
-        catchError((error) => this.errorHandlerService.handleError(error))
+        catchError((error) => {
+          // Mark as completed on error
+          this.viewingTransfers.delete(transferId);
+
+          return this.errorHandlerService.handleError(error);
+        })
       );
   }
 
