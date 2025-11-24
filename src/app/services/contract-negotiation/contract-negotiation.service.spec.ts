@@ -76,7 +76,7 @@ describe('ContractNegotiationService', () => {
         },
       });
 
-      const req = httpMock.expectOne(environment.NEGOTIATION_API_URL());
+      const req = httpMock.expectOne(`${environment.NEGOTIATION_API_URL()}/request`);
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toEqual(MOCK_CONTRACT_NEGOTIATION);
       req.flush(mockResponse);
@@ -101,7 +101,7 @@ describe('ContractNegotiationService', () => {
         error: (error) => {},
       });
 
-      const req = httpMock.expectOne(environment.NEGOTIATION_API_URL());
+      const req = httpMock.expectOne(`${environment.NEGOTIATION_API_URL()}/request`);
       req.flush(errorResponse, { status: 400, statusText: 'Bad Request' });
 
       expect(snackbarService.openSnackBar).toHaveBeenCalledWith(
@@ -314,25 +314,25 @@ describe('ContractNegotiationService', () => {
     });
   });
 
-  describe('approveNegotiation', () => {
-    it('should approve negotiation successfully', () => {
+  describe('agreeNegotiation', () => {
+    it('should agree negotiation successfully', () => {
       const negotiationId = 'test-negotiation-id';
       const mockResponse: GenericApiResponse<ContractNegotiation> = {
         success: true,
-        message: 'Contract negotiation approved successfully',
+        message: 'Contract negotiation agreed successfully',
         data: MOCK_CONTRACT_NEGOTIATION_AGREED,
         timestamp: '2025-01-13T15:14:06+01:00',
       };
 
-      service.approveNegotiation(negotiationId).subscribe({
-        next: (response) => {
+      service.agreeNegotiation(negotiationId).subscribe({
+        next: (response: ContractNegotiation) => {
           expect(response).toEqual(MOCK_CONTRACT_NEGOTIATION_AGREED);
           expect(response.state).toBe(ContractNegotiationState.AGREED);
         },
       });
 
       const req = httpMock.expectOne(
-        `${environment.NEGOTIATION_API_URL()}/${negotiationId}/approve`
+        `${environment.NEGOTIATION_API_URL()}/${negotiationId}/agree`
       );
       expect(req.request.method).toBe('PUT');
       expect(req.request.body).toBeNull();
@@ -347,27 +347,27 @@ describe('ContractNegotiationService', () => {
       );
     });
 
-    it('should handle error when approving negotiation fails', () => {
+    it('should handle error when agreeing negotiation fails', () => {
       const negotiationId = 'test-negotiation-id';
       const errorResponse: GenericApiResponse<ContractNegotiation> = {
         success: false,
-        message: 'Failed to approve contract negotiation',
+        message: 'Failed to agree contract negotiation',
         timestamp: '2025-01-13T15:14:06+01:00',
       };
 
-      service.approveNegotiation(negotiationId).subscribe({
-        error: (error) => {},
+      service.agreeNegotiation(negotiationId).subscribe({
+        error: (error: any) => {},
       });
 
       const req = httpMock.expectOne(
-        `${environment.NEGOTIATION_API_URL()}/${negotiationId}/approve`
+        `${environment.NEGOTIATION_API_URL()}/${negotiationId}/agree`
       );
       expect(req.request.method).toBe('PUT');
       expect(req.request.body).toBeNull();
       req.flush(errorResponse, { status: 400, statusText: 'Bad Request' });
 
       expect(snackbarService.openSnackBar).toHaveBeenCalledWith(
-        'An error occurred: Failed to approve contract negotiation',
+        'An error occurred: Failed to agree contract negotiation',
         'OK',
         'center',
         'bottom',

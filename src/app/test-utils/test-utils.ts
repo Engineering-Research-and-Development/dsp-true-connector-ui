@@ -59,9 +59,7 @@ export const MOCK_DISTRIBUTION: Distribution = {
       language: 'en',
     },
   ],
-  format: {
-    '@id': 'HTTP:PULL',
-  },
+  format: 'HTTP:PULL',
   hasPolicy: [
     {
       '@id': 'urn:offer_id',
