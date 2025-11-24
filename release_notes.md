@@ -1,8 +1,9 @@
-# [0.6.0] - 03-11-2025
+# [0.6.0] - 25-11-2025
 
 ### Changed
 
 - Support for DSP 2025-1 protocol specification
+- Major UI restyling
 
 # [0.2.3] - 10-11-2025
 

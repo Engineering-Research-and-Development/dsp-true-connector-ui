@@ -2,12 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
-# [0.6.0] - 03-11-2025
+# [0.6.0] - 25-11-2025
 
 ### Changed
 
 - Catalog Management aligned with the DSP 2025-1 protocol specification
 - Version increased from 0.2.X to 0.6.X to align with releases on BE for easier tracking of compatibility
+- Major UI restyle in all components
 
 # [0.2.3] - 10-11-2025
 

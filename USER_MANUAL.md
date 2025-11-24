@@ -194,7 +194,10 @@ Configure S3-compatible storage for artifact management:
 
 > The `s3.externalPresignedEndpoint` should reference your machine's local IP address e.g., `http://192.168.x.x:9000` (IP address can be obtained with `ipconfig` command in Windows terminal or `ip` in Linux terminal) for development environments, or the public URL for production deployments.
 
+> The `CONNECTOR_A_CALLBACK_ADDRESS` and `CONNECTOR_B_CALLBACK_ADDRESS` should be root endpoint of BE which is publicly available 
+
 > If needed to customize the main logo on application, change existing `tc_logo.png` in `ui_a_resources/assets/img` and `ui_b_resources/assets/img` and keep same name. **After replacing the logo file, you must restart the containers for the changes to take effect, as the replacement happens in the `replace-env.sh` startup script.**
+
 
 #### Volume Mounts
 
@@ -554,7 +557,7 @@ The Catalog Browser enables discovery and exploration of external provider catal
 
 1. **Dataset Selection**:
 
-   - Navigate to the "Datasets" tab within catalog details
+   - Scroll down to the "Datasets" section within catalog details
    - Review available dataset offerings and their terms
 
 2. **Offer Configuration**:
@@ -592,7 +595,6 @@ The Provider view manages incoming negotiation requests from external consumers 
 **Provider Responsibilities:**
 
 - Review incoming negotiation requests
-- Evaluate consumer proposals against policies
 - Accept or reject agreements
 - Monitor negotiation progress and status
 
@@ -607,7 +609,6 @@ The Consumer view tracks outgoing negotiation requests initiated through the Cat
 **Consumer Operations:**
 
 - Monitor negotiation status and progress
-- Respond to provider offers
 - Accept or decline final agreements
 - Track negotiation outcomes
 
@@ -645,11 +646,6 @@ Provider transfers manage outbound data delivery to consumers who have successfu
 ![TP Provider](/screenshots/tp_provider.png)
 
 <p align="center">Provider Data Transfer Dashboard</p>
-
-
-![TP Provider](/screenshots/tp_provider_push.png)
-
-<p align="center">Provider Data Transfer Dashboard with HttpData-PUSH</p>
 
 **Provider Transfer Management:**
 
@@ -809,9 +805,7 @@ Configuration properties are logically grouped by functionality for easier manag
 
 - **DAPS Configuration**: Dynamic Attribute Provisioning Service settings
 - **Security Settings**: Encryption, certificates, and authentication parameters
-- **Network Configuration**: Communication endpoints and protocol settings
-- **Storage Configuration**: Database and file system parameters
-- **Integration Settings**: External system connection parameters
+- **Dspace version configuration**: Configuration related to Dspace protocol and all related metadata
 
 **Property Display Features:**
 
@@ -819,7 +813,7 @@ Configuration properties are logically grouped by functionality for easier manag
 - **Property Labels**: Human-readable descriptions for each configuration item
 - **Configuration Keys**: Technical parameter identifiers for reference
 - **Input Controls**: Appropriate interfaces for different data types
-- **Mandatory Indicators**: Star icons (`⭐`) mark required properties
+- **Mandatory Indicators**: Star icons (`*`) mark required properties
 - **Help Information**: Hover tooltips provide detailed parameter descriptions
 
 **Available Operations:**
@@ -853,13 +847,6 @@ Configuration properties are logically grouped by functionality for easier manag
 4. Validate changes using built-in validation mechanisms
 5. Save modifications to apply changes system-wide
 6. Monitor system behavior to ensure proper configuration application
-
-**Security Considerations:**
-
-- Sensitive properties (passwords, keys) are appropriately masked
-- Configuration changes require appropriate administrative privileges
-- All configuration modifications are logged in the audit trail
-- Backup and recovery procedures should include configuration settings
 
 ---
 

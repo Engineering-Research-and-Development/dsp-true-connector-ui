@@ -1,6 +1,8 @@
 # DSP TRUE Connector UI Application
 
-[![License: AGPL](https://img.shields.io/github/license/Engineering-Research-and-Development/true-connector-execution_core_container.svg)](https://opensource.org/licenses/AGPL-3.0)
+[![Release](https://img.shields.io/github/v/release/Engineering-Research-and-Development/dsp-true-connector-ui?color=brightgreen)](https://github.com/Engineering-Research-and-Development/dsp-true-connector-ui/releases)
+<a href="https://eclipse-dataspace-protocol-base.github.io/DataspaceProtocol/2025-1/"><img alt="Dataspace protocol" src="https://img.shields.io/badge/Dataspace%20protocol-2025--1-blue" /></a>
+[![License: AGPL](https://img.shields.io/github/license/Engineering-Research-and-Development/true-connector-execution_core_container.svg?color=red)](https://opensource.org/licenses/AGPL-3.0)
 <br/>
 
 ![](https://github.com/Engineering-Research-and-Development/true-connector/raw/main/doc/TRUE_Connector_Logo.png?raw=true)
@@ -28,6 +30,11 @@ For information on how to start connector with all modules, go to [user manual](
   - [Distribution Management](#distribution-management)
   - [Contract Negotiation](#contract-negotiation)
   - [Data transfers](#data-transfers)
+  - [Audit Trail](#audit-trail)
+  - [Connector Configuration](#connector-configuration)
+- [Building & Testing](#building--testing)
+- [Docker & Deployment](#docker--deployment)
+- [Documentation](#documentation)
 - [Contributing](#contributing)
 - [License](#license)
 - [More Information](#more-information)
@@ -41,6 +48,8 @@ For information on how to start connector with all modules, go to [user manual](
 - **Distribution Management**: Create, update, view, and delete distribution data of the connector.
 - **Contract Negotiation**: Complete the entire contract negotiation process: start, accept, validate, finalize, or terminate.
 - **Data Transfer**: Complete the entire data transfer process: request, start, download, complete, suspend, or terminate.
+- **Audit Trail**: Track and audit all system events with advanced search and filtering capabilities.
+- **Connector Configuration**: Manage connector application properties and settings via the UI.
 
 ## Prerequisites
 
@@ -118,7 +127,73 @@ The **Data transfers** section in the side menu includes two subsections:
 
 In both subsections, data transfers can be filtered by state by clicking the desired option. All information about a data transfers is displayed in a card, showing details such as the agreement id, callback address, state, dataset id, format, etc. Depending on the current state of the data transfer, the user can respond and change its status and in the end download the artifact.
 
-## Contributing
+### Audit Trail
+
+The **Audit Trail** section displays a comprehensive log of all system events. Advanced search and filtering capabilities allow you to find specific events by type, date range, or other criteria. Clicking on an event displays detailed information including event type, timestamp, affected resources, and additional metadata.
+
+### Connector Configuration
+
+The **Connector Configuration** section allows you to manage and update connector application properties through the user interface. This includes essential settings and configuration parameters that control connector behavior and integration with the DSP network.
+
+## Building & Testing
+
+### Run Tests
+
+Execute the test suite using:
+
+```bash
+npm test
+```
+
+### Build for Production
+
+Build the application for production deployment:
+
+```bash
+npm build
+```
+
+The optimized build output will be available in the `dist/` directory.
+
+### Watch Mode
+
+For development with automatic recompilation:
+
+```bash
+npm run watch
+```
+
+## Docker & Deployment
+
+### Running with Docker
+
+The application includes Docker support for containerized deployment. Use Docker Compose to run both Connector A and B instances:
+
+```bash
+cd docker
+docker-compose up -d
+```
+
+Access the instances:
+- **Connector A UI**: http://localhost:4200
+- **Connector B UI**: http://localhost:4300
+
+### Docker Configuration
+
+- `Dockerfile`: Container image definition
+- `docker-compose.yml`: Multi-container orchestration
+- `docker/ui_a_resources/` and `docker/ui_b_resources/`: Configuration files for each instance
+- `docker/connector_a_resources/` and `docker/connector_b_resources/`: Backend connector configurations
+
+## Documentation
+
+For detailed setup, configuration, and usage information, refer to:
+
+- **[USER_MANUAL.md](/USER_MANUAL.md)**: Comprehensive guide for starting the connector with all modules and detailed feature walkthrough
+- **[CHANGELOG.md](/CHANGELOG.md)**: Version history and changes
+- **[release_notes.md](/release_notes.md)**: Release information and updates
+
+
 
 We welcome contributions to the DSP TRUE Connector UI application. To contribute:
 
