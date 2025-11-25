@@ -105,7 +105,7 @@ services:
       - tc_b_log:/var/log/tc
 
   ui-b:
-    image: ghcr.io/engineering-research-and-development/dsp-true-connector-ui:mare
+    image: ghcr.io/engineering-research-and-development/dsp-true-connector-ui:latest
     container_name: ui-b
     networks:
       - network-b
