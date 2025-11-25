@@ -237,12 +237,16 @@ Configure S3-compatible storage for artifact management:
 **MinIO Configuration:**
 
 - Data Storage: `minio_data:/data`
-- TLS Private Key: `./tc_cert/private.key:/root/.minio/certs/private.key:ro`
-- TLS Certificate: `./tc_cert/public.crt:/root/.minio/certs/public.crt:ro`
+
+> **SSL/TLS Configuration:** When SSL is enabled for connectors, uncomment the MinIO certificate volume mount in `docker-compose.yml`:
+> ```yaml
+> # - ./tc_cert/minio_certs:/root/.minio/certs:ro
+> ```
+> This mounts the custom SSL certificates to enable HTTPS communication with MinIO.
 
 **Important Note:**
 
-> Using a single MinIO S3 instance mimics AWS’s architecture, where multiple users access separate buckets.
+> Using a single MinIO S3 instance mimics AWS's architecture, where multiple users access separate buckets.
 
 ### Getting Started
 
