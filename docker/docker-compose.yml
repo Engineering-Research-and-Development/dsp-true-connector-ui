@@ -38,7 +38,7 @@ services:
       - tc_a_log:/var/log/tc
   
   ui-a:
-    image: ghcr.io/engineering-research-and-development/dsp-true-connector-ui:mare
+    image: ghcr.io/engineering-research-and-development/dsp-true-connector-ui:latest
     container_name: ui-a
     networks:
       - network-a
@@ -68,7 +68,7 @@ services:
 ### instance b
 
   connector-b:
-    image: ghcr.io/engineering-research-and-development/dsp-true-connector:mare
+    image: ghcr.io/engineering-research-and-development/dsp-true-connector:latest
     deploy:
       resources:
         limits:
