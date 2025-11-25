@@ -25,9 +25,28 @@ The script generates all certificates, truststore, and verifies the chain automa
 | `dsp-intermediate-ca.p12` | Intermediate CA keystore (keep secure) |
 | `connector-a.p12` | Server certificate for consumer application |
 | `connector-b.p12` | Server certificate for provider application |
+| `private.key` / `public.crt` | MinIO private key and certificate in PEM format |
+| `ui-a-cert.key` / `ui-a-cert.crt` | UI-A private key and certificate in PEM format (for nginx) |
+| `ui-b-cert.key` / `ui-b-cert.crt` | UI-B private key and certificate in PEM format (for nginx) |
 | `dsp-truststore.p12` | Truststore with Intermediate CA certificate (use for TLS validation) |
 
-### 3. Edit Configuration (Optional)
+### 3. Renew Certificates
+
+To renew individual or all server certificates without regenerating the CA hierarchy:
+
+```cmd
+cd docker/tc_cert
+renew-certificates.cmd
+```
+
+The interactive menu allows you to:
+- Renew specific certificates (connector-a, connector-b, minio, ui-a, ui-b)
+- Renew all certificates at once
+- Automatically backs up old certificates before renewal
+
+**Prerequisites:** `dsp-intermediate-ca.p12`, `intermediate-ca.crt`, and `root-ca.crt` must exist.
+
+### 4. Edit Configuration (Optional)
 
 Edit `generate-certificates.cmd` configuration section to customize:
 
@@ -36,6 +55,8 @@ REM Subject Alternative Names (SAN) - Edit for each service
 set SAN_CONNECTOR_A=DNS:localhost,DNS:connector-a,IP:127.0.0.1
 set SAN_CONNECTOR_B=DNS:localhost,DNS:connector-b,IP:127.0.0.1
 set SAN_MINIO=DNS:localhost,DNS:minio,IP:127.0.0.1
+set SAN_UI_A=DNS:localhost,DNS:ui-a,IP:127.0.0.1
+set SAN_UI_B=DNS:localhost,DNS:ui-b,IP:127.0.0.1
 
 REM Root CA Distinguished Name
 set ROOT_DNAME=CN=DSP Root CA, OU=Security, O=DSP True Connector, L=Belgrade, ST=Serbia, C=RS

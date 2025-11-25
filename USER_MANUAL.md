@@ -153,18 +153,27 @@ The system utilizes isolated network segments for enhanced security:
 Configure the following environment variables for proper system operation:
 
 ```env
-# TLS Security Configuration
-KEYSTORE_NAME=                    # Primary keystore filename
-KEY_PASSWORD=                     # Private key password
-KEYSTORE_PASSWORD=                # Keystore access password
-KEYSTORE_ALIAS=                   # Certificate alias identifier
+# TLS Security Configuration - Instance A
+CONNECTOR_A_KEYSTORE_NAME=        # Instance A keystore filename
+CONNECTOR_A_KEY_PASSWORD=         # Instance A private key password
+CONNECTOR_A_KEYSTORE_PASSWORD=    # Instance A keystore access password
+CONNECTOR_A_KEYSTORE_ALIAS=       # Instance A certificate alias identifier
+
+# TLS Security Configuration - Instance B
+CONNECTOR_B_KEYSTORE_NAME=        # Instance B keystore filename
+CONNECTOR_B_KEY_PASSWORD=         # Instance B private key password
+CONNECTOR_B_KEYSTORE_PASSWORD=    # Instance B keystore access password
+CONNECTOR_B_KEYSTORE_ALIAS=       # Instance B certificate alias identifier
+
+# SSL Configuration
+SSL_ENABLED=                      # Enable/disable SSL for connectors
 
 # Trust Store Configuration (IDSCP2 Protocol)
 TRUSTSTORE_NAME=                  # Trust store filename
 TRUSTSTORE_PASSWORD=              # Trust store access password
 
 # DAPS (Dynamic Attribute Provisioning Service)
-DAPS_KEYSTORE_NAME=               # DAPS authentication keystore
+DAPS_KEYSTORE_NAME=               # DAPS authentication keystore filename
 DAPS_KEYSTORE_PASSWORD=           # DAPS keystore password
 DAPS_KEYSTORE_ALIAS=              # DAPS certificate alias
 
@@ -204,10 +213,11 @@ Configure S3-compatible storage for artifact management:
 **Instance A Volume Configuration:**
 
 - Connector Configuration: `./connector_a_resources:/config`
-- Security Certificates: `./tc_cert:/cert`
+- Security Certificates: `./tc_cert/connector-a/connector-a.p12:/cert/connector-a.p12`
+- Truststore: `./tc_cert/dsp-truststore.p12:/cert/dsp-truststore.p12`
 - Application Logs: `tc_a_log:/var/log/tc`
 - UI Configuration: `./ui_a_resources/nginx.conf:/etc/nginx/nginx.conf`
-- UI SSL Certificates: `./ui_a_resources/ssl:/etc/nginx/ssl:ro`
+- UI SSL Certificates: `./tc_cert/ui-a-cert:/etc/nginx/ssl:ro`
 - UI Custom logo: `./ui_a_resources/assets/img:/custom-assets:ro`
 - MongoDB Data: `mongodb-data_a:/data/db`
 - MongoDB Config: `mongodb-configdb_a:/data/configdb`
@@ -215,18 +225,20 @@ Configure S3-compatible storage for artifact management:
 **Instance B Volume Configuration:**
 
 - Connector Configuration: `./connector_b_resources:/config`
-- Security Certificates: `./tc_cert:/cert`
+- Security Certificates: `./tc_cert/connector-b/connector-b.p12:/cert/connector-b.p12`
+- Truststore: `./tc_cert/dsp-truststore.p12:/cert/dsp-truststore.p12`
 - Application Logs: `tc_b_log:/var/log/tc`
 - UI Configuration: `./ui_b_resources/nginx.conf:/etc/nginx/nginx.conf`
-- UI SSL Certificates: `./ui_b_resources/ssl:/etc/nginx/ssl:ro`
+- UI SSL Certificates: `./tc_cert/ui-b-cert:/etc/nginx/ssl:ro`
 - UI Custom logo: `./ui_b_resources/assets/img:/custom-assets:ro`
 - MongoDB Data: `mongodb-data_b:/data/db`
 - MongoDB Config: `mongodb-configdb_b:/data/configdb`
 
+**MinIO Configuration:**
 
-**Instance A & B Volume Configuration:**
-
-- Minio S3: `minio_data:/data`
+- Data Storage: `minio_data:/data`
+- TLS Private Key: `./tc_cert/private.key:/root/.minio/certs/private.key:ro`
+- TLS Certificate: `./tc_cert/public.crt:/root/.minio/certs/public.crt:ro`
 
 **Important Note:**
 
