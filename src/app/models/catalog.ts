@@ -2,6 +2,7 @@ import { DataService } from './dataService';
 import { Dataset } from './dataset';
 import { Distribution } from './distribution';
 import { Multilanguage } from './multilanguage';
+import { Offer } from './offer';
 
 export interface Catalog {
   '@id'?: string;
@@ -15,13 +16,12 @@ export interface Catalog {
   modified?: string;
   title: string;
   distribution: Distribution[];
-  hasPolicy: any[];
+  hasPolicy: Offer[];
   dataset: Dataset[];
   service: DataService[];
   participantId: string;
-  homepage: string;
   createdBy?: string;
   lastModifiedBy?: string;
   version?: number;
-  type?: string;
+  readonly type?: string;
 }

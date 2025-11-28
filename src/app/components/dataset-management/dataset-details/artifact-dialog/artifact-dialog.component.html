@@ -1,5 +1,14 @@
 <!-- artifact-dialog.component.html -->
-<h2 mat-dialog-title>Add Artifact</h2>
+<div class="dialog-header">
+  <h1 class="dialog-title">
+    <mat-icon>attachment</mat-icon>
+    Add Artifact
+  </h1>
+  <button class="header-close-button" (click)="onCancel()" mat-icon-button>
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
 <mat-dialog-content>
   <mat-tab-group
     [(selectedIndex)]="selectedTabIndex"
@@ -29,7 +38,7 @@
             <input
               type="file"
               (change)="onFileSelected($event)"
-              accept=".json,.csv,.xlsx,.pdf"
+              accept=".json,.csv,.xlsx,.xls,.pdf,.txt,.doc,.docx"
               #fileInput
               style="display: none"
             />

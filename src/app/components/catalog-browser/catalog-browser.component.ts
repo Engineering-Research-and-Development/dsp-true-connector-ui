@@ -10,8 +10,8 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
-import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
 import { Catalog } from '../../models/catalog';
 import { CatalogService } from '../../services/catalog/catalog.service';
 import { ProxyService } from '../../services/proxy/proxy.service';
@@ -29,7 +29,7 @@ import { ProxyService } from '../../services/proxy/proxy.service';
     MatFormFieldModule,
     FormsModule,
     ReactiveFormsModule,
-    NgxSkeletonLoaderModule,
+    MatProgressSpinnerModule,
     MatTooltipModule,
   ],
   providers: [CatalogService],

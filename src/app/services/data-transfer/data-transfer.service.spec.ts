@@ -580,6 +580,7 @@ describe('DataTransferService', () => {
   describe('viewArtifact', () => {
     it('should view artifact successfully', () => {
       const presignedUrl = 'https://example.com/presigned-url';
+      const transferId = 'test-transfer-id';
       const mockBlob = new Blob(['test content'], { type: 'text/plain' });
       const mockResponse = {
         body: mockBlob,
@@ -597,7 +598,7 @@ describe('DataTransferService', () => {
       spyOn(window.URL, 'createObjectURL').and.returnValue('mock-url');
       spyOn(window.URL, 'revokeObjectURL');
 
-      service.viewArtifact(presignedUrl).subscribe({
+      service.viewArtifact(presignedUrl, transferId).subscribe({
         next: (response) => {
           expect(response).toBeTruthy();
           expect(mockLink.download).toBe('test-file.txt');
@@ -619,6 +620,7 @@ describe('DataTransferService', () => {
 
     it('should handle missing content disposition header', () => {
       const presignedUrl = 'https://example.com/presigned-url';
+      const transferId = 'test-transfer-id';
       const mockBlob = new Blob(['test content'], { type: 'text/plain' });
 
       const mockLink = {
@@ -630,7 +632,7 @@ describe('DataTransferService', () => {
       spyOn(window.URL, 'createObjectURL').and.returnValue('mock-url');
       spyOn(window.URL, 'revokeObjectURL');
 
-      service.viewArtifact(presignedUrl).subscribe({
+      service.viewArtifact(presignedUrl, transferId).subscribe({
         next: (response) => {
           expect(response).toBeTruthy();
           expect(mockLink.download).toBe('download');

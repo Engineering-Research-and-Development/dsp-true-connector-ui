@@ -1,208 +1,297 @@
 <div *ngIf="loading" class="item">
   <mat-card class="service-card">
-    <ngx-skeleton-loader
-      count="15"
-      appearance="line"
-      animation="pulse"
-    ></ngx-skeleton-loader>
+    <div class="loading-container">
+      <mat-spinner diameter="50"></mat-spinner>
+    </div>
   </mat-card>
 </div>
+
 <div *ngIf="!loading && catalogData != undefined">
   <mat-card class="service-card">
     <mat-card-title class="service-title"></mat-card-title>
     <mat-card-content>
       <div class="headtitle">
         <div class="back">
-          <h1>Catalog details</h1>
+          <h1>Catalog Details</h1>
+          <mat-icon
+            class="help-icon"
+            matTooltip="Here you can view all information about the catalog including basic details, descriptions, and available datasets with their policies."
+            aria-label="Help regarding catalog details"
+            >help_outline</mat-icon
+          >
         </div>
       </div>
 
-      <div>
-        <mat-tab-group>
-          <mat-tab label="Basic info">
-            <div class="bc-blue">
-              <br />
-              <h2>{{ catalogData.title }}</h2>
-              <div class="table-info">
-                <strong>Identifier</strong
-                ><span>{{ catalogData.identifier }}</span>
-                <strong>Conforms to</strong>
-                <span>{{ catalogData.conformsTo }}</span>
+      <!-- Catalog Cards Grid -->
+      <div class="catalog-cards-container">
+        <!-- Basic Info Card -->
+        <div class="catalog-card-item basic-info-card">
+          <div class="card-header">
+            <div class="header-left">
+              <h2 class="card-title">{{ catalogData.title }}</h2>
+              <p class="card-type">Catalog Information</p>
+            </div>
+            <mat-icon class="card-icon">info</mat-icon>
+          </div>
 
-                <strong>Keyword</strong>
-                <span>{{ catalogData.keyword.join(", ") }}</span>
+          <div class="card-body">
+            <div class="metadata-grid">
+              <div class="metadata-item">
+                <span class="metadata-label">Identifier</span>
+                <span class="metadata-value">{{ catalogData.identifier }}</span>
+              </div>
+              <div class="metadata-item">
+                <span class="metadata-label">Conforms To</span>
+                <span class="metadata-value">{{ catalogData.conformsTo }}</span>
+              </div>
+              <div class="metadata-item">
+                <span class="metadata-label">Participant ID</span>
+                <span class="metadata-value">{{ catalogData.participantId }}</span>
+              </div>
+              <div class="metadata-item">
+                <span class="metadata-label">Creator</span>
+                <span class="metadata-value">{{ catalogData.creator }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-                <strong>Theme</strong>
-                <span>{{ catalogData.theme.join(", ") }}</span>
+        <!-- Description Card -->
+        <div class="catalog-card-item description-card" *ngIf="languages.length > 0">
+          <div class="card-header">
+            <div class="header-left">
+              <h2 class="card-title">Description</h2>
+              <p class="card-type">{{ languages.length }} language(s)</p>
+            </div>
+            <mat-icon class="card-icon">description</mat-icon>
+          </div>
 
-                <strong>Participant ID</strong>
-                <span> {{ catalogData.participantId }}</span>
+          <div class="card-body">
+            <mat-form-field appearance="outline" class="language-select">
+              <mat-label>Select Language</mat-label>
+              <mat-select
+                [(value)]="selectedLanguage"
+                (selectionChange)="onLanguageSelected()"
+              >
+                <mat-option
+                  *ngFor="let language of languages"
+                  [value]="language.toUpperCase()"
+                  >{{ language | uppercase }}</mat-option
+                >
+              </mat-select>
+            </mat-form-field>
+            <div class="description-content" *ngIf="descriptionValue">
+              <p>{{ descriptionValue }}</p>
+            </div>
+            <div class="description-empty" *ngIf="!descriptionValue">
+              <p class="empty-message">No description available</p>
+            </div>
+          </div>
+        </div>
 
-                <strong>Homepage</strong>
-                <span>{{ catalogData.homepage }}</span>
-                <strong>Creator</strong>
-                <span>{{ catalogData.creator }} </span>
+        <!-- Metadata Info Card -->
+        <div class="catalog-card-item metadata-info-card">
+          <div class="card-header">
+            <div class="header-left">
+              <h2 class="card-title">Metadata</h2>
+              <p class="card-type">Version info</p>
+            </div>
+            <mat-icon class="card-icon">tag</mat-icon>
+          </div>
 
-                <strong>Issued</strong>
-                <span>
-                  {{ catalogData.issued | date : "d MMMM y, HH:mm:ss" }}
-                </span>
+          <div class="card-body">
+            <div class="metadata-grid">
+              <div class="metadata-item">
+                <span class="metadata-label">Issued</span>
+                <span class="metadata-value">{{ catalogData.issued | date : "d MMMM y, HH:mm:ss" }}</span>
+              </div>
+              <div class="metadata-item">
+                <span class="metadata-label">Modified</span>
+                <span class="metadata-value">{{ catalogData.modified | date : "d MMMM y, HH:mm:ss" }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-                <strong>Modified</strong>
-                <span>
-                  {{ catalogData.modified | date : "d MMMM y, HH:mm:ss" }}
+        <!-- Keywords & Themes Card -->
+        <div class="catalog-card-item keywords-themes-card">
+          <div class="card-header">
+            <div class="header-left">
+              <h2 class="card-title">Keywords & Themes</h2>
+              <p class="card-type">{{ (catalogData.keyword || []).length + (catalogData.theme || []).length }} items</p>
+            </div>
+            <mat-icon class="card-icon">label</mat-icon>
+          </div>
+
+          <div class="card-body">
+            <div class="keywords-section" *ngIf="(catalogData.keyword || []).length > 0">
+              <h3 class="section-title">Keywords</h3>
+              <div class="tags-container">
+                <span class="tag keyword-tag" *ngFor="let keyword of catalogData.keyword">
+                  {{ keyword }}
                 </span>
               </div>
             </div>
-          </mat-tab>
-          <mat-tab label="Description">
-            <div class="desc">
-              <br />
-              <mat-form-field appearance="outline">
-                <mat-label>Select Language</mat-label>
-                <mat-select
-                  [(value)]="selectedLanguage"
-                  (selectionChange)="onLanguageSelected()"
-                  outline
-                >
-                  <mat-option
-                    *ngFor="let language of languages"
-                    [value]="language.toUpperCase()"
-                    >{{ language | uppercase }}</mat-option
-                  >
-                </mat-select>
-              </mat-form-field>
 
-              <p *ngIf="descriptionValue">{{ descriptionValue }}</p>
+            <div class="themes-section" *ngIf="(catalogData.theme || []).length > 0">
+              <h3 class="section-title">Themes</h3>
+              <div class="tags-container">
+                <span class="tag theme-tag" *ngFor="let theme of catalogData.theme">
+                  {{ theme }}
+                </span>
+              </div>
             </div>
-          </mat-tab>
-          <mat-tab label="Datasets">
-            <div>
-              <br />
-              <div class="page-wrraper">
-                <div class="bc-grey">
-                  <div class="table-info">
-                    <div
-                      *ngIf="
-                        !catalogData.dataset || catalogData.dataset.length === 0
-                      "
-                      class="no-datasets"
-                    >
-                      <p>No datasets available in this catalog.</p>
+
+            <div *ngIf="(catalogData.keyword || []).length === 0 && (catalogData.theme || []).length === 0" class="empty-message">
+              <p>No keywords or themes defined</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Datasets Section -->
+      <div class="datasets-section">
+        <div class="section-header">
+          <h2 class="section-title">Datasets</h2>
+          <p class="section-subtitle">{{ catalogData.dataset.length || 0 }} dataset(s)</p>
+        </div>
+
+        <div
+          *ngIf="!catalogData.dataset || catalogData.dataset.length === 0"
+          class="no-datasets"
+        >
+          <p>No datasets available in this catalog.</p>
+        </div>
+
+        <div
+          class="datasets-card-container"
+          *ngIf="catalogData.dataset && catalogData.dataset.length > 0"
+        >
+          <div *ngFor="let dataset of catalogData.dataset" class="card-wrapper">
+            <div class="card">
+              <!-- Card Header -->
+              <div class="card-header">
+                <div class="header-left">
+                  <h2 class="card-title">{{ dataset.title }}</h2>
+                  <p class="card-type">Dataset</p>
+                </div>
+                <mat-icon class="card-icon">dataset</mat-icon>
+              </div>
+
+              <!-- Card Body -->
+              <div class="card-body">
+                <!-- Metadata Grid -->
+                <div class="metadata-grid">
+                  <div class="metadata-item">
+                    <span class="metadata-label">Identifier</span>
+                    <span class="metadata-value">{{ dataset.identifier || "N/A" }}</span>
+                  </div>
+                  <div class="metadata-item">
+                    <span class="metadata-label">Creator</span>
+                    <span class="metadata-value">{{ dataset.creator || "N/A" }}</span>
+                  </div>
+                </div>
+
+                <!-- Timestamps -->
+                <div class="timestamps">
+                  <div class="timestamp-item">
+                    <mat-icon>schedule</mat-icon>
+                    <div class="timestamp-content">
+                      <span class="timestamp-label">Issued</span>
+                      <span class="timestamp-value">{{ dataset.issued ? (dataset.issued | date : "d MMM y, HH:mm") : "N/A" }}</span>
                     </div>
-                    <div
-                      class="space-card"
-                      *ngIf="
-                        catalogData.dataset && catalogData.dataset.length > 0
-                      "
-                    >
-                      <div *ngFor="let dataset of catalogData.dataset">
-                        <div class="card">
-                          <div class="title">
-                            {{ dataset.title }}
-                          </div>
-
-                          <div class="content">
-                            <p>
-                              <strong>Identifier:</strong>
-                              {{ dataset.identifier || "N/A" }}
-                            </p>
-                            <p>
-                              <strong>Creator:</strong>
-                              {{ dataset.creator || "N/A" }}
-                            </p>
-                            <p>
-                              <strong>Theme:</strong>
-                              {{
-                                (dataset.theme || []).length
-                                  ? (dataset.theme || []).join(", ")
-                                  : "N/A"
-                              }}
-                            </p>
-                            <p>
-                              <strong>Keywords:</strong>
-                              {{
-                                (dataset.keyword || []).length
-                                  ? (dataset.keyword || []).join(", ")
-                                  : "N/A"
-                              }}
-                            </p>
-                            <p>
-                              <strong>Issued:</strong>
-                              {{
-                                dataset.issued
-                                  ? (dataset.issued
-                                    | date : "d MMMM y, HH:mm:ss")
-                                  : "N/A"
-                              }}
-                            </p>
-                            <p>
-                              <strong>Modified:</strong>
-                              {{
-                                dataset.modified
-                                  ? (dataset.modified
-                                    | date : "d MMMM y, HH:mm:ss")
-                                  : "N/A"
-                              }}
-                            </p>
-                          </div>
-                          <div class="sdd">
-                            <mat-expansion-panel
-                              class="expansion-panel"
-                              *ngIf="
-                                dataset.hasPolicy &&
-                                dataset.hasPolicy.length > 0
-                              "
-                            >
-                              <mat-expansion-panel-header>
-                                <mat-panel-title>Offers</mat-panel-title>
-                              </mat-expansion-panel-header>
-                              <div
-                                *ngFor="let offer of dataset.hasPolicy"
-                                class="resource-section"
-                              >
-                                <div class="offer-row">
-                                  <div class="offer-info">
-                                    <mat-checkbox
-                                      [checked]="isSelectedOffer(offer)"
-                                      (change)="onOfferSelected(offer)"
-                                    >
-                                      <p>{{ offer["@id"] }}</p>
-                                    </mat-checkbox>
-                                  </div>
-                                  <button
-                                    class="view-btn"
-                                    mat-button
-                                    matTooltip="View details"
-                                    (click)="showMoreDetails(offer, 'offer')"
-                                  >
-                                    <mat-icon>visibility</mat-icon>
-                                  </button>
-                                </div>
-                                <hr />
-                              </div>
-                            </mat-expansion-panel>
-
-                          </div>
-
-                          <div class="btn-action">
-                            <button
-                              mat-button
-                              (click)="startContractNegotiation(dataset['@id'])"
-                            >
-                              <mat-icon>gavel</mat-icon>
-                              Start negotiation
-                            </button>
-                          </div>
-                        </div>
-                      </div>
+                  </div>
+                  <div class="timestamp-item">
+                    <mat-icon>update</mat-icon>
+                    <div class="timestamp-content">
+                      <span class="timestamp-label">Modified</span>
+                      <span class="timestamp-value">{{ dataset.modified ? (dataset.modified | date : "d MMM y, HH:mm") : "N/A" }}</span>
                     </div>
                   </div>
                 </div>
+
+                <!-- Themes & Keywords Section -->
+                <div *ngIf="(dataset.theme || []).length > 0 || (dataset.keyword || []).length > 0" class="tags-section">
+                  <div *ngIf="(dataset.theme || []).length > 0" class="tags-subsection">
+                    <span class="metadata-label">Themes</span>
+                    <div class="tags-container">
+                      <span class="tag theme-tag" *ngFor="let theme of dataset.theme">
+                        {{ theme }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div *ngIf="(dataset.keyword || []).length > 0" class="tags-subsection">
+                    <span class="metadata-label">Keywords</span>
+                    <div class="tags-container">
+                      <span class="tag keyword-tag" *ngFor="let keyword of dataset.keyword">
+                        {{ keyword }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Offers Section -->
+                <div *ngIf="dataset.hasPolicy && dataset.hasPolicy.length > 0" class="offers-section">
+                  <div class="section-header">
+                    <mat-icon>description</mat-icon>
+                    <h3>Offers</h3>
+                  </div>
+                  <mat-expansion-panel class="offers-panel">
+                    <mat-expansion-panel-header>
+                      <mat-panel-title>
+                        <mat-icon>shopping_cart</mat-icon>
+                        Available Offers
+                      </mat-panel-title>
+                      <span class="offers-count">{{ dataset.hasPolicy.length }}</span>
+                    </mat-expansion-panel-header>
+                    <div class="offers-content">
+                      <div
+                        *ngFor="let offer of dataset.hasPolicy; let i = index"
+                        class="offer-card"
+                      >
+                        <div class="offer-header">
+                          <mat-checkbox
+                            [checked]="isSelectedOffer(offer)"
+                            (change)="onOfferSelected(offer)"
+                            class="offer-checkbox"
+                          >
+                          </mat-checkbox>
+                          <span class="offer-id">{{ offer["@id"] }}</span>
+                          <span class="offer-counter">{{ i + 1 }} / {{ dataset.hasPolicy.length }}</span>
+                        </div>
+                        <div class="offer-actions">
+                          <button
+                            mat-icon-button
+                            matTooltip="View details"
+                            (click)="showMoreDetails(offer, 'offer')"
+                            class="view-btn"
+                          >
+                            <mat-icon>visibility</mat-icon>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </mat-expansion-panel>
+                </div>
               </div>
-            </div></mat-tab
-          >
-        </mat-tab-group>
+
+              <!-- Card Footer - Actions -->
+              <div class="card-footer">
+                <div class="btn-action">
+                  <button
+                    mat-icon-button
+                    matTooltip="Start contract negotiation"
+                    (click)="startContractNegotiation(dataset['@id'])"
+                    class="action-btn action-negotiate"
+                  >
+                    <mat-icon>gavel</mat-icon>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </mat-card-content>
   </mat-card>

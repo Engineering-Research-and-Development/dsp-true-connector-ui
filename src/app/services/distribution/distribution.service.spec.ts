@@ -1,9 +1,11 @@
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Distribution } from '../../models/distribution';
 import { GenericApiResponse } from '../../models/genericApiResponse';
 import { MOCK_DISTRIBUTION } from '../../test-utils/test-utils';
+import { ErrorHandlerService } from '../error-handler/error-handler.service';
 import { SnackbarService } from '../snackbar/snackbar.service';
 import { DistributionService } from './distribution.service';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
@@ -12,28 +14,53 @@ describe('DistributionService', () => {
   let service: DistributionService;
   let httpMock: HttpTestingController;
   let snackbarService: jasmine.SpyObj<SnackbarService>;
+  let errorHandlerService: jasmine.SpyObj<ErrorHandlerService>;
   const mockDistribution: Distribution = MOCK_DISTRIBUTION;
 
   beforeEach(() => {
     const snackbarSpy = jasmine.createSpyObj('SnackbarService', [
       'openSnackBar',
     ]);
+    const errorHandlerSpy = jasmine.createSpyObj('ErrorHandlerService', [
+      'handleError',
+    ]);
 
     TestBed.configureTestingModule({
-    imports: [],
-    providers: [
+      imports: [],
+      providers: [
         DistributionService,
         { provide: SnackbarService, useValue: snackbarSpy },
+        { provide: ErrorHandlerService, useValue: errorHandlerSpy },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-    ]
-});
+      ],
+    });
 
     service = TestBed.inject(DistributionService);
     httpMock = TestBed.inject(HttpTestingController);
     snackbarService = TestBed.inject(
       SnackbarService
     ) as jasmine.SpyObj<SnackbarService>;
+    errorHandlerService = TestBed.inject(
+      ErrorHandlerService
+    ) as jasmine.SpyObj<ErrorHandlerService>;
+    errorHandlerService.handleError.and.callFake((error) => {
+      // Extract error message and call snackbar like the real service does
+      let errorMessage = '';
+      if (error.error?.message) {
+        errorMessage = error.error.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      snackbarService.openSnackBar(
+        `An error occurred: ${errorMessage}`,
+        'OK',
+        'center',
+        'bottom',
+        'snackbar-error'
+      );
+      return throwError(() => error);
+    });
   });
 
   afterEach(() => {

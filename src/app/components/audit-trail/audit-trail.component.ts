@@ -21,7 +21,6 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
 import { AuditEvent } from '../../models/auditEvent';
 import { AuditEventType } from '../../models/auditEventType';
 import { AuditService } from '../../services/audit/audit.service';
@@ -84,7 +83,6 @@ export const CUSTOM_DATE_FORMATS = {
     MatExpansionModule,
     MatIconModule,
     MatButtonModule,
-    NgxSkeletonLoaderModule,
     MatInputModule,
     MatFormFieldModule,
     FormsModule,
@@ -119,7 +117,17 @@ export class AuditTrailComponent implements OnInit {
   // Pagination and sorting using shared utility
   paginationState: PaginationState =
     PaginationHelper.createInitialPaginationState();
-  sortState: SortState = PaginationHelper.createInitialSortState();
+  sortState: SortState = PaginationHelper.createInitialSortState(
+    'timestamp',
+    'desc'
+  );
+
+  // Sort order options
+  sortOrderOptions = [
+    { value: 'asc', label: 'Oldest First (Ascending)' },
+    { value: 'desc', label: 'Newest First (Descending)' },
+  ];
+  selectedSortOrder: 'asc' | 'desc' = 'desc';
 
   // Filter properties
   selectedEventType: AuditEventType | null = null;
@@ -176,6 +184,21 @@ export class AuditTrailComponent implements OnInit {
         );
       },
     });
+  }
+
+  /**
+   * Update sort order and refresh data
+   */
+  onSortOrderChange() {
+    this.sortState = PaginationHelper.createInitialSortState(
+      'timestamp',
+      this.selectedSortOrder
+    );
+    // Reset to first page when sorting changes
+    this.paginationState = PaginationHelper.resetToFirstPage(
+      this.paginationState
+    );
+    this.refreshCurrentView();
   }
 
   /**

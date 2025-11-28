@@ -19,9 +19,9 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router, RouterModule } from '@angular/router';
 import { saveAs } from 'file-saver';
-import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
 import { Catalog } from '../../models/catalog';
 import { DataService } from '../../models/dataService';
 import { Dataset } from '../../models/dataset';
@@ -44,7 +44,7 @@ import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation
     MatButtonModule,
     MatExpansionModule,
     MatToolbarModule,
-    NgxSkeletonLoaderModule,
+    MatProgressSpinnerModule,
     MatIconModule,
     FormsModule,
     ReactiveFormsModule,
@@ -70,12 +70,33 @@ export class CatalogManagementComponent implements OnInit {
   selectedLanguage: string = '';
   descriptionValue: string = '';
   editMode = false;
+  directEdit = false;
   newCatalog = false;
   catalogForm!: FormGroup;
   allServices: DataService[] = [];
   allDistributions: Distribution[] = [];
   allDatasets: Dataset[] = [];
   allPolicies: any[] = [];
+
+  get missingCatalogSections(): string[] {
+    if (!this.catalogData) {
+      return [];
+    }
+
+    const sections = [
+      { data: this.catalogData.service, label: 'Service' },
+      { data: this.catalogData.dataset, label: 'Dataset' },
+      { data: this.catalogData.distribution, label: 'Distribution' },
+    ];
+
+    return sections
+      .filter((section) => !this.hasItems(section.data))
+      .map((section) => section.label);
+  }
+
+  get showMissingSectionsAlert(): boolean {
+    return !this.editMode && this.missingCatalogSections.length > 0;
+  }
 
   // Change tracking handled by EditStateService
 
@@ -111,6 +132,11 @@ export class CatalogManagementComponent implements OnInit {
         console.log('Catalog data fetched');
         this.catalogData = data;
         this.languages = this.extractLanguages(this.catalogData.description);
+        // Auto-select first language if available
+        if (this.languages.length > 0) {
+          this.selectedLanguage = this.languages[0].toUpperCase();
+          this.onLanguageSelected();
+        }
         this.updateForm(this.catalogData);
         this.loading = false;
       },
@@ -134,7 +160,11 @@ export class CatalogManagementComponent implements OnInit {
         next: (data) => {
           this.catalogData = data;
           this.languages = this.extractLanguages(this.catalogData.description);
-          this.onLanguageSelected();
+          // Auto-select first language if available
+          if (this.languages.length > 0) {
+            this.selectedLanguage = this.languages[0].toUpperCase();
+            this.onLanguageSelected();
+          }
           this.updateForm(this.catalogData);
           this.loading = false;
         },
@@ -159,7 +189,11 @@ export class CatalogManagementComponent implements OnInit {
         next: (data) => {
           this.catalogData = data;
           this.languages = this.extractLanguages(this.catalogData.description);
-          this.onLanguageSelected();
+          // Auto-select first language if available
+          if (this.languages.length > 0) {
+            this.selectedLanguage = this.languages[0].toUpperCase();
+            this.onLanguageSelected();
+          }
           this.updateForm(this.catalogData);
           this.loading = false;
           this.snackBarService.openSnackBar(
@@ -196,7 +230,6 @@ export class CatalogManagementComponent implements OnInit {
       dataset: [],
       service: [],
       participantId: '',
-      homepage: '',
     };
 
     this.catalogData = emptyCatalog;
@@ -358,6 +391,10 @@ export class CatalogManagementComponent implements OnInit {
     return Array.from(languagesSet);
   }
 
+  private hasItems(collection: unknown[] | undefined | null): boolean {
+    return Array.isArray(collection) && collection.length > 0;
+  }
+
   /**
    * Handles the language selection event.
    * Sets the description value based on the selected language.
@@ -465,7 +502,6 @@ export class CatalogManagementComponent implements OnInit {
       creator: [null, Validators.required],
       conformsTo: [null],
       participantId: ['', Validators.required],
-      homepage: [null],
       createdBy: [null],
       lastModifiedBy: [null],
       version: [null],
@@ -492,7 +528,6 @@ export class CatalogManagementComponent implements OnInit {
         creator: catalogData.creator,
         conformsTo: catalogData.conformsTo,
         participantId: catalogData.participantId,
-        homepage: catalogData.homepage,
         createdBy: catalogData.createdBy,
         lastModifiedBy: catalogData.lastModifiedBy,
         version: catalogData.version,

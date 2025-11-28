@@ -11,7 +11,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
 import { ApplicationProperty } from '../../models/applicationProperty';
 import { ApplicationPropertiesService } from '../../services/application-properties/application-properties.service';
 
@@ -31,7 +30,6 @@ import { ApplicationPropertiesService } from '../../services/application-propert
     MatSlideToggleModule,
     MatToolbarModule,
     MatTooltipModule,
-    NgxSkeletonLoaderModule,
   ],
   templateUrl: './connector-configuration.component.html',
   styleUrl: './connector-configuration.component.css',

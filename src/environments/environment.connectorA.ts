@@ -1,7 +1,7 @@
 export const environment = {
   APP_VERSION: '0.2.4-dev',
   CUSTOM_LOGO_PRESENT: 'false',
-  TC_ROOT_API_URL: 'http://localhost:8090/api/v1',
+  TC_ROOT_API_URL: 'http://localhost:8080/api/v1',
   CATALOG_API_URL: () => `${environment.TC_ROOT_API_URL}/catalogs`,
   DATASET_API_URL: () => `${environment.TC_ROOT_API_URL}/datasets`,
   DATASERVICE_API_URL: () => `${environment.TC_ROOT_API_URL}/dataservices`,

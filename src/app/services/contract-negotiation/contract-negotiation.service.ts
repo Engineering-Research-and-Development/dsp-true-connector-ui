@@ -43,7 +43,7 @@ export class ContractNegotiationService {
     console.log('negotiation', negotiation);
     return this.http
       .post<GenericApiResponse<ContractNegotiation>>(
-        this.apiUrl,
+        this.apiUrl + '/request',
         negotiation,
         this.httpOptions
       )
@@ -168,10 +168,10 @@ export class ContractNegotiationService {
    * @example contractNegotiationService.approveNegotiation(negotiationId).subscribe({ next: console.log, error: console.error, complete: () => console.log('completed') });
    *
    * */
-  approveNegotiation(negotiationId: string): Observable<ContractNegotiation> {
+  agreeNegotiation(negotiationId: string): Observable<ContractNegotiation> {
     return this.http
       .put<GenericApiResponse<ContractNegotiation>>(
-        this.apiUrl + '/' + negotiationId + '/approve',
+        this.apiUrl + '/' + negotiationId + '/agree',
         null,
         this.httpOptions
       )

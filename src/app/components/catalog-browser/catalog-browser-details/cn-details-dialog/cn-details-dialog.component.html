@@ -1,98 +1,115 @@
-<div *ngIf="type === 'distribution'" class="dialog">
-  <br />
-  <div>
-    <div class="headtitle">
-      <div class="back">
+<ng-container *ngIf="type === 'distribution'">
+  <div class="dialog">
+    <div class="card-header">
+      <div class="header-left">
         <h1>Distribution Details</h1>
+        <p class="card-type">{{ data.item.type || 'Distribution' }}</p>
       </div>
+      <button mat-icon-button (click)="onClose()" class="close-btn" aria-label="Close dialog">
+        <mat-icon>close</mat-icon>
+      </button>
     </div>
 
-    <div>
+    <div class="card-body">
       <h2>{{ data.item.title }}</h2>
-
-      <!-- <p>
-        <strong>Assignee:</strong>
-        {{ data.item.assignee }}
-      </p>
-  
-      <p>
-        <strong>Assigner:</strong>
-        {{ data.item.assigner }}
-      </p> -->
+      <p *ngIf="data.item.description">{{ data.item.description }}</p>
     </div>
-    <!-- <mat-expansion-panel
-      class="expansion-panel"
-      *ngIf="data.item.permission && data.item.permission.length > 0"
-    >
-      <mat-expansion-panel-header>
-        <mat-panel-title>Access Services</mat-panel-title>
-      </mat-expansion-panel-header>
-      <div
-        *ngFor="let service of data.item.accessService"
-        class="resource-section"
-      >
-        <div>
-          <p><strong>Action:</strong>{{ permission.action }}</p>
-          <p><strong>Assignee:</strong>{{ permission.assignee }}</p>
-          <p><strong>Assigner:</strong>{{ permission.assigner }}</p>
-          <p><strong>Constraints:</strong></p>
-          <div *ngFor="let constraint of permission.constraint">
-            <p><strong>Left operand:</strong>{{ constraint.leftOperand }}</p>
-            <p><strong>Operator:</strong>{{ constraint.operator }}</p>
-            <p><strong>Right operand:</strong>{{ constraint.rightOperand }}</p>
-          </div>
-        </div>
-        <hr />
-      </div>
-    </mat-expansion-panel> -->
   </div>
-</div>
-<div class="dialog">
-  <br />
-  <div *ngIf="type === 'offer'">
-    <div class="headtitle">
-      <div class="back">
+</ng-container>
+
+<ng-container *ngIf="type === 'offer'">
+  <div class="dialog">
+    <div class="card-header">
+      <div class="header-left">
         <h1>Offer Details</h1>
       </div>
+      <button mat-icon-button (click)="onClose()" class="close-btn" aria-label="Close dialog">
+        <mat-icon>close</mat-icon>
+      </button>
     </div>
 
-    <div>
-      <h2>{{ data.item["@id"] }}</h2>
+    <div class="card-body">
+      <!-- Offer Content Section -->
+      <div class="offer-section">
+        <div class="section-header">
+          <mat-icon>description</mat-icon>
+          <h3>Offer Information</h3>
+        </div>
 
-      <p>
-        <strong>Assignee:</strong>
-        {{ data.item.assignee }}
-      </p>
+        <div class="offer-content">
+          <div class="offer-item">
+            <span class="offer-label">Offer ID</span>
+            <span class="offer-value">{{ data.item["@id"] }}</span>
+          </div>
 
-      <p>
-        <strong>Assigner:</strong>
-        {{ data.item.assigner }}
-      </p>
-    </div>
-    <mat-expansion-panel
-      class="expansion-panel"
-      *ngIf="data.item.permission && data.item.permission.length > 0"
-    >
-      <mat-expansion-panel-header>
-        <mat-panel-title>Permissions</mat-panel-title>
-      </mat-expansion-panel-header>
-      <div
-        *ngFor="let permission of data.item.permission"
-        class="resource-section"
-      >
-        <div>
-          <p><strong>Action:</strong>{{ permission.action }}</p>
-          <p><strong>Assignee:</strong>{{ permission.assignee }}</p>
-          <p><strong>Assigner:</strong>{{ permission.assigner }}</p>
-          <p><strong>Constraints:</strong></p>
-          <div *ngFor="let constraint of permission.constraint">
-            <p><strong>Left operand:</strong>{{ constraint.leftOperand }}</p>
-            <p><strong>Operator:</strong>{{ constraint.operator }}</p>
-            <p><strong>Right operand:</strong>{{ constraint.rightOperand }}</p>
+          <div *ngIf="data.item.assignee" class="offer-item">
+            <span class="offer-label">Assignee</span>
+            <span class="offer-value">{{ data.item.assignee }}</span>
+          </div>
+
+          <div *ngIf="data.item.assigner" class="offer-item">
+            <span class="offer-label">Assigner</span>
+            <span class="offer-value">{{ data.item.assigner }}</span>
           </div>
         </div>
-        <hr />
       </div>
-    </mat-expansion-panel>
+
+      <!-- Permissions Panel -->
+      <mat-expansion-panel
+        class="permissions-panel"
+        *ngIf="data.item.permission && data.item.permission.length > 0"
+      >
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon>security</mat-icon>
+            Permissions
+          </mat-panel-title>
+          <span class="permission-count">{{ data.item.permission.length }}</span>
+        </mat-expansion-panel-header>
+
+        <div class="permissions-content">
+          <div
+            *ngFor="let permission of data.item.permission; let i = index"
+            class="permission-card"
+          >
+            <!-- Permission Header -->
+            <div class="permission-card-title">
+              <span class="permission-action">{{ permission.action }}</span>
+              <span class="permission-counter">{{ i + 1 }} / {{ data.item.permission.length }}</span>
+            </div>
+
+            <!-- Permission Details -->
+            <div class="permission-info">
+              <div class="info-row">
+                <span class="info-label">Assignee</span>
+                <span class="info-value">{{ permission.assignee }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Assigner</span>
+                <span class="info-value">{{ permission.assigner }}</span>
+              </div>
+            </div>
+
+            <!-- Constraints -->
+            <div
+              *ngIf="permission.constraint && permission.constraint.length > 0"
+              class="permission-constraints"
+            >
+              <div class="constraints-title">Constraints ({{ permission.constraint.length }})</div>
+              <div class="constraint-list">
+                <div
+                  *ngFor="let constraint of permission.constraint"
+                  class="constraint-row"
+                >
+                  <span class="operand">{{ constraint.leftOperand }}</span>
+                  <span class="operator">{{ constraint.operator }}</span>
+                  <span class="operand">{{ constraint.rightOperand }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-expansion-panel>
+    </div>
   </div>
-</div>
+</ng-container>

@@ -188,7 +188,12 @@ describe('AuditService', () => {
     });
 
     it('should use default pagination and sorting parameters', () => {
-      service.getAuditEventsWithFilters().subscribe();
+      service.getAuditEventsWithFilters().subscribe({
+        next: (response: PagedAPIResponse<AuditEvent>) => {
+          expect(response).toBeTruthy();
+          expect(response.response.data?.content.length).toBe(0);
+        },
+      });
 
       const req = httpMock.expectOne((request) => {
         return (
@@ -196,6 +201,7 @@ describe('AuditService', () => {
           request.params.get('sort') === 'timestamp,desc'
         );
       });
+      expect(req.request.method).toBe('GET');
       req.flush({
         response: {
           success: true,
@@ -222,7 +228,12 @@ describe('AuditService', () => {
         consumerPid: 'consumer-456',
       };
 
-      service.getAuditEventsWithFilters(filters).subscribe();
+      service.getAuditEventsWithFilters(filters).subscribe({
+        next: (response: PagedAPIResponse<AuditEvent>) => {
+          expect(response).toBeTruthy();
+          expect(response.response.data?.content.length).toBe(2);
+        },
+      });
 
       const req = httpMock.expectOne((request) => {
         return (
@@ -239,6 +250,7 @@ describe('AuditService', () => {
             'consumer-456'
         );
       });
+      expect(req.request.method).toBe('GET');
       req.flush({
         response: {
           success: true,

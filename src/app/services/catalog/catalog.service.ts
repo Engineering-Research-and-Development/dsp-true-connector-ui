@@ -10,7 +10,9 @@ import { SnackbarService } from '../snackbar/snackbar.service';
 /**
  * Catalog Service to manage the catalog data
  * */
-@Injectable()
+@Injectable({
+  providedIn: 'root',
+})
 export class CatalogService {
   catalogApiUrl = environment.CATALOG_API_URL();
 
