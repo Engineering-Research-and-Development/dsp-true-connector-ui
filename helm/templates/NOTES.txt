@@ -9,4 +9,4 @@ TLS for UI:
   - Provide base64 strings in values.yaml (ui.tls.crtB64/keyB64) OR set ui.tls.existingSecretName to reuse an existing secret.
 
 Deploy multiple connectors:
-  - helm install <release> ./true-connector -n {{ .Values.global.namespace }} -f values-<release>.yaml
+  - helm install <release> <chart-path> -n {{ .Values.global.namespace }} -f values-<release>.yaml

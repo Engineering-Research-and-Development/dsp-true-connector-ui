@@ -26,8 +26,10 @@ spec:
             - name: nginx-conf
               mountPath: /etc/nginx/nginx.conf
               subPath: nginx.conf
+          {{- if or .Values.ui.tls.existingSecretName .Values.ui.tls.create }}
             - name: ssl
               mountPath: /etc/nginx/ssl
+          {{- end }}
           readinessProbe:
             httpGet: { path: /, port: 80 }
             initialDelaySeconds: 5
@@ -39,12 +41,13 @@ spec:
             items:
               - key: nginx.conf
                 path: nginx.conf
+      {{- if or .Values.ui.tls.existingSecretName .Values.ui.tls.create }}
         - name: ssl
-          {{- if .Values.ui.tls.existingSecretName }}
           secret:
+            {{- if .Values.ui.tls.existingSecretName }}
             secretName: {{ .Values.ui.tls.existingSecretName }}
-          {{- else }}
-          secret:
+            {{- else }}
             secretName: {{ tpl .Values.ui.tls.secretName . }}
-          {{- end }}
+            {{- end }}
+      {{- end }}
 {{- end }}

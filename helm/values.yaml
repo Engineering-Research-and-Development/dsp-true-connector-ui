@@ -2,7 +2,7 @@ nameOverride: ""
 fullnameOverride: ""
 
 global:
-  namespace: divine-connectors
+  namespace: eng-connectors
   imagePullPolicy: IfNotPresent
 
 connector:
@@ -18,11 +18,11 @@ connector:
     JDK_JAVA_OPTIONS: "-Xmx1024m"
     CALLBACK_ADDRESS: "http://{{ .Release.Name }}-connector:8080"
     KEYSTORE_NAME: "true-connector-keystore.jks"
-    KEY_PASSWORD: "keystore"
-    KEYSTORE_PASSWORD: "keystore"
+    KEY_PASSWORD: "<KEY_PASSWORD>"
+    KEYSTORE_PASSWORD: "<KEYSTORE_PASSWORD>"
     KEYSTORE_ALIAS: "true-connector"
     TRUSTSTORE_NAME: "true-connector-truststore.jks"
-    TRUSTSTORE_PASSWORD: "truststore"
+    TRUSTSTORE_PASSWORD: "<TRUSTSTORE_PASSWORD>"
     MINIO_ENDPOINT: "http://{{ default .Release.Namespace .Values.minio.namespace | quote }}:ignored"
     # endpoint reale: http://<svc>:<port>
     MINIO_URL: "http://{{ tpl .Values.minio.name . }}:{{ .Values.minio.service.apiPort }}"
@@ -59,7 +59,7 @@ connector:
       spring.data.mongodb.port=27017
       spring.data.mongodb.database=true_connector
 
-      application.encyption.key=5m7mlhmu65zsp6x
+      application.encyption.key=<ENCRYPTION_KEY>
 
       logging.level.org.springframework=INFO
 
@@ -121,12 +121,12 @@ connector:
       application.password.validator.minSpecial=1
 
       # S3 / MinIO
-      s3.endpoint=https://internal-minio.cluster1.alidalab.it
-      s3.accessKey=minioadmin
-      s3.secretKey=minioadminsecret
+      MINIO_ENDPOINT: "http://{{ tpl .Values.minio.name . }}:{{ .Values.minio.service.apiPort }}"
+      s3.accessKey=${MINIO_ACCESS_KEY}
+      s3.secretKey=${MINIO_SECRET_KEY}
       s3.region=us-east-1
       s3.bucketName={{ .Release.Name }}-bucket
-      s3.externalPresignedEndpoint=https://internal-minio.cluster1.alidalab.it
+      s3.externalPresignedEndpoint=https://<MINIO_ENDPOINT>
 
 initialData:
   catalog:
@@ -188,7 +188,7 @@ ui:
     secretName: "{{ .Release.Name }}-ui-tls"
     crtB64: "<BASE64_TLS_CERT_HERE>"
     keyB64: "<BASE64_TLS_KEY_HERE>"
-    existingSecretName: "" # se valorizzato, ha priorità su create
+    existingSecretName: "" # if set, takes priority over create
   nginx:
     configMapName: "{{ .Release.Name }}-ui-nginx"
     nginxConf: |

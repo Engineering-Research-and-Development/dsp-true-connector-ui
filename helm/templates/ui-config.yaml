@@ -9,7 +9,7 @@ data:
 {{ tpl .Values.ui.nginx.nginxConf . | indent 4 }}
 ---
 {{- if .Values.ui.tls.existingSecretName }}
-# Secret TLS esistente: {{ .Values.ui.tls.existingSecretName }}
+# Existing TLS Secret: {{ .Values.ui.tls.existingSecretName }}
 {{- else if .Values.ui.tls.create }}
 apiVersion: v1
 kind: Secret
@@ -18,7 +18,7 @@ metadata:
   name: {{ tpl .Values.ui.tls.secretName . }}
   namespace: {{ $.Values.global.namespace }}
 data:
-  tls.crt: {{ default "" .Values.ui.tls.crtB64 }}
-  tls.key: {{ default "" .Values.ui.tls.keyB64 }}
+  tls.crt: {{ required "You must set .Values.ui.tls.crtB64 when .Values.ui.tls.create is true" .Values.ui.tls.crtB64 }}
+  tls.key: {{ required "You must set .Values.ui.tls.keyB64 when .Values.ui.tls.create is true" .Values.ui.tls.keyB64 }}
 {{- end }}
 {{- end }}

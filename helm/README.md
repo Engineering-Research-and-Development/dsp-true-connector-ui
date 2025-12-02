@@ -17,7 +17,6 @@ This chart deploys a **TRUE Connector stack** composed of:
 
 - `Chart.yaml` – Helm chart metadata.
 - `values.yaml` – Default values with sane defaults and placeholders.
-- `values/` – Example overrides for different pilots (ITC, NP, ADSC, DIGI).
 - `templates/` – Kubernetes manifests:
   - `connector-*` – TRUE Connector deployment, service, config & PVCs.
   - `ui-*` – UI deployment, service, config & TLS secret.
@@ -57,15 +56,12 @@ helm install my-connector ./true-connector \
 
 ### 2.3 Installing with an environment-specific values file
 
-For example for the `itc` pilot:
+You can supply your own overrides (create your own `overwrite-values.yaml`):
 
 ```bash
-helm install itc-connector ./true-connector \
+helm install tc-connector ./true-connector \
   -n eng-connectors \
-  -f values/itc-values.yaml
-```
-
-Repeat with `np-values.yaml`, `adsc-values.yaml`, `digi-values.yaml` as needed.
+  -f overwrite-values.yaml
 
 ---
 
@@ -172,15 +168,12 @@ connector:
     # CALLBACK_ADDRESS, DAPS URLs, Mongo URL, MinIO URL, etc.
 ```
 
-Use the pilot-specific override files in `values/` as examples and adapt them
-to your own environment.
-
 ### 4.3 MongoDB
 
 ```yaml
 mongo:
   enabled: true
-  pvcSize: 1Gi
+  pvcSize: 2Gi
 ```
 
 If you already have a managed MongoDB instance, set `enabled: false` and
@@ -207,20 +200,6 @@ minio:
 For production:
 - Prefer an external object storage (S3, MinIO, etc.).
 - Manage credentials with an existing secret instead of plain values.
-
----
-
-## 5. Using Pilot-Specific Values
-
-Files in `values/` (ITC, NP, ADSC, DIGI) illustrate:
-- Custom CALLBACK_ADDRESS per connector
-- Preconfigured DAPS endpoints
-- Different Mongo/MinIO endpoints
-
-**Guideline:** treat them as **examples**, not as production-ready values.
-Replace all placeholders (`<...>`) with your own endpoints and credentials.
-
----
 
 ## 6. Notes & Troubleshooting
 
