@@ -18,21 +18,23 @@ services:
       - 8080:8080
     depends_on:
       - mongodb-a
+      - minio
     environment:
       - "JDK_JAVA_OPTIONS=-Xmx1024m"
       - CALLBACK_ADDRESS=${CONNECTOR_A_CALLBACK_ADDRESS}
-      - KEYSTORE_NAME=${KEYSTORE_NAME}
-      - KEY_PASSWORD=${KEY_PASSWORD}
-      - KEYSTORE_PASSWORD=${KEYSTORE_PASSWORD}
-      - KEYSTORE_ALIAS=${KEYSTORE_ALIAS}
+      - SSL_ENABLED=${SSL_ENABLED}
+      - KEYSTORE_NAME=${CONNECTOR_A_KEYSTORE_NAME}
+      - KEY_PASSWORD=${CONNECTOR_A_KEY_PASSWORD}
+      - KEYSTORE_PASSWORD=${CONNECTOR_A_KEYSTORE_PASSWORD}
+      - KEYSTORE_ALIAS=${CONNECTOR_A_KEYSTORE_ALIAS}
       - DAPS_KEYSTORE_NAME=${DAPS_KEYSTORE_NAME}
       - DAPS_KEYSTORE_PASSWORD=${DAPS_KEYSTORE_PASSWORD}
-      - DAPS_KEYSTORE_ALIAS=${KEYSTORE_ALIAS}
+      - DAPS_KEYSTORE_ALIAS=${DAPS_KEYSTORE_ALIAS}
       - TRUSTSTORE_NAME=${TRUSTSTORE_NAME}
       - TRUSTSTORE_PASSWORD=${TRUSTSTORE_PASSWORD}
     volumes:
       - ./connector_a_resources:/config
-      - ./tc_cert:/cert
+      - ./tc_cert/connector-a:/cert
       - tc_a_log:/var/log/tc
   
   ui-a:
@@ -41,14 +43,15 @@ services:
     networks:
       - network-a
     ports:
-      - "4200:80"
+      - "4200:80"   # Only HTTP
+      - "4222:443"  # HTTPS
     environment:
       - TC_ROOT_API_URL=${CONNECTOR_A_TC_ROOT_API_URL}
     depends_on:
-      - connector-a	  
+      - connector-a
     volumes:
       - ./ui_a_resources/nginx.conf:/etc/nginx/nginx.conf
-      - ./ui_a_resources/ssl:/etc/nginx/ssl:ro
+      - ./tc_cert/ui-a-cert:/etc/nginx/ssl:ro
       - ./ui_a_resources/assets/img:/custom-assets:ro
 
   mongodb-a:
@@ -82,36 +85,40 @@ services:
       - 8090:8080
     depends_on:
       - mongodb-b
+      - minio
     environment:
       - "JDK_JAVA_OPTIONS=-Xmx1024m"
       - CALLBACK_ADDRESS=${CONNECTOR_B_CALLBACK_ADDRESS}
-      - KEYSTORE_NAME=${KEYSTORE_NAME}
-      - KEY_PASSWORD=${KEY_PASSWORD}
-      - KEYSTORE_PASSWORD=${KEYSTORE_PASSWORD}
-      - KEYSTORE_ALIAS=${KEYSTORE_ALIAS}
+      - SSL_ENABLED=${SSL_ENABLED}
+      - KEYSTORE_NAME=${CONNECTOR_B_KEYSTORE_NAME}
+      - KEY_PASSWORD=${CONNECTOR_B_KEY_PASSWORD}
+      - KEYSTORE_PASSWORD=${CONNECTOR_B_KEYSTORE_PASSWORD}
+      - KEYSTORE_ALIAS=${CONNECTOR_B_KEYSTORE_ALIAS}
       - DAPS_KEYSTORE_NAME=${DAPS_KEYSTORE_NAME}
       - DAPS_KEYSTORE_PASSWORD=${DAPS_KEYSTORE_PASSWORD}
-      - DAPS_KEYSTORE_ALIAS=${KEYSTORE_ALIAS}
+      - DAPS_KEYSTORE_ALIAS=${DAPS_KEYSTORE_ALIAS}
       - TRUSTSTORE_NAME=${TRUSTSTORE_NAME}
       - TRUSTSTORE_PASSWORD=${TRUSTSTORE_PASSWORD}
     volumes:
       - ./connector_b_resources:/config
-      - ./tc_cert:/cert
+      - ./tc_cert/connector-b:/cert
       - tc_b_log:/var/log/tc
+
   ui-b:
     image: ghcr.io/engineering-research-and-development/dsp-true-connector-ui:latest
     container_name: ui-b
     networks:
       - network-b
     ports:
-      - "4300:80"
+      - "4300:80"  # Only HTTP
+      - "4333:443" # HTTPS
     environment:
       - TC_ROOT_API_URL=${CONNECTOR_B_TC_ROOT_API_URL}
     depends_on:
       - connector-b
     volumes:
       - ./ui_b_resources/nginx.conf:/etc/nginx/nginx.conf
-      - ./ui_b_resources/ssl:/etc/nginx/ssl:ro
+      - ./tc_cert/ui-b-cert:/etc/nginx/ssl:ro
       - ./ui_b_resources/assets/img:/custom-assets:ro
       
   mongodb-b:
@@ -136,6 +143,8 @@ services:
       - "9001:9001"
     volumes:
       - minio_data:/data
+      # Enable below line to use custom SSL certificates
+      # - ./tc_cert/minio_certs:/root/.minio/certs:ro
     environment:
       - MINIO_ROOT_USER=minioadmin
       - MINIO_ROOT_PASSWORD=minioadmin

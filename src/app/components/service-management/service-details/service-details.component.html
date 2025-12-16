@@ -1,30 +1,30 @@
 <div *ngIf="loading" class="item">
   <mat-card class="catalog-card">
-    <ngx-skeleton-loader count="15" appearance="line" animation="pulse" />
+    <div class="loading-container">
+      <mat-spinner diameter="50"></mat-spinner>
+    </div>
   </mat-card>
 </div>
 
 <div *ngIf="!loading">
   <mat-card class="service-card">
-    <mat-card-title class="service-title"> </mat-card-title>
+    <mat-card-title class="service-title"></mat-card-title>
     <mat-card-content>
       <div class="headtitle">
-        <div class="title-section">
-          <div class="back">
-            <button
-              mat-button
-              (click)="
-                directEdit ? goBack() : editMode ? cancelEdit() : goBack()
-              "
-            >
-              <mat-icon>keyboard_arrow_left</mat-icon>
-              Back
-            </button>
-          </div>
+        <div class="back">
+          <button
+            mat-button
+            (click)="
+              directEdit ? goBack() : editMode ? cancelEdit() : goBack()
+            "
+          >
+            <mat-icon>keyboard_arrow_left</mat-icon>
+            Back
+          </button>
           <h1>Service Details</h1>
           <mat-icon
             class="help-icon"
-            matTooltip="Here you can view all information, edit or delete the chosen service.  Use the tabs and buttons to navigate and manage the data. "
+            matTooltip="Here you can view all information, edit or delete the chosen service. Use the cards and buttons to navigate and manage the data."
             aria-label="Help regarding service details"
             >help_outline</mat-icon
           >
@@ -59,56 +59,52 @@
       </div>
 
       <div *ngIf="!editMode">
-        <mat-tab-group>
-          <mat-tab label="Basic info">
-            <br />
-            <h2>{{ service.title }}</h2>
-            <div class="table-info">
-              <strong>ID</strong>
-              <span>
-                {{ service["@id"] }}
-              </span>
-              <strong>Identifier</strong>
-              <span>
-                {{ service.identifier }}
-              </span>
-              <strong>Type</strong
-              ><span>
-                {{ service.type }}
-              </span>
-              <strong>Theme</strong>
-              <span>
-                {{ service.theme.join(", ") }}
-              </span>
-              <strong>Keyword</strong>
-              <span>
-                {{ service.keyword.join(", ") }}
-              </span>
-              <strong>Conforms to</strong>
-              <span>
-                {{ service.conformsTo }}
-              </span>
-
-              <strong>Endpoint description</strong>
-              <span>
-                {{ service.endpointDescription }}
-              </span>
-
-              <strong>Endpoint URL</strong>
-              <span>
-                {{ service.endpointURL }}
-              </span>
+        <!-- Service Cards Grid -->
+        <div class="service-cards-container">
+          <!-- Basic Info Card -->
+          <div class="service-card-item basic-info-card">
+            <div class="card-header">
+              <div class="header-left">
+                <h2 class="card-title">{{ service.title }}</h2>
+                <p class="card-type">{{ service.type }}</p>
+              </div>
+              <mat-icon class="card-icon">info</mat-icon>
             </div>
-          </mat-tab>
-          <mat-tab label="Description">
-            <div *ngIf="service.description.length > 0">
-              <br />
-              <mat-form-field appearance="outline">
+
+            <div class="card-body">
+              <div class="metadata-grid">
+                <div class="metadata-item">
+                  <span class="metadata-label">ID</span>
+                  <span class="metadata-value">{{ service["@id"] }}</span>
+                </div>
+                <div class="metadata-item">
+                  <span class="metadata-label">Identifier</span>
+                  <span class="metadata-value">{{ service.identifier }}</span>
+                </div>
+                <div class="metadata-item">
+                  <span class="metadata-label">Conforms to</span>
+                  <span class="metadata-value">{{ service.conformsTo }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Description Card -->
+          <div class="service-card-item description-card">
+            <div class="card-header">
+              <div class="header-left">
+                <h2 class="card-title">Description</h2>
+                <p class="card-type">{{ languages.length }} language(s)</p>
+              </div>
+              <mat-icon class="card-icon">description</mat-icon>
+            </div>
+
+            <div class="card-body">
+              <mat-form-field appearance="outline" class="language-select">
                 <mat-label>Select Language</mat-label>
                 <mat-select
                   [(value)]="selectedLanguage"
                   (selectionChange)="onLanguageSelected()"
-                  outline
                 >
                   <mat-option
                     *ngFor="let language of languages"
@@ -117,40 +113,110 @@
                   >
                 </mat-select>
               </mat-form-field>
-
-              <p *ngIf="descriptionValue">{{ descriptionValue }}</p>
+              <div class="description-content" *ngIf="descriptionValue">
+                <p>{{ descriptionValue }}</p>
+              </div>
+              <div class="description-empty" *ngIf="!descriptionValue">
+                <p class="empty-message">No description available</p>
+              </div>
             </div>
-          </mat-tab>
-          <mat-tab label="Metadata info">
-            <br />
-            <div class="table-info">
-              <strong>Creator</strong
-              ><span>
-                {{ service.creator }}
-              </span>
+          </div>
 
-              <strong>Issued</strong
-              ><span>
-                {{ service.issued | date : "d MMMM y, HH:mm:ss" }}
-              </span>
-
-              <strong>Modified</strong
-              ><span>
-                {{ service.modified | date : "d MMMM y, HH:mm:ss" }}
-              </span>
-
-              <strong>Created by</strong>
-              <span>
-                {{ service.createdBy }}
-              </span>
-
-              <strong>Last modified by</strong
-              ><span>
-                {{ service.lastModifiedBy }}
-              </span>
+          <!-- Metadata Info Card -->
+          <div class="service-card-item metadata-info-card">
+            <div class="card-header">
+              <div class="header-left">
+                <h2 class="card-title">Metadata</h2>
+                <p class="card-type">Version info</p>
+              </div>
+              <mat-icon class="card-icon">tag</mat-icon>
             </div>
-          </mat-tab>
-        </mat-tab-group>
+
+            <div class="card-body">
+              <div class="metadata-grid">
+                <div class="metadata-item">
+                  <span class="metadata-label">Creator</span>
+                  <span class="metadata-value">{{ service.creator }}</span>
+                </div>
+                <div class="metadata-item">
+                  <span class="metadata-label">Issued</span>
+                  <span class="metadata-value">{{ service.issued | date : "d MMMM y, HH:mm:ss" }}</span>
+                </div>
+                <div class="metadata-item">
+                  <span class="metadata-label">Modified</span>
+                  <span class="metadata-value">{{ service.modified | date : "d MMMM y, HH:mm:ss" }}</span>
+                </div>
+                <div class="metadata-item">
+                  <span class="metadata-label">Created by</span>
+                  <span class="metadata-value">{{ service.createdBy }}</span>
+                </div>
+                <div class="metadata-item">
+                  <span class="metadata-label">Last modified by</span>
+                  <span class="metadata-value">{{ service.lastModifiedBy }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Keywords & Themes Card -->
+          <div class="service-card-item keywords-themes-card">
+            <div class="card-header">
+              <div class="header-left">
+                <h2 class="card-title">Keywords & Themes</h2>
+                <p class="card-type">{{ (service.keyword || []).length + (service.theme || []).length }} items</p>
+              </div>
+              <mat-icon class="card-icon">label</mat-icon>
+            </div>
+
+            <div class="card-body">
+              <div class="keywords-section" *ngIf="(service.keyword || []).length > 0">
+                <h3 class="metadata-label">Keywords</h3>
+                <div class="tags-container">
+                  <span class="tag keyword-tag" *ngFor="let keyword of service.keyword">
+                    {{ keyword }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="themes-section" *ngIf="(service.theme || []).length > 0">
+                <h3 class="metadata-label">Themes</h3>
+                <div class="tags-container">
+                  <span class="tag theme-tag" *ngFor="let theme of service.theme">
+                    {{ theme }}
+                  </span>
+                </div>
+              </div>
+
+              <div *ngIf="(service.keyword || []).length === 0 && (service.theme || []).length === 0" class="empty-message">
+                <p>No keywords or themes defined</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Endpoint Info Card -->
+          <div class="service-card-item endpoint-info-card">
+            <div class="card-header">
+              <div class="header-left">
+                <h2 class="card-title">Endpoint Information</h2>
+                <p class="card-type">Service endpoint</p>
+              </div>
+              <mat-icon class="card-icon">api</mat-icon>
+            </div>
+
+            <div class="card-body">
+              <div class="metadata-grid">
+                <div class="metadata-item">
+                  <span class="metadata-label">Endpoint URL</span>
+                  <span class="metadata-value">{{ service.endpointURL }}</span>
+                </div>
+                <div class="metadata-item">
+                  <span class="metadata-label">Endpoint Description</span>
+                  <span class="metadata-value">{{ service.endpointDescription }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div *ngIf="editMode">

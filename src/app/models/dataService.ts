@@ -14,9 +14,8 @@ export interface DataService {
   title: string;
   endpointDescription: string;
   endpointURL: string;
-  servesDataset?: Dataset[];
   createdBy?: string;
   lastModifiedBy?: string;
   version?: number;
-  type?: string;
+  readonly type?: string;
 }

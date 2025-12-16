@@ -2,6 +2,7 @@
   <mat-card class="service-card">
     <mat-card-title class="service-title"> </mat-card-title>
     <mat-card-content>
+      <!-- Header Section -->
       <div class="headtitle">
         <div class="back">
           <button mat-button (click)="goBack()">
@@ -11,58 +12,133 @@
           <h1>Policy Details</h1>
           <mat-icon
             class="help-icon"
-            matTooltip="Here you can view all information related to policy. Click on expand to view specific permissions and constraints."
+            matTooltip="Here you can view all information related to the policy, including its target, actions, assignees, and associated permissions with their constraints."
             aria-label="Help regarding policy details"
             >help_outline</mat-icon
           >
         </div>
       </div>
 
-      <div>
-        <h2>{{ policy.id }}</h2>
-        <p><strong>Target:</strong> {{ policy.target }}</p>
-        <p>
-          <strong>Action:</strong>
-          {{ policy.action }}
-        </p>
-        <p>
-          <strong>Assignee:</strong>
-          {{ policy.assignee }}
-        </p>
+      <!-- Policy Info Cards Container -->
+      <div class="policy-cards-container">
+        <!-- Basic Info Card -->
+        <div class="policy-card-item basic-info-card">
+          <div class="card-header">
+            <div class="header-left">
+              <h2 class="card-title">{{ policy.id }}</h2>
+              <p class="card-type">Policy Information</p>
+            </div>
+            <mat-icon class="card-icon">policy</mat-icon>
+          </div>
 
-        <p>
-          <strong>Assigner:</strong>
-          {{ policy.assigner }}
-        </p>
-      </div>
-
-      <mat-expansion-panel
-        class="expansion-panel"
-        *ngIf="policy.permission && policy.permission.length > 0"
-      >
-        <mat-expansion-panel-header>
-          <mat-panel-title>Permissions</mat-panel-title>
-        </mat-expansion-panel-header>
-        <div
-          *ngFor="let permission of policy.permission"
-          class="resource-section"
-        >
-          <div>
-            <p><strong>Action:</strong>{{ permission.action }}</p>
-            <p><strong>Assignee:</strong>{{ permission.assignee }}</p>
-            <p><strong>Assigner:</strong>{{ permission.assigner }}</p>
-            <p><strong>Constraints:</strong></p>
-            <div *ngFor="let constraint of permission.constraint">
-              <p><strong>Left operand:</strong>{{ constraint.leftOperand }}</p>
-              <p><strong>Operator:</strong>{{ constraint.operator }}</p>
-              <p>
-                <strong>Right operand:</strong>{{ constraint.rightOperand }}
-              </p>
+          <div class="card-body">
+            <div class="metadata-grid">
+              <div class="metadata-item">
+                <span class="metadata-label">Target</span>
+                <span class="metadata-value">{{ policy.target }}</span>
+              </div>
+              <div class="metadata-item">
+                <span class="metadata-label">Action</span>
+                <span class="metadata-value">{{ policy.action }}</span>
+              </div>
+              <div class="metadata-item">
+                <span class="metadata-label">Assignee</span>
+                <span class="metadata-value">{{ policy.assignee }}</span>
+              </div>
+              <div class="metadata-item">
+                <span class="metadata-label">Assigner</span>
+                <span class="metadata-value">{{ policy.assigner }}</span>
+              </div>
             </div>
           </div>
-          <hr />
         </div>
-      </mat-expansion-panel>
+      </div>
+
+      <!-- Permissions Section -->
+      <div class="permissions-section" *ngIf="policy.permission && policy.permission.length > 0">
+        <div class="section-header">
+          <h2 class="section-title">
+            <mat-icon>security</mat-icon>
+            Permissions
+            <span class="count-badge">{{ policy.permission.length }}</span>
+          </h2>
+        </div>
+
+        <!-- Permissions Grid -->
+        <div class="permissions-grid">
+          <div
+            *ngFor="let permission of policy.permission; let i = index"
+            class="permission-card-item"
+          >
+            <div class="card-header">
+              <div class="header-left">
+                <h3 class="card-title">{{ permission.action }}</h3>
+                <p class="card-type">Permission {{ i + 1 }} of {{ policy.permission.length }}</p>
+              </div>
+              <mat-icon class="card-icon">vpn_key</mat-icon>
+            </div>
+
+            <div class="card-body">
+              <div class="metadata-grid">
+                <div class="metadata-item">
+                  <span class="metadata-label">Assignee</span>
+                  <span class="metadata-value">{{ permission.assignee }}</span>
+                </div>
+                <div class="metadata-item">
+                  <span class="metadata-label">Assigner</span>
+                  <span class="metadata-value">{{ permission.assigner }}</span>
+                </div>
+              </div>
+
+              <!-- Constraints Section -->
+              <div
+                *ngIf="permission.constraint && permission.constraint.length > 0"
+                class="constraints-section"
+              >
+                <div class="constraints-header">
+                  <span class="constraints-title">
+                    <mat-icon>rule</mat-icon>
+                    Constraints
+                  </span>
+                  <span class="constraints-count">{{ permission.constraint.length }}</span>
+                </div>
+
+                <div class="constraints-list">
+                  <div
+                    *ngFor="let constraint of permission.constraint; let j = index"
+                    class="constraint-item"
+                  >
+                    <div class="constraint-operand left-operand">
+                      <span class="operand-label">Left Operand</span>
+                      <span class="operand-value">{{ constraint.leftOperand }}</span>
+                    </div>
+                    <div class="constraint-operator">
+                      <span class="operator-label">Operator</span>
+                      <span class="operator-value">{{ constraint.operator }}</span>
+                    </div>
+                    <div class="constraint-operand right-operand">
+                      <span class="operand-label">Right Operand</span>
+                      <span class="operand-value">{{ constraint.rightOperand }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                *ngIf="!permission.constraint || permission.constraint.length === 0"
+                class="no-constraints"
+              >
+                <p>No constraints defined for this permission</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="!policy.permission || policy.permission.length === 0" class="empty-state">
+        <mat-icon>lock_outline</mat-icon>
+        <p>No permissions defined for this policy</p>
+      </div>
     </mat-card-content>
   </mat-card>
 </div>

@@ -67,6 +67,11 @@ export class ProxyService {
     url: string,
     dataSetId: string
   ): Observable<string[]> {
+    // Remove trailing slash if present
+    if (url.endsWith('/')) {
+      url = url.slice(0, -1);
+    }
+    
     let body = {
       'Forward-To': url,
     };

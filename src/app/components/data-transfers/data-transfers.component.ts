@@ -1,5 +1,5 @@
 import { CommonModule, Location } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -12,12 +12,12 @@ import { MatListModule } from '@angular/material/list';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
-import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
-import { Router } from '@angular/router';
-import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
+import { ActivatedRoute } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { DataTransfer } from '../../models/dataTransfer';
 import { DataTransferState } from '../../models/enums/dataTransferState';
 import { DataTransferService } from '../../services/data-transfer/data-transfer.service';
@@ -39,7 +39,6 @@ import {
     MatExpansionModule,
     MatIconModule,
     MatButtonModule,
-    NgxSkeletonLoaderModule,
     MatInputModule,
     MatToolbarModule,
     MatFormFieldModule,
@@ -49,13 +48,12 @@ import {
     MatProgressSpinnerModule,
     MatSelectModule,
     MatPaginatorModule,
-    MatSortModule,
     MatMenuModule,
   ],
   templateUrl: './data-transfers.component.html',
   styleUrl: './data-transfers.component.css',
 })
-export class DataTransfersComponent {
+export class DataTransfersComponent implements OnInit, OnDestroy {
   userType!: string;
   loading = false;
   dataTransfers: DataTransfer[] = [];
@@ -70,29 +68,34 @@ export class DataTransfersComponent {
     PaginationHelper.createInitialPaginationState();
   sortState: SortState = PaginationHelper.createInitialSortState();
 
-  // Filter expansion state using shared utility
+  // Filter expansion state using shared utility - filters collapsed by default
   filterExpansionState: FilterExpansionState =
-    PaginationHelper.createFilterExpansionState();
+    PaginationHelper.createFilterExpansionState(false);
+
+  // Sort expansion state - sort collapsed by default
+  sortExpansionState: FilterExpansionState =
+    PaginationHelper.createFilterExpansionState(false);
+
+  // Sort options
+  sortColumns = [
+    { value: 'created', label: 'Creation Date' },
+    { value: 'modified', label: 'Last Modified' },
+  ];
 
   dataTransferState = DataTransferState;
   readonly defaultRequestFormats: string[] = ['HttpData-PULL', 'HttpData-PUSH'];
   requestFormatsMap: Record<string, string[]> = {};
   requestFormatsLoading: Record<string, boolean> = {};
   requestFormatsLoaded: Record<string, boolean> = {};
+  private destroy$ = new Subject<void>();
+  private previousUserType: string | null = null;
 
   constructor(
-    private router: Router,
+    private route: ActivatedRoute,
     private location: Location,
     private dataTransferService: DataTransferService,
     private proxyService: ProxyService
-  ) {
-    const navigation = this.router.getCurrentNavigation();
-    if (navigation?.extras.state) {
-      this.userType = navigation.extras.state['userType'];
-    } else {
-      this.goBack();
-    }
-  }
+  ) {}
 
   /**
    * Load request formats for a specific data transfer
@@ -136,10 +139,46 @@ export class DataTransfersComponent {
 
   /**
    * Initialize the component and checks for which role to fetch the dataTransfers
+   * Subscribes to query parameter changes to detect role switches between consumer and provider.
    */
   ngOnInit(): void {
-    this.fetchDataTransfers();
-    this.loading = true;
+    this.route.queryParams
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(params => {
+        const newUserType = params['userType'];
+        if (!newUserType) {
+          this.goBack();
+          return;
+        }
+        
+        // If userType has changed, reset filters and pagination
+        if (this.previousUserType !== null && this.previousUserType !== newUserType) {
+          this.selectedState = null;
+          this.datasetIdFilter = '';
+          this.providerPidFilter = '';
+          this.consumerPidFilter = '';
+          this.paginationState = PaginationHelper.createInitialPaginationState();
+          this.sortState = PaginationHelper.createInitialSortState();
+          this.filterExpansionState = PaginationHelper.createFilterExpansionState(false);
+          this.sortExpansionState = PaginationHelper.createFilterExpansionState(false);
+          this.requestFormatsMap = {};
+          this.requestFormatsLoading = {};
+          this.requestFormatsLoaded = {};
+        }
+        
+        this.userType = newUserType;
+        this.previousUserType = newUserType;
+        this.loading = true;
+        this.fetchDataTransfers();
+      });
+  }
+
+  /**
+   * Cleanup subscriptions when component is destroyed
+   */
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   /**
@@ -227,11 +266,26 @@ export class DataTransfersComponent {
   }
 
   /**
-   * Handle sort change
+   * Handle sort column change
    */
-  onSortChange(sort: Sort) {
+  onSortColumnChange(column: string) {
     this.sortState = PaginationHelper.handleSortChange(
-      { active: sort.active, direction: sort.direction as 'asc' | 'desc' },
+      { active: column, direction: this.sortState.sortDirection },
+      this.sortState
+    );
+    // Reset to first page when sorting changes
+    this.paginationState = PaginationHelper.resetToFirstPage(
+      this.paginationState
+    );
+    this.fetchDataTransfers();
+  }
+
+  /**
+   * Handle sort direction change
+   */
+  onSortDirectionChange(direction: 'asc' | 'desc') {
+    this.sortState = PaginationHelper.handleSortChange(
+      { active: this.sortState.sortColumn, direction },
       this.sortState
     );
     // Reset to first page when sorting changes
@@ -249,6 +303,9 @@ export class DataTransfersComponent {
       { pageIndex: event.pageIndex, pageSize: event.pageSize },
       this.paginationState
     );
+    // Collapse panels when changing pages
+    this.filterExpansionState.filtersExpanded = false;
+    this.sortExpansionState.filtersExpanded = false;
     this.fetchDataTransfers();
   }
 
@@ -259,6 +316,15 @@ export class DataTransfersComponent {
    * */
   isDownloading(transferId: string): boolean {
     return this.dataTransferService.isDownloading(transferId);
+  }
+
+  /**
+   * Check if the data transfer is being viewed
+   * @param transferId The ID of the data transfer
+   * @returns True if the data transfer is being viewed, false otherwise
+   * */
+  isViewing(transferId: string): boolean {
+    return this.dataTransferService.isViewing(transferId);
   }
 
   /**
@@ -328,13 +394,38 @@ export class DataTransfersComponent {
   }
 
   /**
+   * Handle the push event of data transfer (provider pushes data to consumer)
+   * @param dataTransfer The data transfer object
+   * */
+  onPush(dataTransfer: DataTransfer) {
+    this.dataTransferService.pushArtifact(dataTransfer['@id']).subscribe({
+      next: (completed: boolean) => {
+        // Refresh the transfer list to reflect any status changes
+        this.fetchDataTransfers();
+
+        if (!completed) {
+          console.warn(
+            'Push polling timed out for transfer:',
+            dataTransfer['@id']
+          );
+        }
+      },
+      error: (error) => {
+        console.error('Error pushing artifact:', error);
+        // Refresh the transfer list in case of error to sync UI state
+        this.fetchDataTransfers();
+      },
+    });
+  }
+
+  /**
    * Handle the view event of data transfer
    * @param dataTransfer The data transfer object
    * */
   onView(dataTransfer: DataTransfer) {
     this.dataTransferService.getPresignedUrl(dataTransfer['@id']).subscribe({
       next: (presignedUrl) => {
-        this.dataTransferService.viewArtifact(presignedUrl).subscribe({
+        this.dataTransferService.viewArtifact(presignedUrl, dataTransfer['@id']).subscribe({
           next: () => {
             this.fetchDataTransfers();
           },
