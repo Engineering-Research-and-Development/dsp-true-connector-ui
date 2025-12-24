@@ -5,6 +5,12 @@
 - Support for DSP 2025-1 protocol specification
 - Major UI restyling
 
+# [0.6.1] - 24-12-2025
+
+### Changed
+
+- View downloaded artifacts now opens the S3 presigned URL directly to avoid browser CORS/XHR failures.
+
 # [0.2.3] - 10-11-2025
 
 ### Added

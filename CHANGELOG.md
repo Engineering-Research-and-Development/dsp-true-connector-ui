@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+# [0.6.1] - 24-12-2025
+
+### Changed
+
+- View downloaded artifacts now opens the S3 presigned URL directly to avoid browser CORS/XHR failures.
+
 # [0.6.0] - 25-11-2025
 
 ### Changed
