@@ -498,57 +498,53 @@ export class DataTransferService {
 
     // Show immediate feedback to user
     this.snackBarService.openSnackBar(
-      'Preparing download... Please wait.',
+      'Starting download...',
       'OK',
       'center',
       'bottom',
       'snackbar-success'
     );
 
-    // Download the file asynchronously
-    return this.http
-      .get(presignedUrl, {
-        responseType: 'blob',
-        observe: 'response',
-      })
-      .pipe(
-        map((response: any) => {
-          const blob = response.body;
-          const contentDisposition = response.headers.get(
-            'Content-Disposition'
-          );
+    // Extract filename from URL parameters
+    let filename = 'download';
+    try {
+      const url = new URL(presignedUrl);
+      const contentDisposition = url.searchParams.get('response-content-disposition');
+      if (contentDisposition) {
+        const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(
+          contentDisposition
+        );
+        if (matches != null && matches[1]) {
+          filename = matches[1].replace(/['"]/g, '');
+        }
+      }
+    } catch (e) {
+      console.warn('Could not extract filename from URL:', e);
+    }
 
-          // Extract filename from Content-Disposition header
-          let filename = 'download';
-          if (contentDisposition) {
-            const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(
-              contentDisposition
-            );
-            if (matches != null && matches[1]) {
-              filename = matches[1].replace(/['"]/g, '');
-            }
-          }
+    // Directly trigger download using the presigned URL
+    // This avoids CORS issues since we're not making an XHR request
+    const link = document.createElement('a');
+    link.href = presignedUrl;
+    link.download = filename;
+    link.target = '_blank'; // Open in new tab as fallback
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 
-          // Create a download link and trigger it
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = filename;
-          link.click();
-          window.URL.revokeObjectURL(url);
+    // Mark as completed
+    this.viewingTransfers.delete(transferId);
 
-          // Mark as completed
-          this.viewingTransfers.delete(transferId);
+    this.snackBarService.openSnackBar(
+      'Download initiated successfully!',
+      'OK',
+      'center',
+      'bottom',
+      'snackbar-success'
+    );
 
-          return response;
-        }),
-        catchError((error) => {
-          // Mark as completed on error
-          this.viewingTransfers.delete(transferId);
-
-          return this.errorHandlerService.handleError(error);
-        })
-      );
+    return of(true);
   }
 
   /**
