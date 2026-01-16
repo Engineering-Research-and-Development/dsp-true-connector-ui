@@ -188,20 +188,69 @@ CONNECTOR_B_TC_ROOT_API_URL=      # Instance B API endpoint for UI
 
 #### S3 Configuration
 
-Configure S3-compatible storage for artifact management:
+The connector supports S3-compatible object storage for artifact management and data transfer. You can choose **one** storage backend at a time:
 
-**Core Properties:**
+1. **MinIO** (self-hosted, S3-compatible)
+2. **AWS S3** (Amazon S3 managed service)
 
-- `s3.endpoint`: S3 service endpoint URL (MinIO services)
-- `s3.accessKey`: Authentication access key identifier
-- `s3.secretKey`: Authentication secret access key
-- `s3.region`: Storage region identifier (e.g., us-east-1, eu-west-1)
-- `s3.bucketName`: Target bucket for data storage
-- `s3.externalPresignedEndpoint`: External URL for presigned download links
+**Important:** Configure only **one** backend at a time. The connector uses the same configuration keys for both backends; the values differ.
 
-**Important Configuration Note:**
+##### Option 1: MinIO configuration
 
-> The `s3.externalPresignedEndpoint` should reference your machine's local IP address e.g., `http://192.168.x.x:9000` (IP address can be obtained with `ipconfig` command in Windows terminal or `ip` in Linux terminal) for development environments, or the public URL for production deployments.
+Use this configuration when connecting to **MinIO**.
+
+```properties
+# MinIO Connection Settings
+s3.endpoint=<S3_ENDPOINT_URL>                      # REQUIRED: e.g., http://localhost:9000 or https://minio.example.com
+s3.accessKey=<YOUR_ACCESS_KEY>
+s3.secretKey=<YOUR_SECRET_KEY>
+s3.region=<S3_REGION>                              # Can be any value (e.g., us-east-1)
+s3.bucketName=<BUCKET_NAME>
+s3.externalPresignedEndpoint=<EXTERNAL_ENDPOINT>   # REQUIRED: External endpoint for presigned URL generation
+```
+
+**MinIO note (Docker / browser access):**
+
+> `s3.externalPresignedEndpoint` must be reachable by the browser. When running MinIO in Docker, this often means using your machine's LAN IP (e.g. `http://192.168.x.x:9000`) rather than an internal container hostname.
+
+##### Option 2: AWS S3 configuration
+
+Use this configuration when connecting to **AWS S3**.
+
+For AWS S3, **leave `s3.endpoint` and `s3.externalPresignedEndpoint` empty** so the backend uses AWS regional endpoints.
+
+```properties
+# AWS S3 Connection Settings
+s3.endpoint=                           # MUST be empty for AWS S3
+s3.accessKey=<YOUR_AWS_ACCESS_KEY_ID>
+s3.secretKey=<YOUR_AWS_SECRET_ACCESS_KEY>
+s3.region=<AWS_REGION>                 # e.g., us-east-1, eu-west-1, ap-southeast-1
+s3.bucketName=<YOUR_BUCKET_NAME>
+s3.externalPresignedEndpoint=          # MUST be empty for AWS S3
+```
+
+##### Configuration property matrix
+
+| Property | MinIO | AWS S3 | Description |
+|----------|-------|--------|-------------|
+| `s3.endpoint` | **Required** (e.g., `http://localhost:9000`) | **Empty** | S3 service endpoint URL |
+| `s3.accessKey` | MinIO access key | AWS access key ID | Access key |
+| `s3.secretKey` | MinIO secret key | AWS secret access key | Secret key |
+| `s3.region` | Any value (often `us-east-1`) | Bucket region | Region identifier |
+| `s3.bucketName` | Bucket name | Bucket name | Target bucket |
+| `s3.externalPresignedEndpoint` | **Required** | **Empty** | External endpoint for presigned URL generation |
+
+##### AWS S3 security best practices (summary)
+
+- Prefer IAM roles (EC2/ECS) over long-lived access keys when possible
+- Use least-privilege IAM permissions (e.g., allow only required `s3:GetObject`, `s3:PutObject`)
+- Enable bucket encryption and block public access (unless explicitly required)
+
+##### Troubleshooting hints
+
+- **AWS region issues:** ensure `s3.region` matches the bucket region
+- **Access denied:** check IAM permissions and bucket policy
+- **Presigned URLs:** for AWS keep `s3.externalPresignedEndpoint` empty; for MinIO set it to an externally reachable URL
 
 > The `CONNECTOR_A_CALLBACK_ADDRESS` and `CONNECTOR_B_CALLBACK_ADDRESS` should be root endpoint of BE which is publicly available 
 
