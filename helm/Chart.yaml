@@ -1,0 +1,11 @@
+apiVersion: v2
+name: true-connector
+description: Generic Helm chart for TRUE Connector + UI + MongoDB
+type: application
+version: 0.3.0
+appVersion: "latest"
+
+keywords:
+  - dataspace
+  - true-connector
+  - ids

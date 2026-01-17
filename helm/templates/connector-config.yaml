@@ -1,0 +1,10 @@
+{{- if and .Values.connector.config.create .Values.connector.config.applicationProperties }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ tpl .Values.connector.config.name . }}
+  namespace: {{ $.Values.global.namespace }}
+data:
+  application.properties: |
+{{ tpl .Values.connector.config.applicationProperties . | indent 4 }}
+{{- end }}
