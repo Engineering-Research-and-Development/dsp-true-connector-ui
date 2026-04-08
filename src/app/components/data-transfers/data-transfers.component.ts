@@ -123,8 +123,8 @@ export class DataTransfersComponent implements OnInit, OnDestroy {
       .getRemoteDatasetFormats(callbackAddress, datasetId)
       .subscribe({
         next: (formats) => {
-          this.requestFormatsMap[transferId] =
-            formats && formats.length > 0 ? formats : this.defaultRequestFormats;
+          const resolved = formats && formats.length > 0 ? formats : this.defaultRequestFormats;
+          this.requestFormatsMap[transferId] = [...resolved].sort();
           this.requestFormatsLoading[transferId] = false;
           this.requestFormatsLoaded[transferId] = true;
         },
@@ -220,6 +220,23 @@ export class DataTransfersComponent implements OnInit, OnDestroy {
             );
           }
           this.dataTransferService.cleanupCompleted(this.dataTransfers);
+          // Sync backend downloading flag to in-memory state so the spinner
+          // is restored correctly after a page refresh.
+          this.dataTransfers
+            .filter((t) => t.downloading === true)
+            .forEach((t) => this.dataTransferService.ensureTrackedAsDownloading(t['@id']));
+          // Resume polling for any transfers that were downloading before a page refresh
+          this.dataTransfers
+            .filter((t) => this.dataTransferService.isDownloading(t['@id']))
+            .forEach((t) => {
+              this.dataTransferService
+                .resumePollingIfNeeded(t['@id'])
+                .pipe(takeUntil(this.destroy$))
+                .subscribe({
+                  next: () => this.fetchDataTransfers(),
+                  error: () => this.fetchDataTransfers(),
+                });
+            });
           this.loading = false;
         },
         error: (error) => {
@@ -310,12 +327,12 @@ export class DataTransfersComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Check if the data transfer is downloading
-   * @param transferId The ID of the data transfer
+   * Check if the data transfer is downloading (in-memory or backend flag)
+   * @param transfer The data transfer object
    * @returns True if the data transfer is downloading, false otherwise
    * */
-  isDownloading(transferId: string): boolean {
-    return this.dataTransferService.isDownloading(transferId);
+  isDownloading(transfer: DataTransfer): boolean {
+    return this.dataTransferService.isDownloading(transfer['@id']) || transfer.downloading === true;
   }
 
   /**

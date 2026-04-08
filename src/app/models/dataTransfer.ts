@@ -19,4 +19,5 @@ export interface DataTransfer {
   modified: string;
   version: number;
   downloaded?: boolean;
+  downloading?: boolean;
 }
