@@ -57,7 +57,7 @@ export class ContractNegotiationComponent implements OnInit, OnDestroy {
   selectedState: ContractNegotiationState | null = null;
   contractNegotiationStates = Object.values(ContractNegotiationState);
   /** States available in the filter dropdown — OFFERED is excluded because it is
-   *  an internal transitional state that is not useful as a search criterion. */
+   *  still work in prorgress on the backend. */
   filterableContractNegotiationStates = this.contractNegotiationStates.filter(
     (s) => s !== ContractNegotiationState.OFFERED
   );
