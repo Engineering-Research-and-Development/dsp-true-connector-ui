@@ -40,10 +40,14 @@ export class DataTransferService {
   }
 
   private saveDownloadingState(): void {
-    sessionStorage.setItem(
-      this.DOWNLOADING_STORAGE_KEY,
-      JSON.stringify([...this.downloadingTransfers])
-    );
+    try {
+      sessionStorage.setItem(
+        this.DOWNLOADING_STORAGE_KEY,
+        JSON.stringify([...this.downloadingTransfers])
+      );
+    } catch {
+      // Storage may be blocked (e.g. private browsing) or full — treat as non-fatal
+    }
   }
 
   private restoreDownloadingState(): void {
@@ -622,7 +626,8 @@ export class DataTransferService {
           );
         }
       }),
-      catchError(() => {
+      catchError((error) => {
+        this.errorHandlerService.handleError(error);
         this.markAsCompleted(transferId);
         return of(false);
       }),

@@ -16,7 +16,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
 import { ActivatedRoute } from '@angular/router';
-import { Subject } from 'rxjs';
+import { merge, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { DataTransfer } from '../../models/dataTransfer';
 import { DataTransferState } from '../../models/enums/dataTransferState';
@@ -221,22 +221,21 @@ export class DataTransfersComponent implements OnInit, OnDestroy {
           }
           this.dataTransferService.cleanupCompleted(this.dataTransfers);
           // Sync backend downloading flag to in-memory state so the spinner
-          // is restored correctly after a page refresh.
+          // is restored correctly after a page refresh. Only track IDs not
+          // already known to avoid redundant sessionStorage writes.
           this.dataTransfers
-            .filter((t) => t.downloading === true)
+            .filter((t) => t.downloading === true && !this.dataTransferService.isDownloading(t['@id']))
             .forEach((t) => this.dataTransferService.ensureTrackedAsDownloading(t['@id']));
-          // Resume polling for any transfers that were downloading before a page refresh
-          this.dataTransfers
+          // Resume polling for any transfers that were downloading before a page refresh.
+          // Merge all streams and trigger a single refresh to avoid concurrent overlapping fetches.
+          const pollingStreams = this.dataTransfers
             .filter((t) => this.dataTransferService.isDownloading(t['@id']))
-            .forEach((t) => {
-              this.dataTransferService
-                .resumePollingIfNeeded(t['@id'])
-                .pipe(takeUntil(this.destroy$))
-                .subscribe({
-                  next: () => this.fetchDataTransfers(),
-                  error: () => this.fetchDataTransfers(),
-                });
-            });
+            .map((t) => this.dataTransferService.resumePollingIfNeeded(t['@id']));
+          if (pollingStreams.length > 0) {
+            merge(...pollingStreams)
+              .pipe(takeUntil(this.destroy$))
+              .subscribe({ complete: () => this.fetchDataTransfers() });
+          }
           this.loading = false;
         },
         error: (error) => {
