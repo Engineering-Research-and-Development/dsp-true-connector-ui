@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- `downloading` flag to the `DataTransfer` model to reflect backend in-progress download state
+- `downloadInProgress` flag to the `DataTransfer` model to reflect backend in-progress download state
 - `ensureTrackedAsDownloading` method in `DataTransferService` to sync the backend flag into in-memory state on page load/refresh
 
 ### Changed

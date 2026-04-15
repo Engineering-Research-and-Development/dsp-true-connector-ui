@@ -224,7 +224,7 @@ export class DataTransfersComponent implements OnInit, OnDestroy {
           // is restored correctly after a page refresh. Only track IDs not
           // already known to avoid redundant sessionStorage writes.
           this.dataTransfers
-            .filter((t) => t.downloading === true && !this.dataTransferService.isDownloading(t['@id']))
+            .filter((t) => t.downloadInProgress === true && !this.dataTransferService.isDownloading(t['@id']))
             .forEach((t) => this.dataTransferService.ensureTrackedAsDownloading(t['@id']));
           // Resume polling for any transfers that were downloading before a page refresh.
           // Merge all streams and trigger a single refresh to avoid concurrent overlapping fetches.
@@ -331,7 +331,7 @@ export class DataTransfersComponent implements OnInit, OnDestroy {
    * @returns True if the data transfer is downloading, false otherwise
    * */
   isDownloading(transfer: DataTransfer): boolean {
-    return this.dataTransferService.isDownloading(transfer['@id']) || transfer.downloading === true;
+    return this.dataTransferService.isDownloading(transfer['@id']) || transfer.downloadInProgress === true;
   }
 
   /**

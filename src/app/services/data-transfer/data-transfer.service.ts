@@ -122,13 +122,13 @@ export class DataTransferService {
   /**
    * Cleanup completed data transfers and remove stale downloading entries.
    * Clears a transfer from the tracking set when the backend reports it as
-   * fully downloaded (downloaded===true) or no longer downloading (downloading===false).
+   * fully downloaded (downloaded===true) or no longer downloading (downloadInProgress===false).
    * @param dataTransfers - The list of data transfers to check
    * @example dataTransferService.cleanupCompleted(dataTransfers);
    */
   cleanupCompleted(dataTransfers: DataTransfer[]): void {
     dataTransfers.forEach((transfer) => {
-      if (transfer.downloaded === true || transfer.downloading === false) {
+      if (transfer.downloaded === true || transfer.downloadInProgress === false) {
         this.downloadingTransfers.delete(transfer['@id']);
       }
     });
