@@ -172,11 +172,6 @@ SSL_ENABLED=                      # Enable/disable SSL for connectors
 TRUSTSTORE_NAME=                  # Trust store filename
 TRUSTSTORE_PASSWORD=              # Trust store access password
 
-# DAPS (Dynamic Attribute Provisioning Service)
-DAPS_KEYSTORE_NAME=               # DAPS authentication keystore filename
-DAPS_KEYSTORE_PASSWORD=           # DAPS keystore password
-DAPS_KEYSTORE_ALIAS=              # DAPS certificate alias
-
 # Connector Callback Addresses
 CONNECTOR_A_CALLBACK_ADDRESS=     # Instance A callback URL
 CONNECTOR_B_CALLBACK_ADDRESS=     # Instance B callback URL
@@ -868,7 +863,6 @@ The Connector Configuration section provides comprehensive management of system 
 **Property Organization:**
 Configuration properties are logically grouped by functionality for easier management:
 
-- **DAPS Configuration**: Dynamic Attribute Provisioning Service settings
 - **Security Settings**: Encryption, certificates, and authentication parameters
 - **Dspace version configuration**: Configuration related to Dspace protocol and all related metadata
 

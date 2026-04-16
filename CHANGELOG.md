@@ -15,6 +15,9 @@ All notable changes to this project will be documented in this file.
 - `cleanupCompleted` in `DataTransferService` now also clears stale spinner state when the backend reports `downloading: false`, and persists the updated state to sessionStorage
 - `fetchDataTransfers` resumes polling for transfers the backend marks as still downloading, eliminating the dependency on sessionStorage being present after a refresh
 
+### Removed
+- Removed DAPS
+
 # [0.6.1] - 24-12-2025
 
 ### Changed

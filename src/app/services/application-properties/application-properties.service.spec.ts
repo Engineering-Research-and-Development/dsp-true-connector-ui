@@ -16,17 +16,6 @@ import { SnackbarService } from '../snackbar/snackbar.service';
 import { ApplicationPropertiesService } from './application-properties.service';
 
 // Mock ApplicationProperty data following the test-utils pattern
-export const MOCK_APPLICATION_PROPERTY_DAPS: ApplicationProperty = {
-  key: 'daps.url',
-  value: 'https://daps.example.com',
-  sampleValue: 'https://daps.example.com',
-  mandatory: true,
-  group: 'DAPS',
-  label: 'DAPS URL',
-  tooltip: 'The URL of the DAPS (Dynamic Attribute Provisioning Service)',
-  type: 'string',
-};
-
 export const MOCK_APPLICATION_PROPERTY_SECURITY: ApplicationProperty = {
   key: 'security.authentication.enabled',
   value: 'true',
@@ -50,7 +39,6 @@ export const MOCK_APPLICATION_PROPERTY_GENERAL: ApplicationProperty = {
 };
 
 export const MOCK_APPLICATION_PROPERTIES = [
-  MOCK_APPLICATION_PROPERTY_DAPS,
   MOCK_APPLICATION_PROPERTY_SECURITY,
   MOCK_APPLICATION_PROPERTY_GENERAL,
 ];
@@ -118,10 +106,9 @@ describe('ApplicationPropertiesService', () => {
       service.getProperties().subscribe({
         next: (response) => {
           expect(response).toEqual(MOCK_APPLICATION_PROPERTIES);
-          expect(response.length).toBe(3);
-          expect(response[0].key).toBe('daps.url');
-          expect(response[1].key).toBe('security.authentication.enabled');
-          expect(response[2].key).toBe('connector.name');
+          expect(response.length).toBe(2);
+          expect(response[0].key).toBe('security.authentication.enabled');
+          expect(response[1].key).toBe('connector.name');
         },
       });
 
@@ -137,31 +124,31 @@ describe('ApplicationPropertiesService', () => {
     });
 
     it('should retrieve filtered properties successfully (with key prefix)', () => {
-      const dapsProperties = [MOCK_APPLICATION_PROPERTY_DAPS];
+      const securityProperties = [MOCK_APPLICATION_PROPERTY_SECURITY];
       const mockResponse: GenericApiResponse<ApplicationProperty[]> = {
         success: true,
         message: 'Filtered properties retrieved successfully',
-        data: dapsProperties,
+        data: securityProperties,
         timestamp: '2025-01-13T15:14:06+01:00',
       };
 
-      service.getProperties('daps').subscribe({
+      service.getProperties('security').subscribe({
         next: (response) => {
-          expect(response).toEqual(dapsProperties);
+          expect(response).toEqual(securityProperties);
           expect(response.length).toBe(1);
-          expect(response[0].key).toBe('daps.url');
-          expect(response[0].group).toBe('DAPS');
+          expect(response[0].key).toBe('security.authentication.enabled');
+          expect(response[0].group).toBe('Security');
         },
       });
 
       const req = httpMock.expectOne(
         (request) =>
           request.url === propertiesApiUrl + '/' &&
-          request.params.get('key_prefix') === 'daps'
+          request.params.get('key_prefix') === 'security'
       );
       expect(req.request.method).toBe('GET');
       expect(req.request.headers.get('Content-Type')).toBe('application/json');
-      expect(req.request.params.get('key_prefix')).toBe('daps');
+      expect(req.request.params.get('key_prefix')).toBe('security');
 
       req.flush(mockResponse);
 
@@ -255,8 +242,8 @@ describe('ApplicationPropertiesService', () => {
     it('should update properties successfully', () => {
       const updatedProperties = [
         {
-          ...MOCK_APPLICATION_PROPERTY_DAPS,
-          value: 'https://new-daps.example.com',
+          ...MOCK_APPLICATION_PROPERTY_GENERAL,
+          value: 'Updated Connector Name',
         },
         { ...MOCK_APPLICATION_PROPERTY_SECURITY, value: 'false' },
       ];
@@ -272,7 +259,7 @@ describe('ApplicationPropertiesService', () => {
         next: (response) => {
           expect(response).toEqual(updatedProperties);
           expect(response.length).toBe(2);
-          expect(response[0].value).toBe('https://new-daps.example.com');
+          expect(response[0].value).toBe('Updated Connector Name');
           expect(response[1].value).toBe('false');
         },
       });
@@ -354,7 +341,7 @@ describe('ApplicationPropertiesService', () => {
     });
 
     it('should handle error response from server', () => {
-      const propertiesToUpdate = [MOCK_APPLICATION_PROPERTY_DAPS];
+      const propertiesToUpdate = [MOCK_APPLICATION_PROPERTY_SECURITY];
       const errorResponse: GenericApiResponse<ApplicationProperty[]> = {
         success: false,
         message: 'Properties could not be updated',
@@ -394,7 +381,7 @@ describe('ApplicationPropertiesService', () => {
 
     it('should handle validation errors in properties', () => {
       const invalidProperties = [
-        { ...MOCK_APPLICATION_PROPERTY_DAPS, value: '' }, // Empty mandatory field
+        { ...MOCK_APPLICATION_PROPERTY_GENERAL, value: '' }, // Empty mandatory field
       ];
 
       const errorResponse: GenericApiResponse<ApplicationProperty[]> = {
@@ -440,8 +427,8 @@ describe('ApplicationPropertiesService', () => {
       // Then update some properties
       const updatedProperties = [
         {
-          ...MOCK_APPLICATION_PROPERTY_DAPS,
-          value: 'https://updated-daps.com',
+          ...MOCK_APPLICATION_PROPERTY_GENERAL,
+          value: 'Updated Connector Name',
         },
       ];
 
@@ -454,7 +441,7 @@ describe('ApplicationPropertiesService', () => {
 
       service.updateProperties(updatedProperties).subscribe({
         next: (response) => {
-          expect(response[0].value).toBe('https://updated-daps.com');
+          expect(response[0].value).toBe('Updated Connector Name');
         },
       });
 
@@ -468,18 +455,17 @@ describe('ApplicationPropertiesService', () => {
         message: 'Updated properties retrieved',
         data: [
           {
-            ...MOCK_APPLICATION_PROPERTY_DAPS,
-            value: 'https://updated-daps.com',
+            ...MOCK_APPLICATION_PROPERTY_GENERAL,
+            value: 'Updated Connector Name',
           },
           MOCK_APPLICATION_PROPERTY_SECURITY,
-          MOCK_APPLICATION_PROPERTY_GENERAL,
         ],
         timestamp: '2025-01-13T15:14:06+01:00',
       };
 
       service.getProperties().subscribe({
         next: (response) => {
-          expect(response[0].value).toBe('https://updated-daps.com');
+          expect(response[0].value).toBe('Updated Connector Name');
         },
       });
 

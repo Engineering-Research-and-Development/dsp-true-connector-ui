@@ -181,9 +181,6 @@ export class ConnectorConfigurationComponent implements OnInit {
     }
     // Fallback: determine group based on property key patterns
     const key = property.key.toLowerCase();
-    if (key.includes('daps')) {
-      return 'DAPS';
-    }
     if (
       key.includes('authentication') ||
       key.includes('security') ||

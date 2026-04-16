@@ -393,17 +393,6 @@ export const MOCK_EXTERNAL_ARTIFACT_OTHER_AUTH: Artifact = {
 
 // --- Application Property Mocks ---
 
-export const MOCK_APPLICATION_PROPERTY_DAPS: ApplicationProperty = {
-  key: 'daps.url',
-  value: 'https://daps.example.com',
-  sampleValue: 'https://daps.example.com',
-  mandatory: true,
-  group: 'DAPS',
-  label: 'DAPS URL',
-  tooltip: 'The URL of the DAPS (Dynamic Attribute Provisioning Service)',
-  type: 'string',
-};
-
 export const MOCK_APPLICATION_PROPERTY_SECURITY: ApplicationProperty = {
   key: 'security.authentication.enabled',
   value: 'true',
@@ -427,7 +416,6 @@ export const MOCK_APPLICATION_PROPERTY_GENERAL: ApplicationProperty = {
 };
 
 export const MOCK_APPLICATION_PROPERTIES = [
-  MOCK_APPLICATION_PROPERTY_DAPS,
   MOCK_APPLICATION_PROPERTY_SECURITY,
   MOCK_APPLICATION_PROPERTY_GENERAL,
 ];
