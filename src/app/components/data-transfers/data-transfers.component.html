@@ -245,7 +245,7 @@
             <div class="card-footer">
               <div class="btn-action">
               <div
-                *ngIf="isDownloading(dataTransfer['@id'])"
+                *ngIf="isDownloading(dataTransfer)"
                 class="download-spinner"
               >
                 <mat-progress-spinner diameter="24" mode="indeterminate">
@@ -253,7 +253,7 @@
                 <p *ngIf="userType === 'provider' && dataTransfer.format === 'HttpData-PUSH'">Pushing data...</p>
                 <p *ngIf="!(userType === 'provider' && dataTransfer.format === 'HttpData-PUSH')">Downloading...</p>
               </div>
-              <ng-container *ngIf="!isDownloading(dataTransfer['@id'])">
+              <ng-container *ngIf="!isDownloading(dataTransfer)">
                 <button
                   mat-icon-button
                   matTooltip="Request data transfer"
@@ -328,7 +328,7 @@
                 <button
                   mat-icon-button
                   [matTooltip]="
-                    isDownloading(dataTransfer['@id'])
+                    isDownloading(dataTransfer)
                       ? 'Pushing data in progress...'
                       : 'Push data to consumer'
                   "
@@ -338,24 +338,24 @@
                     dataTransfer.format === 'HttpData-PUSH'
                   "
                   (click)="onPush(dataTransfer)"
-                  [disabled]="isDownloading(dataTransfer['@id'])"
+                  [disabled]="isDownloading(dataTransfer)"
                   class="action-btn action-push"
                 >
                   <mat-progress-spinner
-                    *ngIf="isDownloading(dataTransfer['@id'])"
+                    *ngIf="isDownloading(dataTransfer)"
                     diameter="20"
                     mode="indeterminate"
                   >
                   </mat-progress-spinner>
 
-                  <mat-icon *ngIf="!isDownloading(dataTransfer['@id'])"
+                  <mat-icon *ngIf="!isDownloading(dataTransfer)"
                     >upload</mat-icon
                   >
                 </button>
                 <button
                   mat-icon-button
                   [matTooltip]="
-                    isDownloading(dataTransfer['@id'])
+                    isDownloading(dataTransfer)
                       ? 'Downloading in progress...'
                       : 'Download artifact'
                   "
@@ -366,17 +366,17 @@
                     !(userType === 'consumer' && dataTransfer.format === 'HttpData-PUSH' && dataTransfer.state === dataTransferState.STARTED)
                   "
                   (click)="onDownload(dataTransfer)"
-                  [disabled]="isDownloading(dataTransfer['@id'])"
+                  [disabled]="isDownloading(dataTransfer)"
                   class="action-btn action-download"
                 >
                   <mat-progress-spinner
-                    *ngIf="isDownloading(dataTransfer['@id'])"
+                    *ngIf="isDownloading(dataTransfer)"
                     diameter="20"
                     mode="indeterminate"
                   >
                   </mat-progress-spinner>
 
-                  <mat-icon *ngIf="!isDownloading(dataTransfer['@id'])"
+                  <mat-icon *ngIf="!isDownloading(dataTransfer)"
                     >download</mat-icon
                   >
                 </button>

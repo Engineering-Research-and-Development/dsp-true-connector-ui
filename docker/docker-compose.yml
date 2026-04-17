@@ -27,9 +27,6 @@ services:
       - KEY_PASSWORD=${CONNECTOR_A_KEY_PASSWORD}
       - KEYSTORE_PASSWORD=${CONNECTOR_A_KEYSTORE_PASSWORD}
       - KEYSTORE_ALIAS=${CONNECTOR_A_KEYSTORE_ALIAS}
-      - DAPS_KEYSTORE_NAME=${DAPS_KEYSTORE_NAME}
-      - DAPS_KEYSTORE_PASSWORD=${DAPS_KEYSTORE_PASSWORD}
-      - DAPS_KEYSTORE_ALIAS=${DAPS_KEYSTORE_ALIAS}
       - TRUSTSTORE_NAME=${TRUSTSTORE_NAME}
       - TRUSTSTORE_PASSWORD=${TRUSTSTORE_PASSWORD}
     volumes:
@@ -94,9 +91,6 @@ services:
       - KEY_PASSWORD=${CONNECTOR_B_KEY_PASSWORD}
       - KEYSTORE_PASSWORD=${CONNECTOR_B_KEYSTORE_PASSWORD}
       - KEYSTORE_ALIAS=${CONNECTOR_B_KEYSTORE_ALIAS}
-      - DAPS_KEYSTORE_NAME=${DAPS_KEYSTORE_NAME}
-      - DAPS_KEYSTORE_PASSWORD=${DAPS_KEYSTORE_PASSWORD}
-      - DAPS_KEYSTORE_ALIAS=${DAPS_KEYSTORE_ALIAS}
       - TRUSTSTORE_NAME=${TRUSTSTORE_NAME}
       - TRUSTSTORE_PASSWORD=${TRUSTSTORE_PASSWORD}
     volumes:
@@ -146,6 +140,7 @@ services:
       # Enable below line to use custom SSL certificates
       # - ./tc_cert/minio_certs:/root/.minio/certs:ro
     environment:
+      # Change immediately after setup!
       - MINIO_ROOT_USER=minioadmin
       - MINIO_ROOT_PASSWORD=minioadmin
     command: server /data --console-address ":9001"

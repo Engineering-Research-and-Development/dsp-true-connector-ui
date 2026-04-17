@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+# [0.6.2] - 08-04-2026
+
+### Added
+
+- `downloadInProgress` flag to the `DataTransfer` model to reflect backend in-progress download state
+- `ensureTrackedAsDownloading` method in `DataTransferService` to sync the backend flag into in-memory state on page load/refresh
+
+### Changed
+
+- Download spinner in the Data Transfers component now considers both the in-memory tracking state and the backend `downloading` flag, so a page refresh no longer loses a download in progress
+- `cleanupCompleted` in `DataTransferService` now also clears stale spinner state when the backend reports `downloading: false`, and persists the updated state to sessionStorage
+- `fetchDataTransfers` resumes polling for transfers the backend marks as still downloading, eliminating the dependency on sessionStorage being present after a refresh
+
+### Removed
+- Removed DAPS
+
 # [0.6.1] - 24-12-2025
 
 ### Changed
