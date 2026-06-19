@@ -1,3 +1,9 @@
+# [0.6.3] - 19-06-2026
+
+### Added
+
+- Agreement details dialog in the Data Transfers view — clicking the Agreement ID on a completed transfer opens a modal with full agreement metadata, permissions, constraints, and remaining transfer count
+
 # [0.6.0] - 25-11-2025
 
 ### Changed

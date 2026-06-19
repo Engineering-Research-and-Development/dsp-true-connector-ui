@@ -4,6 +4,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { Constraint } from '../../../../models/permission';
 
 @Component({
     selector: 'app-cn-details-dialog',
@@ -27,5 +28,9 @@ export class CnDetailsDialogComponent {
    * */
   onClose(): void {
     this.dialogRef.close();
+  }
+
+  isDateConstraint(constraint: Constraint): boolean {
+    return constraint.leftOperand === 'DATE_TIME';
   }
 }

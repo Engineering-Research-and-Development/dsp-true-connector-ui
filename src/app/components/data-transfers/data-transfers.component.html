@@ -198,7 +198,19 @@
               <div class="metadata-grid">
                 <div class="metadata-item">
                   <span class="metadata-label">Agreement ID</span>
-                  <span class="metadata-value">{{ dataTransfer.agreementId }}</span>
+                  <div class="metadata-value-action">
+                    <span class="metadata-value">{{ dataTransfer.agreementId }}</span>
+                    @if (dataTransfer.downloaded) {
+                    <button
+                      mat-icon-button
+                      matTooltip="View agreement details"
+                      (click)="openAgreementDetailsDialog(dataTransfer.agreementId)"
+                      class="action-btn"
+                    >
+                      <mat-icon>pageview</mat-icon>
+                    </button>
+                  }
+                  </div>
                 </div>
                 <div class="metadata-item">
                   <span class="metadata-label">Dataset ID</span>
@@ -393,6 +405,7 @@
                   class="action-btn action-view"
                 >
                   <mat-icon>{{ isViewing(dataTransfer['@id']) ? 'hourglass_empty' : 'pageview' }}</mat-icon>
+                  
                 </button>
                 <button
                   mat-icon-button
