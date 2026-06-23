@@ -6,6 +6,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router, RouterModule } from '@angular/router';
+import { Constraint } from '../../models/permission';
 
 @Component({
     selector: 'app-policy-details',
@@ -74,4 +75,11 @@ export class PolicyDetailsComponent implements OnInit {
     if (!text) return '';
     return text.length > length ? text.substring(0, length) + '...' : text;
   }
+
+  /**
+   * Checks if a constraint is a date constraint
+   */
+  isDateConstraint(constraint: Constraint): boolean {
+    return constraint.leftOperand === 'DATE_TIME';
+    }
 }

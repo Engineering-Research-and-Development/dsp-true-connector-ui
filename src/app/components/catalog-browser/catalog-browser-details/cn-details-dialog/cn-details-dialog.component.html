@@ -103,7 +103,12 @@
                 >
                   <span class="operand">{{ constraint.leftOperand }}</span>
                   <span class="operator">{{ constraint.operator }}</span>
-                  <span class="operand">{{ constraint.rightOperand }}</span>
+                  <span class="operand"> @if(isDateConstraint(constraint)) {
+                        {{ constraint.rightOperand | date: 'd MMM y, HH:mm' }}
+                        }
+                        @else { {{ constraint.rightOperand }} }
+                      </span>
+                    <!-- {{ constraint.rightOperand }}</span> -->
                 </div>
               </div>
             </div>

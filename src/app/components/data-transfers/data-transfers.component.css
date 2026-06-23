@@ -320,6 +320,12 @@ mat-icon.help-icon {
   justify-content: flex-start;
 }
 
+.metadata-value-action {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .metadata-label {
   font-size: 12px;
   font-weight: 600;

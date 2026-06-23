@@ -1,0 +1,118 @@
+<div class="dialog">
+  <div class="card-header">
+    <div class="header-left">
+      <h1>Agreement Details</h1>
+    </div>
+    <button mat-icon-button (click)="onClose()" class="close-btn" aria-label="Close dialog">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="card-body">
+    <div *ngIf="loading" class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+
+    <ng-container *ngIf="!loading && agreement">
+      <div class="agreement-section">
+        <div class="section-header">
+          <mat-icon>handshake</mat-icon>
+          <h3>Agreement Information</h3>
+        </div>
+        <div class="agreement-content">
+          <div class="agreement-item">
+            <span class="item-label">Agreement ID</span>
+            <span class="item-value">{{ agreement['@id'] }}</span>
+          </div>
+          <div class="agreement-item">
+            <span class="item-label">Assigner</span>
+            <span class="item-value">{{ agreement.assigner }}</span>
+          </div>
+          <div class="agreement-item">
+            <span class="item-label">Assignee</span>
+            <span class="item-value">{{ agreement.assignee }}</span>
+          </div>
+          <div class="agreement-item">
+            <span class="item-label">Target</span>
+            <span class="item-value">{{ agreement.target }}</span>
+          </div>
+          <div class="agreement-item">
+            <span class="item-label">Timestamp</span>
+            <span class="item-value">{{ agreement.timestamp | date: 'd MMM y, HH:mm' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <mat-expansion-panel
+        class="permissions-panel"
+        *ngIf="agreement.permission && agreement.permission.length > 0"
+      >
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon>security</mat-icon>
+            Permissions
+          </mat-panel-title>
+          <span class="permission-count">{{ agreement.permission.length }}</span>
+        </mat-expansion-panel-header>
+
+        <div class="permissions-content">
+          <div
+            *ngFor="let permission of agreement.permission; let i = index"
+            class="permission-card"
+          >
+            <div class="permission-card-title">
+              <span class="permission-action">{{ permission.action }}</span>
+              <span class="permission-counter">{{ i + 1 }} / {{ agreement.permission.length }}</span>
+            </div>
+
+            <div class="permission-info">
+              <div class="info-row" *ngIf="permission.assignee">
+                <span class="info-label">Assignee</span>
+                <span class="info-value">{{ permission.assignee }}</span>
+              </div>
+              <div class="info-row" *ngIf="permission.assigner">
+                <span class="info-label">Assigner</span>
+                <span class="info-value">{{ permission.assigner }}</span>
+              </div>
+              <div class="info-row" *ngIf="permission.target">
+                <span class="info-label">Target</span>
+                <span class="info-value">{{ permission.target }}</span>
+              </div>
+            </div>
+
+            <div
+              *ngIf="permission.constraint && permission.constraint.length > 0"
+              class="permission-constraints"
+            >
+              <div class="constraints-title">Constraints ({{ permission.constraint.length }})</div>
+              <div class="constraint-list">
+                <div
+                  *ngFor="let constraint of permission.constraint"
+                  class="constraint-row"
+                >
+                  <span class="operand">{{ constraint.leftOperand }}</span>
+                  <span class="operator">{{ constraint.operator }}</span>
+
+                  <span class="operand">@if (isDateConstraint(constraint)) {
+                    {{ constraint.rightOperand | date: 'd MMM y, HH:mm' }}
+                  } @else {
+                    {{ constraint.rightOperand }}
+                  }</span>
+                  <span> @if (isCountConstraint(constraint)) {
+                    ({{ getRemainingCount(constraint) }})
+                  }
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-expansion-panel>
+    </ng-container>
+
+    <div *ngIf="!loading && !agreement" class="error-container">
+      <mat-icon>error_outline</mat-icon>
+      <p>Agreement details could not be loaded.</p>
+    </div>
+  </div>
+</div>

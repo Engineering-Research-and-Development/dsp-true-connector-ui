@@ -22,6 +22,8 @@ import { DataTransfer } from '../../models/dataTransfer';
 import { DataTransferState } from '../../models/enums/dataTransferState';
 import { DataTransferService } from '../../services/data-transfer/data-transfer.service';
 import { ProxyService } from '../../services/proxy/proxy.service';
+import { MatDialog } from '@angular/material/dialog';
+import { AgreementDetailsDialogComponent } from './agreement-details-dialog/agreement-details-dialog.component';
 import {
   FilterExpansionState,
   PaginationHelper,
@@ -62,6 +64,7 @@ export class DataTransfersComponent implements OnInit, OnDestroy {
   datasetIdFilter: string = '';
   providerPidFilter: string = '';
   consumerPidFilter: string = '';
+   // Add dialog property for opening agreement details dialog
 
   // Pagination and sorting using shared utility
   paginationState: PaginationState =
@@ -94,7 +97,8 @@ export class DataTransfersComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private location: Location,
     private dataTransferService: DataTransferService,
-    private proxyService: ProxyService
+    private proxyService: ProxyService,
+    private dialog: MatDialog
   ) {}
 
   /**
@@ -500,5 +504,16 @@ export class DataTransfersComponent implements OnInit, OnDestroy {
           console.error('Error suspending contract dataTransfer:', error);
         },
       });
+  }
+
+  openAgreementDetailsDialog(agreementId: string): void {
+    this.dialog.open(AgreementDetailsDialogComponent, {
+      width: '800px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      autoFocus: false,
+      restoreFocus: false,
+      data: { agreementId }
+    });
   }
 }
