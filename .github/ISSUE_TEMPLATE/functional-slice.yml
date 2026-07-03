@@ -1,0 +1,172 @@
+name: "Functional Slice"
+description: "High-level UI capability slice for later task decomposition"
+title: "[SLICE] "
+labels: ["area:UI"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for **UI functional slices**.
+
+        This repository keeps the same workflow family as the backend project, but issue and board management are coordinated through the linked backend GitHub project dashboard. Slice content must describe **Angular UI behavior**, not backend Java implementation.
+
+        After issue creation, update the title to include the stable slice tag, for example `[SLICE][X1] ...`, apply the matching GitHub label/tag `slice:X1`, and record the same tag in **Source & Parent Traceability**.
+
+  - type: textarea
+    id: context
+    attributes:
+      label: "Context"
+      placeholder: |
+        **What**: UI capability or operator flow being sliced
+        **Why**: user or operator value
+        **Primary actor**: connector admin / provider / consumer
+        **Requirement source**: issue, roadmap item, or request
+    validations:
+      required: true
+
+  - type: textarea
+    id: source-traceability
+    attributes:
+      label: "Source & Parent Traceability"
+      placeholder: |
+        **Slice tag**: `X1`
+        **Source type**: backlog issue / parent issue / roadmap item / feature request
+        **Source**: #123 or link/reference
+        **Parent / root issue**: #...
+        **Dashboard of record**: linked backend GitHub repo/project
+    validations:
+      required: true
+
+  - type: textarea
+    id: functional-outcome
+    attributes:
+      label: "Functional Outcome"
+      placeholder: |
+        **Primary UI outcome**: ...
+        **Routes / screens / dialogs / flows touched**: ...
+        **Visible behavior gained or changed**: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: in-scope
+    attributes:
+      label: "In-Scope Outcomes"
+      placeholder: |
+        - Route or screen behavior ...
+        - Form or dialog behavior ...
+        - Service/UI integration behavior ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: "Out-of-Scope Boundaries"
+      placeholder: |
+        - Not included here: ...
+        - Separate slice handles: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: parallelization
+    attributes:
+      label: "Parallelization & Related Slices"
+      placeholder: |
+        **Stream**: `catalog-browser` / `management` / `shared-ui` / `workflow-ci`
+        **Can be decomposed in parallel with**: #..., #...
+        **Hands off to**: #... or `None`
+        **Why this is a separate UI slice**: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: "Dependencies"
+      placeholder: |
+        Relates to: #
+        Depends on: # (only if truly blocked)
+        Blocked by: # (external blocker)
+    validations:
+      required: false
+
+  - type: textarea
+    id: decomposition-guidance
+    attributes:
+      label: "Later task-decomposition guidance"
+      placeholder: |
+        **Slice tag to preserve in child issues**: `X1`
+
+        **Likely implementation task families**:
+        - Route/component work
+        - Service/integration work
+        - Shared state/environment/workflow work
+
+        **Slice-level QA scope**:
+        - `npm run build`
+        - `npm test -- --watch=false --browsers=ChromeHeadless`
+        - [manual] browser walkthrough for changed UI flows
+        - connectorA/connectorB verification if config or environment behavior changes
+
+        **Slice-level documentation scope**:
+        - `README.md`
+        - `USER_MANUAL.md`
+        - `CHANGELOG.md`
+        - `release_notes.md`
+
+        **Relevant repo surfaces to load first**:
+        - `src/app/app.routes.ts`
+        - relevant `src/app/components/...`
+        - relevant `src/app/services/...`
+        - relevant `src/environments/...`
+    validations:
+      required: true
+
+  - type: textarea
+    id: requirement-coverage
+    attributes:
+      label: "Requirement Coverage"
+      placeholder: |
+        - Requirement item or acceptance point ...
+        - Route or operator flow ...
+        - Visible UI behavior ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: "Type"
+      options:
+        - capability
+        - integration
+        - enabler
+        - workflow
+        - docs
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: "Priority"
+      options:
+        - "P0 — blocker"
+        - "P1 — high"
+        - "P2 — medium"
+        - "P3 — low"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: milestone
+    attributes:
+      label: "Milestone"
+      options:
+        - "Next release"
+        - "Future release"
+        - "Maintenance / hotfix"
+    validations:
+      required: true
