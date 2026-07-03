@@ -107,7 +107,7 @@ The active UI workflows are:
 - `.github/workflows/ui-develop-build.yml`
 - `.github/workflows/ui-release-build.yml`
 
-These workflows use Node 22, `npm ci`, `npm run build`, Docker image publishing, and release/version automation for the UI repository. Any workflow-related skill or instruction must reference these files, not backend CI examples.
+These workflows use Node 24, `npm ci`, `npm run build`, Docker image publishing, and release/version automation for the UI repository. Any workflow-related skill or instruction must reference these files, not backend CI examples.
 
 ## How to adapt backend-derived workflow assets
 

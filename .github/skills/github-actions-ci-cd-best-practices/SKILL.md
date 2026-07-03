@@ -17,7 +17,7 @@ The active workflow surfaces are:
 
 These workflows currently use:
 
-- Node 22
+- Node 24
 - `npm ci`
 - `npm run build`
 - GHCR Docker image publishing

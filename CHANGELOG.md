@@ -2,11 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
-# [0.6.3] - 03.07.2026.
+# [0.6.3] - 03-07-2026.
 
 ### Added
 
-- AI Agentic approach skills and instruction files fo r functional slicing, including workflow split, choice-first rule, UI slicing rules, required slice content, coverage audit, and do not do this sections.
+- AI Agentic approach skills and instruction files for functional slicing, including workflow split, choice-first rule, UI slicing rules, required slice content, coverage audit, and do not do this sections.
 
 ### Changed
 
