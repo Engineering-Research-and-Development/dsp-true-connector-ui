@@ -1,0 +1,174 @@
+name: "QA Task (slice-level)"
+description: "Slice-level end-to-end QA task for Angular UI work"
+title: "[QA] "
+labels: ["area:UI"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for **slice-level QA tasks** produced by task decomposition.
+
+        The dashboard/process stays aligned with the linked backend project, but verification happens against this Angular UI repository and its real commands, routes, screens, services, workflows, and environments.
+
+  - type: textarea
+    id: context
+    attributes:
+      label: "Context"
+      placeholder: |
+        **Slice**: #...
+        **Functional outcome under test**: ...
+        **Where**: routes, screens, dialogs, services, workflows, or environment behavior
+        **Requirement source**: #...
+    validations:
+      required: true
+
+  - type: textarea
+    id: source-traceability
+    attributes:
+      label: "Source & Parent Traceability"
+      placeholder: |
+        **Slice tag**: `X1`
+        **Issue alias**: `T107` / `B107`
+        **Parent slice**: #...
+        **Sibling implementation tasks gated**: #..., #...
+        **Dashboard of record**: linked backend GitHub repo/project
+    validations:
+      required: true
+
+  - type: textarea
+    id: qa-scope
+    attributes:
+      label: "Slice-level QA scope"
+      placeholder: |
+        **End-to-end UI flows**:
+        - ...
+
+        **Cross-task integration points**:
+        - ...
+
+        **Routes / screens / dialogs / forms covered**:
+        - ...
+
+        **connectorA / connectorB impact**:
+        - none / connectorA / connectorB / both
+
+        **Out of scope here**:
+        - ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: "Dependencies"
+      placeholder: |
+        Relates to: #... (parent slice)
+        Depends on: #... (impl task A)
+        Depends on: #... (impl task B)
+    validations:
+      required: true
+
+  - type: textarea
+    id: parallelization
+    attributes:
+      label: "Delivery Stream & Parallelization"
+      placeholder: |
+        **Stream**: `ui-qa`
+        **Can run in parallel with**: unrelated slice QA tasks
+        **Must wait for**: all sibling implementation tasks
+    validations:
+      required: true
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: "Type"
+      options:
+        - test
+        - feature
+        - enhancement
+        - bug
+        - refactor
+        - docs
+        - chore
+      default: 0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: "Priority"
+      options:
+        - "P0 — blocker"
+        - "P1 — high"
+        - "P2 — medium"
+        - "P3 — low"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: milestone
+    attributes:
+      label: "Milestone"
+      options:
+        - "Next release"
+        - "Future release"
+        - "Maintenance / hotfix"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: ai-model
+    attributes:
+      label: "AI Model"
+      options:
+        - "Sonnet 4.6 (standard implementation)"
+        - "Opus 4.8 (complex, multi-file, architectural)"
+        - "Fable 5 (most capable — cross-module or workflow-critical work)"
+        - "Haiku 4.5 (simple, mechanical changes)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: agent-mode
+    attributes:
+      label: "Agent Mode"
+      options:
+        - "Single agent — sequential execution"
+        - "Parallel agents — independent sub-tasks"
+        - "Human-assisted — agent executes, human validates interactively"
+    validations:
+      required: true
+
+  - type: textarea
+    id: agent-instructions
+    attributes:
+      label: "Agent Instructions"
+      placeholder: |
+        **Read first**: parent slice, sibling tasks, relevant routes/components/specs
+        **Constraints**: verification uses this UI repo; do not switch to backend-only commands
+    validations:
+      required: false
+
+  - type: textarea
+    id: verification
+    attributes:
+      label: "Verification Checklist"
+      placeholder: |
+        **Build**
+        - [ ] `npm run build` exits 0
+
+        **Automated tests**
+        - [ ] `npm test -- --watch=false --browsers=ChromeHeadless` exits 0
+        - [ ] Targeted specs covering the changed slice pass
+
+        **End-to-end UI behavior**
+        - [ ] Changed routes/screens/dialogs/forms behave as expected across the slice
+        - [ ] [manual] Browser walkthrough completed for the affected user flow
+
+        **Environment / runtime**
+        - [ ] connectorA / connectorB behavior verified if relevant
+        - [ ] Workflow file behavior reviewed if the slice touched `.github/workflows/...`
+    validations:
+      required: true
