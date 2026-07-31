@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+# [Unreleased]
+
+### Added
+
+- Proactive JWT expiration check before every outgoing HTTP request in `authInterceptor`; the access token is refreshed automatically via the refresh token before it expires.
+- Reactive 401 handling in `authInterceptor`: a single refresh-and-retry attempt on `401` responses, falling back to clearing the session and redirecting to `/login` (with `returnUrl`) if the retry also fails.
+- Refresh-request de-duplication in `AuthService` so concurrent requests that all need a new token trigger only one `/auth/refresh` call.
+- Silent session restore on app bootstrap (`AuthService.initSession()`, wired via `provideAppInitializer`) so a valid refresh token restores the session on page reload without forcing a re-login.
+
+### Changed
+
+- Access token is now kept in memory only (never written to `localStorage`); the refresh token remains in `localStorage` so sessions still survive a browser restart. Any legacy `access_token` key left by a previous version is cleaned up automatically.
+- `AuthService.refresh()`/`logout()` now send the refresh token as `refresh_token` (snake_case) to match the backend's `@JsonProperty("refresh_token")` contract; previously requests sent camelCase `refreshToken` and would fail backend validation.
+
+### Fixed
+
+- `auth.interceptor.spec.ts` and `auth.service.spec.ts` rewritten to cover the new expiry/refresh/dedup logic (previously the interceptor spec still tested the old Basic-auth behavior and the service spec had only a placeholder test).
+- `login.component.spec.ts` now provides `HttpClient`/`Router`/`ActivatedRoute` test doubles required by `AuthService`/`LoginComponent`, fixing a pre-existing failure (the component construction previously depended on providers the spec never configured).
+
 # [0.6.3] - 03-07-2026.
 
 ### Added
