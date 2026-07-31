@@ -15,7 +15,7 @@
           <h1>Audit Trail Management</h1>
           <mat-icon
             class="help-icon"
-            matTooltip="Here you can view all audit events in the system. You can filter them by event type, username, date range, provider/consumer PID, and other criteria to track system activities and user actions."
+            matTooltip="Here you can view all audit events in the system. You can filter them by event type, email, tenant, date range, provider/consumer PID, and other criteria to track system activities and user actions."
             aria-label="Help regarding audit trail management"
             >help_outline</mat-icon
           >
@@ -43,7 +43,7 @@
               Advanced Filters
             </mat-panel-title>
             <mat-panel-description>
-              Filter audit events by type, user, date range, provider/consumer
+              Filter audit events by type, email, tenant, date range, provider/consumer
               PID, and other criteria
             </mat-panel-description>
           </mat-expansion-panel-header>
@@ -78,23 +78,23 @@
               >
               </mat-progress-spinner>
 
-              <!-- Username Filter -->
+              <!-- Email Filter -->
               <mat-form-field appearance="outline" class="filter-field">
-                <mat-label>Username</mat-label>
+                <mat-label>Email</mat-label>
                 <input
                   matInput
-                  [(ngModel)]="usernameFilter"
-                  placeholder="Enter username"
+                  [(ngModel)]="emailFilter"
+                  placeholder="Enter email"
                 />
               </mat-form-field>
 
-              <!-- Source Filter -->
+              <!-- Tenant Filter -->
               <mat-form-field appearance="outline" class="filter-field">
-                <mat-label>Source</mat-label>
+                <mat-label>Tenant</mat-label>
                 <input
                   matInput
-                  [(ngModel)]="sourceFilter"
-                  placeholder="Enter source component"
+                  [(ngModel)]="tenantIdFilter"
+                  placeholder="Enter tenant ID"
                 />
               </mat-form-field>
 
@@ -209,7 +209,7 @@
           (matSortChange)="onSortChange($event)"
           class="audit-table"
         >
-          <!-- Timestamp Column -->
+          <!-- 1. Timestamp Column -->
           <ng-container matColumnDef="timestamp">
             <mat-header-cell *matHeaderCellDef mat-sort-header>
               Timestamp
@@ -219,7 +219,7 @@
             </mat-cell>
           </ng-container>
 
-          <!-- Event Type Column -->
+          <!-- 2. Event Type Column -->
           <ng-container matColumnDef="eventType">
             <mat-header-cell *matHeaderCellDef mat-sort-header>
               Event Type
@@ -234,17 +234,27 @@
             </mat-cell>
           </ng-container>
 
-          <!-- Username Column -->
-          <ng-container matColumnDef="username">
+          <!-- 3. Tenant Column -->
+          <ng-container matColumnDef="tenantId">
             <mat-header-cell *matHeaderCellDef mat-sort-header>
-              Username
+              Tenant
             </mat-header-cell>
             <mat-cell *matCellDef="let event">
-              {{ event.username || "-" }}
+              {{ event.details?.['tenantId'] || "-" }}
             </mat-cell>
           </ng-container>
 
-          <!-- Description Column -->
+          <!-- 4. Email Column -->
+          <ng-container matColumnDef="email">
+            <mat-header-cell *matHeaderCellDef mat-sort-header>
+              Email
+            </mat-header-cell>
+            <mat-cell *matCellDef="let event">
+              {{ event.details?.['email'] || "-" }}
+            </mat-cell>
+          </ng-container>
+
+          <!-- 5. Description Column -->
           <ng-container matColumnDef="description">
             <mat-header-cell *matHeaderCellDef mat-sort-header>
               Description
@@ -254,17 +264,7 @@
             </mat-cell>
           </ng-container>
 
-          <!-- Source Column -->
-          <ng-container matColumnDef="source">
-            <mat-header-cell *matHeaderCellDef mat-sort-header>
-              Source
-            </mat-header-cell>
-            <mat-cell *matCellDef="let event">
-              {{ event.source || "-" }}
-            </mat-cell>
-          </ng-container>
-
-          <!-- IP Address Column -->
+          <!-- 6. IP Address Column -->
           <ng-container matColumnDef="ipAddress">
             <mat-header-cell *matHeaderCellDef mat-sort-header>
               IP Address
@@ -274,7 +274,7 @@
             </mat-cell>
           </ng-container>
 
-          <!-- Actions Column -->
+          <!-- 7. Actions Column -->
           <ng-container matColumnDef="actions">
             <mat-header-cell *matHeaderCellDef>Actions</mat-header-cell>
             <mat-cell *matCellDef="let event">
