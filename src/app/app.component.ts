@@ -47,12 +47,14 @@ export class AppComponent implements OnInit {
   currentYear = new Date().getFullYear();
   hasCustomLogo = environment.CUSTOM_LOGO_PRESENT === 'true';
   isExpanded = true;
-  isUserLoggedIn = true;
+  
+  // Track login state dynamically
+  isUserLoggedIn = false;
 
   userName: string = '';
 
   currentUserType: 'provider' | 'consumer' | null = null;
-  selectedMultipartType = localStorage.getItem('multipartType') || 'form'; // Default value for the multipart type
+  selectedMultipartType = localStorage.getItem('multipartType') || 'form';
 
   // Track active routes for parent menu items
   catalogBrowserActive = false;
@@ -74,11 +76,13 @@ export class AppComponent implements OnInit {
     private matIconReg: MatIconRegistry
   ) {}
 
-  /**
-   * Subscribes to authentication status and profile type updates, and navigates accordingly.
-   */
   ngOnInit() {
     this.matIconReg.setDefaultFontSetClass('material-symbols-outlined');
+
+    // Dynamically update isUserLoggedIn based on accessToken$ stream
+    this.authService.accessToken$.subscribe((token) => {
+      this.isUserLoggedIn = !!token;
+    });
 
     // Track route changes to update active parent menu items
     this.router.events
@@ -88,22 +92,6 @@ export class AppComponent implements OnInit {
       });
 
     this.updateActiveMenuItems(this.router.url);
-
-    // this.authService.authStatus$.subscribe((status) => {
-    //   this.isUserLoggedIn = status.provider;
-    //   this.isConsumerLoggedIn = status.consumer;
-    //   if (!this.isUserLoggedIn && !this.isConsumerLoggedIn) {
-    //     this.router.navigate(['/login']);
-    //   } else if (this.isUserLoggedIn) {
-    //     this.setAccountType('provider');
-    //   } else if (this.isConsumerLoggedIn) {
-    //     this.setAccountType('consumer');
-    //   }
-    // });
-    // this.authService.currentProfileType$.subscribe((status) => {
-    //   this.currentUserType = status.profileType as 'provider' | 'consumer';
-    //   this.userName = this.authService.getUserName(this.currentUserType);
-    // });
   }
 
   /**
@@ -161,27 +149,6 @@ export class AppComponent implements OnInit {
   }
 
   /**
-   * Sets the current user type and navigates to the appropriate page.
-   * @param type The type of user to set ('provider' or 'consumer').
-   */
-  setAccountType(type: 'provider' | 'consumer') {
-    // this.currentUserType = type;
-    // this.userName = this.authService.getUserName(type);
-    // this.authService.setCurrentUserType(type);
-    // if (type === 'provider') {
-    //   this.router.navigate(['/self-description']);
-    //   setTimeout(() => {
-    //     this.providerPanel.open();
-    //   });
-    // } else if (type === 'consumer') {
-    //   this.router.navigate(['/download-artifact']);
-    //   setTimeout(() => {
-    //     this.consumerPanel.open();
-    //   });
-    // }
-  }
-
-  /**
    * Toggles the state of the side navigation.
    */
   toggleSidenav() {
@@ -189,75 +156,42 @@ export class AppComponent implements OnInit {
   }
 
   /**
-   * Opens the login modal to allow the user to log in as a different user type.
-   */
-  loginAsDifferentUser() {
-    let newLoginUserType: string = '';
-    if (this.currentUserType === 'provider') {
-      newLoginUserType = 'consumer';
-    }
-    if (this.currentUserType === 'consumer') {
-      newLoginUserType = 'provider';
-    }
-  }
-
-  /**
    * Logs out the user by clearing authentication tokens and navigating to the login page.
    */
   logout() {
-    // this.authService.logout('provider');
-    // this.authService.logout('consumer');
-    this.currentUserType = null;
-    this.router.navigate(['/login']);
+    this.authService.logout().subscribe({
+      next: () => {
+        console.log('Logout successful');
+        this.router.navigate(['/login']);
+      },
+      error: (error) => {
+        console.error('Logout failed', error);
+        this.router.navigate(['/login']);
+      }
+    });
   }
 
-  /**
-   * Navigates to the contract negotiation page for providers and forces a refresh.
-   */
   goToProviderContractNegotiation() {
-    console.log('Navigating to contract negotiation page for providers');
     this.forceReload('/contract-negotiation', { userType: 'provider' });
   }
 
-  /**
-   * Navigates to the contract negotiation page for consumers and forces a refresh.
-   */
   goToConsumerContractNegotiation() {
-    console.log('Navigating to contract negotiation page for consumers');
     this.forceReload('/contract-negotiation', { userType: 'consumer' });
   }
 
-  /**
-   * Navigates to the contract negotiation page for providers and forces a refresh.
-   */
   goToProviderDataTransfers() {
-    console.log('Navigating to data transfers page for providers');
     this.forceReload('/data-transfer', { userType: 'provider' });
   }
 
-  /**
-   * Navigates to the contract negotiation page for consumers and forces a refresh.
-   */
   goToConsumerDataTransfers() {
-    console.log('Navigating to data transfers  page for consumers');
     this.forceReload('/data-transfer', { userType: 'consumer' });
   }
 
-  /**
-   * Navigates to the data consumption page
-   * */
   goToDataConsumption() {
-    console.log('Navigating to data consumption page');
     this.router.navigate(['/data-consumption']);
   }
 
-  /**
-   * Forces a refresh by temporarily navigating to a different URL and then back to the desired URL.
-   * @param targetUrl The target URL to navigate to.
-   * @param state The state object to pass to the target URL.
-   */
   private forceReload(targetUrl: string, state: any) {
-    // Navigate away to a temporary route and then back to force a refresh
     this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
       this.router.navigate([targetUrl], { state });
     });

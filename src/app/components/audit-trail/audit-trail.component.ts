@@ -107,9 +107,9 @@ export class AuditTrailComponent implements OnInit {
   displayedColumns: string[] = [
     'timestamp',
     'eventType',
-    'username',
+    'tenantId',
+    'email',
     'description',
-    'source',
     'ipAddress',
     'actions',
   ];
@@ -131,8 +131,8 @@ export class AuditTrailComponent implements OnInit {
 
   // Filter properties
   selectedEventType: AuditEventType | null = null;
-  usernameFilter: string = '';
-  sourceFilter: string = '';
+  emailFilter: string = '';
+  tenantIdFilter: string = '';
   ipAddressFilter: string = '';
   providerPidFilter: string = '';
   consumerPidFilter: string = '';
@@ -207,8 +207,8 @@ export class AuditTrailComponent implements OnInit {
   private hasFiltersApplied(): boolean {
     return (
       this.selectedEventType !== null ||
-      this.usernameFilter.trim() !== '' ||
-      this.sourceFilter.trim() !== '' ||
+      this.emailFilter.trim() !== '' ||
+      this.tenantIdFilter.trim() !== '' ||
       this.ipAddressFilter.trim() !== '' ||
       this.providerPidFilter.trim() !== '' ||
       this.consumerPidFilter.trim() !== '' ||
@@ -268,8 +268,8 @@ export class AuditTrailComponent implements OnInit {
 
       const filters = {
         eventType: this.selectedEventType?.code,
-        username: this.usernameFilter || undefined,
-        source: this.sourceFilter || undefined,
+        email: this.emailFilter || undefined,
+        tenantId: this.tenantIdFilter || undefined,
         ipAddress: this.ipAddressFilter || undefined,
         providerPid: this.providerPidFilter || undefined,
         consumerPid: this.consumerPidFilter || undefined,
@@ -321,8 +321,8 @@ export class AuditTrailComponent implements OnInit {
     );
 
     this.selectedEventType = null;
-    this.usernameFilter = '';
-    this.sourceFilter = '';
+    this.emailFilter = '';
+    this.tenantIdFilter = '';
     this.ipAddressFilter = '';
     this.providerPidFilter = '';
     this.consumerPidFilter = '';

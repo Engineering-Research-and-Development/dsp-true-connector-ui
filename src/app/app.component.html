@@ -27,8 +27,10 @@
     </mat-menu>
   </mat-toolbar>
 </div>
+
 <mat-sidenav-container class="container" autosize>
-  <mat-sidenav #sidenav class="sidenav" mode="side" [opened]="isExpanded">
+  <!-- Added *ngIf="isUserLoggedIn" here -->
+  <mat-sidenav #sidenav class="sidenav" mode="side" [opened]="isExpanded" *ngIf="isUserLoggedIn">
     <mat-nav-list>
       <div>
         <div class="configuration">
@@ -133,6 +135,7 @@
 
   <div><router-outlet></router-outlet></div>
 </mat-sidenav-container>
+
 <footer class="app-footer" *ngIf="isUserLoggedIn">
   <span>
     © {{ currentYear }} TRUE Connector created by
