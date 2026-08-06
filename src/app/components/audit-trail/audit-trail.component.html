@@ -78,26 +78,6 @@
               >
               </mat-progress-spinner>
 
-              <!-- Email Filter -->
-              <mat-form-field appearance="outline" class="filter-field">
-                <mat-label>Email</mat-label>
-                <input
-                  matInput
-                  [(ngModel)]="emailFilter"
-                  placeholder="Enter email"
-                />
-              </mat-form-field>
-
-              <!-- Tenant Filter -->
-              <mat-form-field appearance="outline" class="filter-field">
-                <mat-label>Tenant</mat-label>
-                <input
-                  matInput
-                  [(ngModel)]="tenantIdFilter"
-                  placeholder="Enter tenant ID"
-                />
-              </mat-form-field>
-
               <!-- IP Address Filter -->
               <mat-form-field appearance="outline" class="filter-field">
                 <mat-label>IP Address</mat-label>
@@ -240,17 +220,17 @@
               Tenant
             </mat-header-cell>
             <mat-cell *matCellDef="let event">
-              {{ event.details?.['tenantId'] || "-" }}
+              {{ event.tenantId || "-" }}
             </mat-cell>
           </ng-container>
 
-          <!-- 4. Email Column -->
-          <ng-container matColumnDef="email">
+          <!-- 4. Username Column -->
+          <ng-container matColumnDef="username">
             <mat-header-cell *matHeaderCellDef mat-sort-header>
-              Email
+              Username
             </mat-header-cell>
             <mat-cell *matCellDef="let event">
-              {{ event.details?.['email'] || "-" }}
+              {{ event.username || "-" }}
             </mat-cell>
           </ng-container>
 

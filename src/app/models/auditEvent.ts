@@ -7,4 +7,5 @@ export interface AuditEvent {
   details?: { [key: string]: any }; // flexible structure for additional data
   source?: string; // component/module where event occurred
   ipAddress?: string;
+  tenantId?: string;
 }

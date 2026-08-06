@@ -16,8 +16,6 @@ export interface LoginResponse {
   token_type?: string;
 }
 
-// Backend contract (RefreshRequest.java/LogoutRequest.java) maps these bodies from the
-// snake_case `refresh_token` JSON field - keep the wire format snake_case here too.
 export interface RefreshRequest {
   refresh_token: string;
 }
@@ -34,10 +32,6 @@ interface DecodedJwt {
 // Number of seconds of leeway subtracted from a token's expiry so we proactively refresh
 // slightly before the token actually expires (accounts for clock skew and request latency).
 const EXPIRY_LEEWAY_SECONDS = 10;
-
-// Legacy localStorage key used by the initial "added login" implementation, which persisted
-// the access token to localStorage. Cleaned up defensively so stale tokens don't linger.
-const LEGACY_ACCESS_TOKEN_KEY = 'access_token';
 
 @Injectable({
   providedIn: 'root'
@@ -60,10 +54,7 @@ export class AuthService {
   // token trigger a single HTTP refresh instead of one refresh call per request.
   private refreshInFlight$: Observable<string | null> | null = null;
 
-  constructor(private http: HttpClient) {
-    // Clean up any access token persisted by the previous (pre-refresh) implementation.
-    localStorage.removeItem(LEGACY_ACCESS_TOKEN_KEY);
-  }
+  constructor(private http: HttpClient) {};
 
   /**
    * Helper getters for synchronous access to token values
@@ -227,7 +218,6 @@ export class AuthService {
   }
 
   private clearSession(): void {
-    localStorage.removeItem(LEGACY_ACCESS_TOKEN_KEY);
     localStorage.removeItem('refresh_token');
 
     this.accessTokenSubject.next(null);

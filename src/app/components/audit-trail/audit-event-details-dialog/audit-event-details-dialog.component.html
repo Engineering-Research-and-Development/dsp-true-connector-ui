@@ -59,22 +59,15 @@
       </h3>
 
       <div class="info-row">
-        <span class="info-label">Email:</span>
+        <span class="info-label">Tenant:</span>
         <span class="info-value">
-          {{ auditEvent.details?.['email'] || "-" }}
+          {{ auditEvent.tenantId || "-" }}
         </span>
       </div>
 
       <div class="info-row">
         <span class="info-label">Username:</span>
         <span class="info-value">{{ auditEvent.username || "-" }}</span>
-      </div>
-
-      <div class="info-row">
-        <span class="info-label">Tenant:</span>
-        <span class="info-value">
-          {{ auditEvent.details?.['tenantId'] || auditEvent.details?.['tenant'] || "-" }}
-        </span>
       </div>
 
       <div class="info-row">
