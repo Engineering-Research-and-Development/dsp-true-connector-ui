@@ -32,6 +32,7 @@ import {
   SortState,
 } from '../../shared/utils/pagination.utils';
 import { AuditEventDetailsDialogComponent } from './audit-event-details-dialog/audit-event-details-dialog.component';
+import { ResizableColumnDirective } from '../../shared/resizable-column/resizable-column.directive';
 
 // Custom date adapter to force DD/MM/YYYY format
 export class CustomDateAdapter extends NativeDateAdapter {
@@ -90,6 +91,7 @@ export const CUSTOM_DATE_FORMATS = {
     MatSelectModule,
     MatProgressSpinnerModule,
     MatDatepickerModule,
+    ResizableColumnDirective,
   ],
   providers: [
     { provide: DateAdapter, useClass: CustomDateAdapter },

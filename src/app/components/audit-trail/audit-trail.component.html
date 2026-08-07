@@ -43,7 +43,7 @@
               Advanced Filters
             </mat-panel-title>
             <mat-panel-description>
-              Filter audit events by type, email, tenant, date range, provider/consumer
+              Filter audit events by type, date range, provider/consumer
               PID, and other criteria
             </mat-panel-description>
           </mat-expansion-panel-header>
@@ -191,7 +191,11 @@
         >
           <!-- 1. Timestamp Column -->
           <ng-container matColumnDef="timestamp">
-            <mat-header-cell *matHeaderCellDef mat-sort-header>
+            <mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              [appResizableColumn]="'timestamp'"
+            >
               Timestamp
             </mat-header-cell>
             <mat-cell *matCellDef="let event">
@@ -201,7 +205,11 @@
 
           <!-- 2. Event Type Column -->
           <ng-container matColumnDef="eventType">
-            <mat-header-cell *matHeaderCellDef mat-sort-header>
+            <mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              [appResizableColumn]="'eventType'"
+            >
               Event Type
             </mat-header-cell>
             <mat-cell *matCellDef="let event">
@@ -216,7 +224,11 @@
 
           <!-- 3. Tenant Column -->
           <ng-container matColumnDef="tenantId">
-            <mat-header-cell *matHeaderCellDef mat-sort-header>
+            <mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              [appResizableColumn]="'tenantId'"
+            >
               Tenant
             </mat-header-cell>
             <mat-cell *matCellDef="let event">
@@ -226,7 +238,11 @@
 
           <!-- 4. Username Column -->
           <ng-container matColumnDef="username">
-            <mat-header-cell *matHeaderCellDef mat-sort-header>
+            <mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              [appResizableColumn]="'username'"
+            >
               Username
             </mat-header-cell>
             <mat-cell *matCellDef="let event">
@@ -236,7 +252,11 @@
 
           <!-- 5. Description Column -->
           <ng-container matColumnDef="description">
-            <mat-header-cell *matHeaderCellDef mat-sort-header>
+            <mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              [appResizableColumn]="'description'"
+            >
               Description
             </mat-header-cell>
             <mat-cell *matCellDef="let event" class="description-cell">
@@ -244,9 +264,13 @@
             </mat-cell>
           </ng-container>
 
-          <!-- 6. IP Address Column -->
+          <!-- 6. IP Address Column (Resizes the boundary between IP Address and Actions) -->
           <ng-container matColumnDef="ipAddress">
-            <mat-header-cell *matHeaderCellDef mat-sort-header>
+            <mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              [appResizableColumn]="'ipAddress'"
+            >
               IP Address
             </mat-header-cell>
             <mat-cell *matCellDef="let event">
@@ -254,9 +278,11 @@
             </mat-cell>
           </ng-container>
 
-          <!-- 7. Actions Column -->
+          <!-- 7. Actions Column (Non-resizable outer edge) -->
           <ng-container matColumnDef="actions">
-            <mat-header-cell *matHeaderCellDef>Actions</mat-header-cell>
+            <mat-header-cell *matHeaderCellDef>
+              Actions
+            </mat-header-cell>
             <mat-cell *matCellDef="let event">
               <button
                 mat-icon-button
