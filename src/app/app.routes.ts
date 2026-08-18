@@ -144,6 +144,14 @@ export const routes: Routes = [
           ),
         title: 'Audit Trail',
       },
+      {
+        path: 'tenant',
+        loadComponent: () =>
+          import('./components/tenant/tenant.component').then(
+            (m) => m.TenantComponent
+          ),
+        title: 'Tenant Management',
+      }
     ],
   },
 

@@ -1,0 +1,112 @@
+<div *ngIf="loading" class="item">
+  <mat-card class="service-card">
+    <div class="loading-container">
+      <mat-spinner diameter="50"></mat-spinner>
+    </div>
+  </mat-card>
+</div>
+
+<div *ngIf="!loading">
+  <mat-card class="service-card">
+    <mat-card-title class="service-title"> </mat-card-title>
+    <mat-card-content>
+      <div class="headtitle">
+        <div class="back">
+          <h1>Tenant Management</h1>
+          <mat-icon
+            class="help-icon"
+            matTooltip="Here you can view all tenants in the system."
+            aria-label="Help regarding tenant management"
+            >help_outline</mat-icon
+          >
+        </div>
+        <div class="buttons">
+          <button mat-button matTooltip="Refresh data" (click)="fetchTenants()">
+            <mat-icon>cached</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tenants Table -->
+      <div class="table-container">
+        <mat-table
+          [dataSource]="tenants"
+          matSort
+          (matSortChange)="onSortChange($event)"
+          class="tenant-table"
+        >
+          <!-- Name Column -->
+          <ng-container matColumnDef="name">
+            <mat-header-cell *matHeaderCellDef mat-sort-header>Name</mat-header-cell>
+            <mat-cell *matCellDef="let tenant">{{ tenant.name }}</mat-cell>
+          </ng-container>
+
+          <!-- Description Column -->
+          <ng-container matColumnDef="description">
+            <mat-header-cell *matHeaderCellDef mat-sort-header>Description</mat-header-cell>
+            <mat-cell *matCellDef="let tenant">{{ tenant.description || '-' }}</mat-cell>
+          </ng-container>
+
+          <!-- Participant ID Column -->
+          <ng-container matColumnDef="participantId">
+            <mat-header-cell *matHeaderCellDef mat-sort-header>Participant ID</mat-header-cell>
+            <mat-cell *matCellDef="let tenant">{{ tenant.participantId || '-' }}</mat-cell>
+          </ng-container>
+
+          <!-- Automatic Negotiation Column -->
+          <ng-container matColumnDef="automaticNegotiation">
+            <mat-header-cell *matHeaderCellDef>Auto Negotiation</mat-header-cell>
+            <mat-cell *matCellDef="let tenant">
+              <mat-icon>{{ tenant.automaticNegotiation ? 'check_circle' : 'cancel' }}</mat-icon>
+            </mat-cell>
+          </ng-container>
+
+          <!-- Automatic Transfer Column -->
+          <ng-container matColumnDef="automaticTransfer">
+            <mat-header-cell *matHeaderCellDef>Auto Transfer</mat-header-cell>
+            <mat-cell *matCellDef="let tenant">
+              <mat-icon>{{ tenant.automaticTransfer ? 'check_circle' : 'cancel' }}</mat-icon>
+            </mat-cell>
+          </ng-container>
+
+          <!-- Enabled Column -->
+          <ng-container matColumnDef="enabled">
+            <mat-header-cell *matHeaderCellDef>Enabled</mat-header-cell>
+            <mat-cell *matCellDef="let tenant">
+              <mat-icon [style.color]="tenant.enabled ? 'green' : 'red'">
+                {{ tenant.enabled ? 'check_circle' : 'cancel' }}
+              </mat-icon>
+            </mat-cell>
+          </ng-container>
+
+          <!-- Bucket Name Column -->
+          <ng-container matColumnDef="bucketName">
+            <mat-header-cell *matHeaderCellDef mat-sort-header>Bucket Name</mat-header-cell>
+            <mat-cell *matCellDef="let tenant">{{ tenant.bucketName || '-' }}</mat-cell>
+          </ng-container>
+
+          <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+          <mat-row *matRowDef="let row; columns: displayedColumns" class="tenant-row"></mat-row>
+        </mat-table>
+
+        <!-- Pagination -->
+        <mat-paginator
+          *ngIf="paginationState.totalElements > 0"
+          [length]="paginationState.totalElements"
+          [pageSize]="paginationState.pageSize"
+          [pageIndex]="paginationState.pageIndex"
+          [pageSizeOptions]="paginationState.pageSizeOptions"
+          (page)="onPageChange($event)"
+          showFirstLastButtons
+        >
+        </mat-paginator>
+
+        <!-- No data message -->
+        <div *ngIf="tenants.length === 0 && !loading" class="no-data">
+          <mat-icon class="no-data-icon">search_off</mat-icon>
+          <p>No tenants found.</p>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
