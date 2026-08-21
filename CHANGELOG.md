@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- New **User Management** screen (`/user-management`) with listing, filtering, sorting, pagination, and create/view/edit/delete operations, reusing the Contract Negotiation card layout and Dataset details form pattern.
+- `UserService` for backend communication with the `/users` API, including a `getCurrentUser()` call to `/api/v1/users/me`.
+- `TenantService.getAllTenantsList()` to populate the user creation tenant dropdown.
+- `UserRole` enum and `UserCreateRequest` / `UserUpdateRequest` models aligned with the backend contracts.
+- Delete guards preventing removal of the current user and the only enabled SUPER_ADMIN.
 - Proactive JWT expiration check before every outgoing HTTP request in `authInterceptor`; the access token is refreshed automatically via the refresh token before it expires.
 - Reactive 401 handling in `authInterceptor`: a single refresh-and-retry attempt on `401` responses, falling back to clearing the session and redirecting to `/login` (with `returnUrl`) if the retry also fails.
 - Refresh-request de-duplication in `AuthService` so concurrent requests that all need a new token trigger only one `/auth/refresh` call.

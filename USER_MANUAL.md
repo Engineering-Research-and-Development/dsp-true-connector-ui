@@ -52,6 +52,9 @@ The DSP TRUE ('TRU'sted 'E'ngineering) Connector UI is a comprehensive frontend 
 - [Connector Configuration](#connector-configuration)
   - [Overview](#overview-5)
   - [Configuration Management](#configuration-management)
+- [User Management](#user-management)
+  - [Overview](#overview-6)
+  - [Available Operations](#available-operations-6)
 
 ---
 
@@ -906,6 +909,49 @@ Configuration properties are logically grouped by functionality for easier manag
 4. Validate changes using built-in validation mechanisms
 5. Save modifications to apply changes system-wide
 6. Monitor system behavior to ensure proper configuration application
+
+---
+
+## User Management
+
+### Overview
+
+The User Management section allows administrators to manage connector user accounts. It provides a card-based listing of all users and supports creating, viewing, editing, and deleting accounts. The listing follows the same card layout used by Contract Negotiation, with advanced filters, sorting, and pagination.
+
+### Available Operations
+
+**Listing Users:**
+
+- Open **User management** from the main sidenav.
+- Use the **Advanced Filters** panel to filter by first name, last name, email, role, tenant, enabled, expired, and locked status.
+- Use the **Sort** panel to order results by first name, last name, email, role, or tenant ID.
+- Use the paginator at the bottom to navigate large result sets.
+
+**Creating a User:**
+
+- Click the **Add new user** button (plus icon) in the listing header.
+- Fill in first name, last name, email, and password.
+- Select a tenant from the dropdown, or enable **Create new SUPER ADMIN** to create a global administrator without a tenant.
+- Set the **Enabled**, **Expired**, and **Locked** flags as needed.
+- Click **Save** to create the user.
+
+**Viewing a User:**
+
+- Click the **View user** button (eye icon) on a user card.
+- The details page displays the user ID, first name, last name, email, role, tenant, and account flags.
+
+**Editing a User:**
+
+- Click the **Edit user** button (pencil icon) on a user card, or click **Edit** on the details page.
+- First name, last name, email, password, and account flags can be changed.
+- The role and tenant cannot be changed after creation.
+- Leave the password field blank to keep the existing password.
+
+**Deleting a User:**
+
+- Click the **Delete user** button (trash icon) on a user card.
+- Confirm the deletion in the dialog.
+- You cannot delete your own account or the only enabled SUPER_ADMIN.
 
 ---
 

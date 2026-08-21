@@ -34,6 +34,28 @@ export class TenantService {
   };
 
   /**
+   * Get all tenants as a flat list (used for dropdowns).
+   * @returns Observable<Tenant[]> - list of all tenants
+   */
+  getAllTenantsList(): Observable<Tenant[]> {
+    return this.http
+      .get<GenericApiResponse<Tenant[]>>(
+        `${this.TenantApiUrl}/list`,
+        this.httpOptions
+      )
+      .pipe(
+        map((response: GenericApiResponse<Tenant[]>) => {
+          if (response.success && response.data) {
+            return response.data;
+          } else {
+            throw new Error(response.message);
+          }
+        }),
+        catchError((error) => this.errorHandlerService.handleError(error))
+      );
+  }
+
+  /**
    * Get all tenants with pagination and sorting
    * @param pagination - pagination and sorting options
    * @returns Observable<PagedAPIResponse<Tenant>> - paginated list of tenants

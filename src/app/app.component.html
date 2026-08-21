@@ -137,6 +137,14 @@
             </mat-list-item>
           </a>
         </div>
+        <div class="configuration">
+          <a routerLink="/user-management" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" [class.active-parent]="userManagementActive">
+            <mat-list-item>
+              <mat-icon>people</mat-icon>
+              <span>User management</span>
+            </mat-list-item>
+          </a>
+        </div>
       </div>
     </mat-nav-list>
   </mat-sidenav>

@@ -151,6 +151,22 @@ export const routes: Routes = [
             (m) => m.TenantComponent
           ),
         title: 'Tenant Management',
+      },
+      {
+        path: 'user-management',
+        loadComponent: () =>
+          import('./components/user-management/user-management.component').then(
+            (m) => m.UserManagementComponent
+          ),
+        title: 'User Management',
+      },
+      {
+        path: 'user-management/details',
+        loadComponent: () =>
+          import(
+            './components/user-management/user-details/user-details.component'
+          ).then((m) => m.UserDetailsComponent),
+        title: 'User Details',
       }
     ],
   },

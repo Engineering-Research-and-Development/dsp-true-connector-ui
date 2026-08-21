@@ -62,6 +62,7 @@ export class AppComponent implements OnInit {
   serviceManagementActive = false;
   distributionManagementActive = false;
   datasetManagementActive = false;
+  userManagementActive = false;
 
   @ViewChild('providerPanel') providerPanel!: MatExpansionPanel;
   @ViewChild('consumerPanel') consumerPanel!: MatExpansionPanel;
@@ -104,6 +105,7 @@ export class AppComponent implements OnInit {
     this.serviceManagementActive = false;
     this.distributionManagementActive = false;
     this.datasetManagementActive = false;
+    this.userManagementActive = false;
 
     // Check which specific route is active
     if (url.includes('/catalog-browser')) {
@@ -128,6 +130,10 @@ export class AppComponent implements OnInit {
       this.datasetManagementActive = true;
       this.closeAllPanels();
       this.catalogManagementPanel?.open();
+    } else if (url === '/user-management' ||
+               url.startsWith('/user-management/')) {
+      this.userManagementActive = true;
+      this.closeAllPanels();
     } else if (url.includes('/contract-negotiation')) {
       this.closeAllPanels();
       this.contractNegotiationPanel?.open();
