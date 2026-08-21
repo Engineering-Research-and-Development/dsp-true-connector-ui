@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- Tenant management: card-based overview with filters, sorting and actions; new tenant create/view/edit detail page using reactive forms, edit-state tracking and S3 bucket credentials.
 - Proactive JWT expiration check before every outgoing HTTP request in `authInterceptor`; the access token is refreshed automatically via the refresh token before it expires.
 - Reactive 401 handling in `authInterceptor`: a single refresh-and-retry attempt on `401` responses, falling back to clearing the session and redirecting to `/login` (with `returnUrl`) if the retry also fails.
 - Refresh-request de-duplication in `AuthService` so concurrent requests that all need a new token trigger only one `/auth/refresh` call.

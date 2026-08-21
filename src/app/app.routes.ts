@@ -151,6 +151,14 @@ export const routes: Routes = [
             (m) => m.TenantComponent
           ),
         title: 'Tenant Management',
+      },
+      {
+        path: 'tenant/details',
+        loadComponent: () =>
+          import(
+            './components/tenant/tenant-details/tenant-details.component'
+          ).then((m) => m.TenantDetailsComponent),
+        title: 'Tenant Details',
       }
     ],
   },
