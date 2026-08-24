@@ -49,6 +49,8 @@
       <unsaved-changes [active]="editState.hasChanges()"></unsaved-changes>
 
       <form [formGroup]="userForm" *ngIf="editMode" class="user-form">
+        
+        <!-- Row 1: First Name & Last Name -->
         <div class="form-row">
           <mat-form-field appearance="outline" class="form-field" [tcModified]="{key:'firstName', state: editState}">
             <mat-label>First Name</mat-label>
@@ -65,30 +67,74 @@
           </mat-form-field>
         </div>
 
+        <!-- Row 2: Email -->
         <div class="form-row">
-          <mat-form-field appearance="outline" class="form-field" [tcModified]="{key:'email', state: editState}">
+          <mat-form-field appearance="outline" class="form-field full-width" [tcModified]="{key:'email', state: editState}">
             <mat-label>Email</mat-label>
             <input matInput formControlName="email" placeholder="Enter email" />
             <mat-hint *ngIf="editState.isChanged('email')">Original: {{ 'email' | oldValue : editState }}</mat-hint>
             <mat-error *ngIf="userForm.get('email')?.hasError('required')">Email is required</mat-error>
             <mat-error *ngIf="userForm.get('email')?.hasError('email')">Invalid email format</mat-error>
           </mat-form-field>
+        </div>
 
+        <!-- Row 3: Password & Confirm Password -->
+        <div class="form-row">
           <mat-form-field appearance="outline" class="form-field" [tcModified]="{key:'password', state: editState}">
             <mat-label>Password</mat-label>
-            <input matInput type="password" formControlName="password" placeholder="Enter password" />
+            <input
+              matInput
+              [type]="showPassword ? 'text' : 'password'"
+              formControlName="password"
+              placeholder="Enter password"
+            />
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
+              (click)="togglePasswordVisibility()"
+              [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+            >
+              <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
             <mat-hint *ngIf="!isCreate">Leave blank to keep current password</mat-hint>
             <mat-error *ngIf="userForm.get('password')?.hasError('required')">Password is required</mat-error>
           </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Confirm Password</mat-label>
+            <input
+              matInput
+              [type]="showConfirmPassword ? 'text' : 'password'"
+              formControlName="confirmPassword"
+              placeholder="Confirm password"
+            />
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
+              (click)="toggleConfirmPasswordVisibility()"
+              [attr.aria-label]="showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'"
+            >
+              <mat-icon>{{ showConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            <mat-hint *ngIf="!isCreate">Leave blank if not changing</mat-hint>
+            <mat-error *ngIf="userForm.get('confirmPassword')?.hasError('required')">Confirm password is required</mat-error>
+            <mat-error *ngIf="userForm.get('confirmPassword')?.hasError('passwordMismatch')">Passwords do not match</mat-error>
+          </mat-form-field>
         </div>
 
+        <!-- Row 4: Tenant Selection & Super Admin Toggle -->
         <div class="form-row">
           <mat-form-field appearance="outline" class="form-field" [tcModified]="{key:'tenantId', state: editState}">
             <mat-label>Tenant</mat-label>
             <mat-select formControlName="tenantId" placeholder="Select tenant">
               <mat-option *ngFor="let tenant of tenants" [value]="tenant.id">{{ tenant.name }}</mat-option>
             </mat-select>
-            <mat-hint *ngIf="editState.isChanged('tenantId')">Original: {{ 'tenantId' | oldValue : editState }}</mat-hint>
+            <!-- Hint states for different modes -->
+            <mat-hint *ngIf="!isCreate">Tenant cannot be changed</mat-hint>
+            <mat-hint *ngIf="isCreate && editState.isChanged('tenantId')">Original: {{ 'tenantId' | oldValue : editState }}</mat-hint>
+            <mat-hint *ngIf="isCreate && userForm.get('superAdmin')?.value">Super Admins do not belong to a specific tenant</mat-hint>
             <mat-error *ngIf="userForm.get('tenantId')?.hasError('required')">Tenant is required</mat-error>
           </mat-form-field>
 
@@ -102,13 +148,18 @@
           </div>
         </div>
 
+        <mat-divider class="form-divider"></mat-divider>
+
+        <!-- Row 5: Account Status Toggles -->
         <div class="form-row toggles-row">
           <mat-slide-toggle formControlName="enabled" [tcModified]="{key:'enabled', state: editState}">Enabled</mat-slide-toggle>
-          <mat-slide-toggle formControlName="expired" [tcModified]="{key:'expired', state: editState}">Expired</mat-slide-toggle>
-          <mat-slide-toggle formControlName="locked" [tcModified]="{key:'locked', state: editState}">Locked</mat-slide-toggle>
+          <!-- expired and locked buttons disabled until the functionality is implemented on the backend -->
+          <!-- <mat-slide-toggle formControlName="expired" [tcModified]="{key:'expired', state: editState}">Expired</mat-slide-toggle>
+          <mat-slide-toggle formControlName="locked" [tcModified]="{key:'locked', state: editState}">Locked</mat-slide-toggle> -->
         </div>
       </form>
 
+      <!-- Details View (Read Only) -->
       <div *ngIf="!editMode" class="details-grid">
         <div class="detail-item">
           <span class="detail-label">ID</span>
@@ -138,14 +189,15 @@
           <span class="detail-label">Enabled</span>
           <span class="detail-value">{{ user.enabled ? 'Yes' : 'No' }}</span>
         </div>
-        <div class="detail-item">
+        <!-- expired and locked details disabled until the functionality is implemented on the backend -->
+        <!-- <div class="detail-item">
           <span class="detail-label">Expired</span>
           <span class="detail-value">{{ user.expired ? 'Yes' : 'No' }}</span>
         </div>
         <div class="detail-item">
           <span class="detail-label">Locked</span>
           <span class="detail-value">{{ user.locked ? 'Yes' : 'No' }}</span>
-        </div>
+        </div> -->
       </div>
     </mat-card-content>
   </mat-card>

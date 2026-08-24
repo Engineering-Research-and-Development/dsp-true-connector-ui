@@ -18,7 +18,7 @@
     </button>
     <mat-menu #userMenu="matMenu">
       <div class="user-info">
-        <p>TRUE Connector user</p>
+        <p>{{ currentUser?.firstName }} {{ currentUser?.lastName }}</p>
       </div>
       <button mat-menu-item (click)="logout()">
         <mat-icon>logout</mat-icon>

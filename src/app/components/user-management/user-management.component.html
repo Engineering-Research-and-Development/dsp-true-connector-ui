@@ -16,8 +16,7 @@
             class="help-icon"
             matTooltip="Here you can manage connector users. You can view, create, edit, or delete users."
             aria-label="Help regarding user management"
-            >help_outline</mat-icon
-          >
+          >help_outline</mat-icon>
         </div>
         <div class="buttons">
           <button mat-button matTooltip="Add new user" (click)="onAdd()">
@@ -44,7 +43,7 @@
 
             <div class="filter-content">
               <div class="filter-fields-row">
-                <mat-form-field appearance="outline" class="filter-field">
+                <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
                   <mat-label>First Name</mat-label>
                   <input
                     matInput
@@ -53,7 +52,7 @@
                   />
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" class="filter-field">
+                <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
                   <mat-label>Last Name</mat-label>
                   <input
                     matInput
@@ -62,7 +61,7 @@
                   />
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" class="filter-field">
+                <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
                   <mat-label>Email</mat-label>
                   <input
                     matInput
@@ -71,7 +70,7 @@
                   />
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" class="filter-field">
+                <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
                   <mat-label>Role</mat-label>
                   <mat-select [(value)]="selectedRole" placeholder="Select role">
                     <mat-option [value]="null">All Roles</mat-option>
@@ -81,7 +80,7 @@
                   </mat-select>
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" class="filter-field">
+                <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
                   <mat-label>Tenant</mat-label>
                   <mat-select
                     [(value)]="selectedTenantId"
@@ -94,7 +93,7 @@
                   </mat-select>
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" class="filter-field">
+                <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
                   <mat-label>Enabled</mat-label>
                   <mat-select [(value)]="selectedEnabled">
                     <mat-option [value]="null">All</mat-option>
@@ -103,7 +102,7 @@
                   </mat-select>
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" class="filter-field">
+                <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
                   <mat-label>Expired</mat-label>
                   <mat-select [(value)]="selectedExpired">
                     <mat-option [value]="null">All</mat-option>
@@ -112,7 +111,7 @@
                   </mat-select>
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" class="filter-field">
+                <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
                   <mat-label>Locked</mat-label>
                   <mat-select [(value)]="selectedLocked">
                     <mat-option [value]="null">All</mat-option>
@@ -121,10 +120,10 @@
                   </mat-select>
                 </mat-form-field>
 
+                <!-- Filter Actions (Consistent with Contract Negotiation) -->
                 <div class="filter-actions-inline">
                   <button
                     mat-raised-button
-                    color="primary"
                     (click)="applyFilters()"
                   >
                     <mat-icon>search</mat-icon>
@@ -153,7 +152,7 @@
             <div class="filter-content">
               <div class="sort-content">
                 <div class="sort-option">
-                  <mat-form-field appearance="outline" class="filter-field">
+                  <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
                     <mat-label>Sort By</mat-label>
                     <mat-select
                       [value]="sortState.sortColumn"
@@ -170,7 +169,7 @@
                 </div>
 
                 <div class="sort-option">
-                  <mat-form-field appearance="outline" class="filter-field">
+                  <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
                     <mat-label>Sort Direction</mat-label>
                     <mat-select
                       [value]="sortState.sortDirection"

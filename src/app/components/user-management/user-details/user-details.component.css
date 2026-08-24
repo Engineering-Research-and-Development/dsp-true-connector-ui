@@ -106,6 +106,7 @@ button[mat-button] mat-icon {
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
+  align-items: flex-start;
 }
 
 .form-field {
@@ -113,12 +114,31 @@ button[mat-button] mat-icon {
   min-width: 260px;
 }
 
+.form-field.full-width {
+  flex: 1 1 100%;
+}
+
+/* Password visibility button styling */
+.form-field button[matSuffix] {
+  color: #64748b;
+  transition: color 0.2s ease;
+}
+
+.form-field button[matSuffix]:hover {
+  color: #1e293b;
+}
+
+/* Super Admin toggle alignment to match input field baseline */
 .toggle-field {
   flex: 1 1 calc(50% - 8px);
   min-width: 260px;
   display: flex;
   align-items: center;
-  padding: 8px 0;
+  height: 56px; /* Align with outline form field height */
+}
+
+.form-divider {
+  margin: 8px 0;
 }
 
 .toggles-row {

@@ -1,10 +1,13 @@
 import { CommonModule, Location } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import {
+  AbstractControl,
   FormBuilder,
   FormGroup,
   FormsModule,
   ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
   Validators,
 } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -66,6 +69,8 @@ export class UserDetailsComponent implements OnInit, OnDestroy {
   editMode = false;
   isCreate = false;
   loading = false;
+  showPassword = false;
+  showConfirmPassword = false;
 
   readonly userRole = UserRole;
 
@@ -101,6 +106,50 @@ export class UserDetailsComponent implements OnInit, OnDestroy {
     this.editState.destroy();
   }
 
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
+  }
+
+  toggleConfirmPasswordVisibility(): void {
+    this.showConfirmPassword = !this.showConfirmPassword;
+  }
+
+  passwordMatchValidator: ValidatorFn = (
+    control: AbstractControl
+  ): ValidationErrors | null => {
+    const password = control.get('password')?.value;
+    const confirmPassword = control.get('confirmPassword')?.value;
+    const confirmControl = control.get('confirmPassword');
+
+    if (!confirmControl) {
+      return null;
+    }
+
+    if (password || confirmPassword) {
+      if (password !== confirmPassword) {
+        confirmControl.setErrors({
+          ...(confirmControl.errors || {}),
+          passwordMismatch: true,
+        });
+        return { passwordMismatch: true };
+      } else if (confirmControl.hasError('passwordMismatch')) {
+        const errors = { ...confirmControl.errors };
+        delete errors['passwordMismatch'];
+        confirmControl.setErrors(
+          Object.keys(errors).length ? errors : null
+        );
+      }
+    } else if (confirmControl.hasError('passwordMismatch')) {
+      const errors = { ...confirmControl.errors };
+      delete errors['passwordMismatch'];
+      confirmControl.setErrors(
+        Object.keys(errors).length ? errors : null
+      );
+    }
+
+    return null;
+  };
+
   fetchTenants(): void {
     this.tenantService.getAllTenantsList().subscribe({
       next: (tenants) => {
@@ -118,23 +167,30 @@ export class UserDetailsComponent implements OnInit, OnDestroy {
     this.editState.destroy();
 
     const passwordValidators = this.isCreate ? [Validators.required] : [];
+    // Disable tenant if editing an existing user OR if user is a Super Admin
+    const isTenantDisabled = !this.isCreate || this.isSuperAdmin();
 
-    this.userForm = this.fb.group({
-      firstName: [this.user.firstName || '', Validators.required],
-      lastName: [this.user.lastName || '', Validators.required],
-      email: [this.user.email || '', [Validators.required, Validators.email]],
-      password: ['', passwordValidators],
-      tenantId: [
-        { value: this.user.tenantId || null, disabled: this.isSuperAdmin() },
-      ],
-      superAdmin: [this.isSuperAdmin()],
-      enabled: [this.user.enabled !== false],
-      expired: [this.user.expired === true],
-      locked: [this.user.locked === true],
-    });
+    this.userForm = this.fb.group(
+      {
+        firstName: [this.user.firstName || '', Validators.required],
+        lastName: [this.user.lastName || '', Validators.required],
+        email: [this.user.email || '', [Validators.required, Validators.email]],
+        password: ['', passwordValidators],
+        confirmPassword: ['', passwordValidators],
+        tenantId: [
+          { value: this.user.tenantId || null, disabled: isTenantDisabled },
+        ],
+        superAdmin: [this.isSuperAdmin()],
+        enabled: [this.user.enabled !== false],
+        expired: [this.user.expired === true],
+        locked: [this.user.locked === true],
+      },
+      { validators: this.passwordMatchValidator }
+    );
 
     if (!this.isCreate) {
       this.userForm.get('superAdmin')?.disable();
+      this.userForm.get('tenantId')?.disable();
     }
 
     this.onSuperAdminChange(this.isSuperAdmin(), false);
@@ -174,9 +230,14 @@ export class UserDetailsComponent implements OnInit, OnDestroy {
         tenantControl?.setValue(null);
       }
     } else {
-      tenantControl?.enable();
-      if (!this.userForm.get('tenantId')?.value && this.tenants.length > 0) {
-        tenantControl?.setValue(this.tenants[0].id);
+      // Only re-enable tenant if we are in create mode
+      if (this.isCreate) {
+        tenantControl?.enable();
+        if (!this.userForm.get('tenantId')?.value && this.tenants.length > 0) {
+          tenantControl?.setValue(this.tenants[0].id);
+        }
+      } else {
+        tenantControl?.disable();
       }
     }
   }
@@ -187,6 +248,7 @@ export class UserDetailsComponent implements OnInit, OnDestroy {
     } else {
       this.editMode = true;
       this.userForm.enable();
+      // Keep superAdmin and tenantId disabled when editing existing users
       this.userForm.get('superAdmin')?.disable();
       this.userForm.get('tenantId')?.disable();
     }
