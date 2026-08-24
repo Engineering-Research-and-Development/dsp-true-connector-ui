@@ -8,105 +8,223 @@
 
 <div *ngIf="!loading">
   <mat-card class="service-card">
-    <mat-card-title class="service-title"> </mat-card-title>
     <mat-card-content>
       <div class="headtitle">
         <div class="back">
           <h1>Tenant Management</h1>
           <mat-icon
             class="help-icon"
-            matTooltip="Here you can view all tenants in the system."
+            matTooltip="Here you can manage tenants. You can view, create, edit, enable/disable, or delete tenants."
             aria-label="Help regarding tenant management"
             >help_outline</mat-icon
           >
         </div>
         <div class="buttons">
+          <button mat-button matTooltip="Add new tenant" (click)="onAdd()">
+            <mat-icon>add</mat-icon>
+          </button>
           <button mat-button matTooltip="Refresh data" (click)="fetchTenants()">
             <mat-icon>cached</mat-icon>
           </button>
         </div>
       </div>
 
-      <!-- Tenants Table -->
-      <div class="table-container">
-        <mat-table
-          [dataSource]="tenants"
-          matSort
-          (matSortChange)="onSortChange($event)"
-          class="tenant-table"
-        >
-          <!-- Name Column -->
-          <ng-container matColumnDef="name">
-            <mat-header-cell *matHeaderCellDef mat-sort-header>Name</mat-header-cell>
-            <mat-cell *matCellDef="let tenant">{{ tenant.name }}</mat-cell>
-          </ng-container>
+      <div class="filter-div">
+        <div class="filters-row">
+          <mat-expansion-panel
+            class="filter-expansion-panel"
+            [(expanded)]="filterExpansionState.filtersExpanded"
+          >
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <mat-icon>filter_list</mat-icon>
+                Filters
+              </mat-panel-title>
+              <mat-panel-description>
+                Filter tenants by name and status
+              </mat-panel-description>
+            </mat-expansion-panel-header>
 
-          <!-- Description Column -->
-          <ng-container matColumnDef="description">
-            <mat-header-cell *matHeaderCellDef mat-sort-header>Description</mat-header-cell>
-            <mat-cell *matCellDef="let tenant">{{ tenant.description || '-' }}</mat-cell>
-          </ng-container>
+            <div class="filter-content">
+              <div class="filter-fields-row">
+                <mat-form-field appearance="outline" class="filter-field">
+                  <mat-label>Name</mat-label>
+                  <input
+                    matInput
+                    [(ngModel)]="nameFilter"
+                    placeholder="Enter tenant name"
+                  />
+                </mat-form-field>
 
-          <!-- Participant ID Column -->
-          <ng-container matColumnDef="participantId">
-            <mat-header-cell *matHeaderCellDef mat-sort-header>Participant ID</mat-header-cell>
-            <mat-cell *matCellDef="let tenant">{{ tenant.participantId || '-' }}</mat-cell>
-          </ng-container>
+                <mat-form-field appearance="outline" class="filter-field">
+                  <mat-label>Enabled</mat-label>
+                  <mat-select [(value)]="selectedEnabled">
+                    <mat-option *ngFor="let option of booleanOptions" [value]="option.value">
+                      {{ option.label }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
 
-          <!-- Automatic Negotiation Column -->
-          <ng-container matColumnDef="automaticNegotiation">
-            <mat-header-cell *matHeaderCellDef>Auto Negotiation</mat-header-cell>
-            <mat-cell *matCellDef="let tenant">
-              <mat-icon>{{ tenant.automaticNegotiation ? 'check_circle' : 'cancel' }}</mat-icon>
-            </mat-cell>
-          </ng-container>
+                <div class="filter-actions-inline">
+                  <button mat-raised-button color="primary" (click)="applyFilters()">
+                    <mat-icon>search</mat-icon>
+                    Apply
+                  </button>
+                  <button mat-button (click)="clearFilters()">
+                    <mat-icon>clear</mat-icon>
+                    Clear
+                  </button>
+                </div>
+              </div>
+            </div>
+          </mat-expansion-panel>
 
-          <!-- Automatic Transfer Column -->
-          <ng-container matColumnDef="automaticTransfer">
-            <mat-header-cell *matHeaderCellDef>Auto Transfer</mat-header-cell>
-            <mat-cell *matCellDef="let tenant">
-              <mat-icon>{{ tenant.automaticTransfer ? 'check_circle' : 'cancel' }}</mat-icon>
-            </mat-cell>
-          </ng-container>
+          <mat-expansion-panel
+            class="filter-expansion-panel sort-panel"
+            [(expanded)]="sortExpansionState.filtersExpanded"
+          >
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <mat-icon>sort</mat-icon>
+                Sort
+              </mat-panel-title>
+            </mat-expansion-panel-header>
 
-          <!-- Enabled Column -->
-          <ng-container matColumnDef="enabled">
-            <mat-header-cell *matHeaderCellDef>Enabled</mat-header-cell>
-            <mat-cell *matCellDef="let tenant">
-              <mat-icon [style.color]="tenant.enabled ? 'green' : 'red'">
-                {{ tenant.enabled ? 'check_circle' : 'cancel' }}
-              </mat-icon>
-            </mat-cell>
-          </ng-container>
+            <div class="filter-content">
+              <div class="sort-content">
+                <div class="sort-option">
+                  <mat-form-field appearance="outline" class="filter-field">
+                    <mat-label>Sort By</mat-label>
+                    <mat-select
+                      [value]="sortState.sortColumn"
+                      (selectionChange)="onSortColumnChange($event.value)"
+                    >
+                      <mat-option
+                        *ngFor="let column of sortColumns"
+                        [value]="column.value"
+                      >
+                        {{ column.label }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
 
-          <!-- Bucket Name Column -->
-          <ng-container matColumnDef="bucketName">
-            <mat-header-cell *matHeaderCellDef mat-sort-header>Bucket Name</mat-header-cell>
-            <mat-cell *matCellDef="let tenant">{{ tenant.bucketName || '-' }}</mat-cell>
-          </ng-container>
-
-          <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-          <mat-row *matRowDef="let row; columns: displayedColumns" class="tenant-row"></mat-row>
-        </mat-table>
-
-        <!-- Pagination -->
-        <mat-paginator
-          *ngIf="paginationState.totalElements > 0"
-          [length]="paginationState.totalElements"
-          [pageSize]="paginationState.pageSize"
-          [pageIndex]="paginationState.pageIndex"
-          [pageSizeOptions]="paginationState.pageSizeOptions"
-          (page)="onPageChange($event)"
-          showFirstLastButtons
-        >
-        </mat-paginator>
-
-        <!-- No data message -->
-        <div *ngIf="tenants.length === 0 && !loading" class="no-data">
-          <mat-icon class="no-data-icon">search_off</mat-icon>
-          <p>No tenants found.</p>
+                <div class="sort-option">
+                  <mat-form-field appearance="outline" class="filter-field">
+                    <mat-label>Sort Direction</mat-label>
+                    <mat-select
+                      [value]="sortState.sortDirection"
+                      (selectionChange)="onSortDirectionChange($event.value)"
+                    >
+                      <mat-option value="asc">Ascending</mat-option>
+                      <mat-option value="desc">Descending</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+              </div>
+            </div>
+          </mat-expansion-panel>
         </div>
       </div>
+
+      <div class="space-card" *ngIf="tenants.length > 0">
+        <div *ngFor="let tenant of tenants" class="card-wrapper">
+          <div class="card">
+            <div class="card-header">
+              <div class="header-left">
+                <h2 class="card-title">{{ tenant.name }}</h2>
+                <p class="card-type">{{ tenant.id }}</p>
+              </div>
+              <div class="status-badges">
+                <span
+                  class="state-badge"
+                  [ngClass]="tenant.enabled ? 'state-enabled' : 'state-disabled'"
+                >
+                  {{ tenant.enabled ? 'Enabled' : 'Disabled' }}
+                </span>
+                <span *ngIf="tenant.automaticNegotiation" class="state-badge state-locked">
+                  Auto Negotiation
+                </span>
+                <span *ngIf="tenant.automaticTransfer" class="state-badge state-expired">
+                  Auto Transfer
+                </span>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <div class="metadata-grid">
+                <div class="metadata-item">
+                  <span class="metadata-label">Participant ID</span>
+                  <span class="metadata-value">{{ tenant.participantId || '-' }}</span>
+                </div>
+                <div class="metadata-item">
+                  <span class="metadata-label">Description</span>
+                  <span class="metadata-value">{{ tenant.description || '-' }}</span>
+                </div>
+                <div class="metadata-item">
+                  <span class="metadata-label">Bucket Name</span>
+                  <span class="metadata-value">{{ tenant.bucketName || '-' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-footer">
+              <div class="btn-action">
+                <button
+                  mat-icon-button
+                  matTooltip="View tenant"
+                  (click)="onView(tenant)"
+                  class="action-btn action-view"
+                >
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <button
+                  mat-icon-button
+                  matTooltip="Edit tenant"
+                  (click)="onEdit(tenant)"
+                  class="action-btn action-edit"
+                >
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button
+                  mat-icon-button
+                  matTooltip="{{ tenant.enabled ? 'Disable tenant' : 'Enable tenant' }}"
+                  (click)="onToggleEnabled(tenant)"
+                  class="action-btn"
+                  [ngClass]="tenant.enabled ? 'action-delete' : 'action-view'"
+                >
+                  <mat-icon>{{ tenant.enabled ? 'block' : 'check_circle' }}</mat-icon>
+                </button>
+                <button
+                  mat-icon-button
+                  matTooltip="Delete tenant"
+                  (click)="onDelete(tenant)"
+                  class="action-btn action-delete"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="tenants.length === 0" class="empty-state">
+        <mat-icon>search_off</mat-icon>
+        <span>No tenants found</span>
+      </div>
+
+      <mat-paginator
+        *ngIf="paginationState.totalElements > 0"
+        [length]="paginationState.totalElements"
+        [pageSize]="paginationState.pageSize"
+        [pageIndex]="paginationState.pageIndex"
+        [pageSizeOptions]="paginationState.pageSizeOptions"
+        (page)="onPageChange($event)"
+        showFirstLastButtons
+        aria-label="Select page of tenants"
+      >
+      </mat-paginator>
     </mat-card-content>
   </mat-card>
 </div>

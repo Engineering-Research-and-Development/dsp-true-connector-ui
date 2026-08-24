@@ -6,6 +6,8 @@ import { SnackbarService } from "../snackbar/snackbar.service";
 import { ErrorHandlerService } from "../error-handler/error-handler.service";
 import { GenericApiResponse, PagedAPIResponse } from "../../models/genericApiResponse";
 import { Tenant } from "../../models/tenant";
+import { TenantCreateRequest } from "../../models/tenant-create-request";
+import { TenantUpdateRequest } from "../../models/tenant-update-request";
 import { MOCK_TENANT } from '../../test-utils/test-utils';
 import { environment } from "../../../environments/environment";
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
@@ -17,50 +19,99 @@ describe('TenantService', () => {
   let errorHandlerService: jasmine.SpyObj<ErrorHandlerService>;
   const mockTenant: Tenant = MOCK_TENANT;
 
+  const mockCreateRequest: TenantCreateRequest = {
+    id: 'new-tenant',
+    name: 'New Tenant',
+    description: 'A new tenant',
+    participantId: 'urn:participant:new',
+    automaticNegotiation: false,
+    automaticTransfer: false,
+    enabled: true,
+    bucketName: 'new-bucket',
+    accessKey: 'access',
+    secretKey: 'secret',
+    verifyConnection: false,
+  };
+
+  const mockUpdateRequest: TenantUpdateRequest = {
+    name: 'Updated Tenant',
+    description: 'Updated description',
+    automaticNegotiation: true,
+    automaticTransfer: false,
+    bucketName: 'updated-bucket',
+    accessKey: 'updated-access',
+    secretKey: 'updated-secret',
+    verifyConnection: false,
+  };
+
   beforeEach(() => {
-      const snackbarSpy = jasmine.createSpyObj('SnackbarService', [
-        'openSnackBar',
-      ]);
-      const errorHandlerSpy = jasmine.createSpyObj('ErrorHandlerService', [
-        'handleError',
-      ]);
-  
-      TestBed.configureTestingModule({
-        imports: [],
-        providers: [
-          TenantService,
-          { provide: SnackbarService, useValue: snackbarSpy },
-          { provide: ErrorHandlerService, useValue: errorHandlerSpy },
-          provideHttpClient(withInterceptorsFromDi()),
-          provideHttpClientTesting(),
-        ],
-      });
-  
-      service = TestBed.inject(TenantService);
-      httpMock = TestBed.inject(HttpTestingController);
-      snackbarService = TestBed.inject(
-        SnackbarService
-      ) as jasmine.SpyObj<SnackbarService>;
-      errorHandlerService = TestBed.inject(
-        ErrorHandlerService
-      ) as jasmine.SpyObj<ErrorHandlerService>;
-      errorHandlerService.handleError.and.callFake((error) => {
-        let errorMessage = '';
-        if (error.error?.message) {
-          errorMessage = error.error.message;
-        } else if (error.message) {
-          errorMessage = error.message;
-        }
-        snackbarService.openSnackBar(
-          `An error occurred: ${errorMessage}`,
-          'OK',
-          'center',
-          'bottom',
-          'snackbar-error'
-        );
-        return throwError(() => error);
-      });
+    const snackbarSpy = jasmine.createSpyObj('SnackbarService', [
+      'openSnackBar',
+    ]);
+    const errorHandlerSpy = jasmine.createSpyObj('ErrorHandlerService', [
+      'handleError',
+    ]);
+
+    TestBed.configureTestingModule({
+      imports: [],
+      providers: [
+        TenantService,
+        { provide: SnackbarService, useValue: snackbarSpy },
+        { provide: ErrorHandlerService, useValue: errorHandlerSpy },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+      ],
     });
+
+    service = TestBed.inject(TenantService);
+    httpMock = TestBed.inject(HttpTestingController);
+    snackbarService = TestBed.inject(
+      SnackbarService
+    ) as jasmine.SpyObj<SnackbarService>;
+    errorHandlerService = TestBed.inject(
+      ErrorHandlerService
+    ) as jasmine.SpyObj<ErrorHandlerService>;
+    errorHandlerService.handleError.and.callFake((error) => {
+      let errorMessage = '';
+      if (error.error?.message) {
+        errorMessage = error.error.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      snackbarService.openSnackBar(
+        `An error occurred: ${errorMessage}`,
+        'OK',
+        'center',
+        'bottom',
+        'snackbar-error'
+      );
+      return throwError(() => error);
+    });
+  });
+
+  afterEach(() => {
+    httpMock.verify();
+  });
+
+  describe('getAllTenantsList', () => {
+    it('should retrieve a flat list of tenants', () => {
+      const mockResponse: GenericApiResponse<Tenant[]> = {
+        success: true,
+        message: 'Fetched tenant list',
+        data: [mockTenant],
+        timestamp: '2026-08-13T15:14:06+01:00',
+      };
+
+      service.getAllTenantsList().subscribe((tenants) => {
+        expect(tenants.length).toBe(1);
+        expect(tenants[0]).toEqual(mockTenant);
+      });
+
+      const req = httpMock.expectOne(`${environment.TENANT_API_URL()}/list`);
+      expect(req.request.method).toBe('GET');
+      req.flush(mockResponse);
+    });
+  });
 
   describe('getAllTenants', () => {
     it('should retrieve all tenants successfully with default pagination', () => {
@@ -103,7 +154,7 @@ describe('TenantService', () => {
       req.flush(mockResponse);
     });
 
-    it('should send provided pagination and sorting parameters', () => {
+    it('should send provided pagination, sorting and filter parameters', () => {
       const mockResponse: PagedAPIResponse<Tenant> = {
         response: {
           success: true,
@@ -123,14 +174,16 @@ describe('TenantService', () => {
       };
 
       service
-        .getAllTenants({ page: 2, size: 10, sort: 'description', direction: 'desc' })
+        .getAllTenants({ name: 'Tenant', enabled: true }, { page: 2, size: 10, sort: 'description', direction: 'desc' })
         .subscribe();
 
       const req = httpMock.expectOne(req => {
         return req.url === environment.TENANT_API_URL() &&
                req.params.get('page') === '2' &&
                req.params.get('size') === '10' &&
-               req.params.get('sort') === 'description,desc';
+               req.params.get('sort') === 'description,desc' &&
+               req.params.get('name') === 'Tenant' &&
+               req.params.get('enabled') === 'true';
       });
       expect(req.request.method).toBe('GET');
       req.flush(mockResponse);
@@ -141,11 +194,11 @@ describe('TenantService', () => {
     it('should retrieve a tenant by ID successfully', () => {
       const tenantId = 'test-tenant-id';
       const mockResponse: GenericApiResponse<Tenant> = {
-            success: true,
-            message: 'Fetched tenant',
-            data: mockTenant,
-            timestamp: '2025-01-13T15:14:06+01:00',
-            };
+        success: true,
+        message: 'Fetched tenant',
+        data: mockTenant,
+        timestamp: '2025-01-13T15:14:06+01:00',
+      };
 
       service.getTenantById(tenantId).subscribe({
         next: (response) => {
@@ -163,13 +216,13 @@ describe('TenantService', () => {
     it('should handle error when tenant is not found', () => {
       const tenantId = 'non-existent-tenant-id';
       const mockErrorResponse: GenericApiResponse<Tenant> = {
-              success: false,
-              message: `Tenant with id: ${tenantId} not found`,
-              timestamp: '2025-01-13T15:14:06+01:00',
-            };
+        success: false,
+        message: `Tenant with id: ${tenantId} not found`,
+        timestamp: '2025-01-13T15:14:06+01:00',
+      };
 
       service.getTenantById(tenantId).subscribe({
-        error: (error) => {},
+        error: () => {},
       });
 
       const req = httpMock.expectOne(`${environment.TENANT_API_URL()}/${tenantId}`);
@@ -186,14 +239,14 @@ describe('TenantService', () => {
 
   describe('createTenant', () => {
     it('should create a tenant successfully', () => {
-     const mockResponse: GenericApiResponse<Tenant> = {
-             success: true,
-             message: 'Tenant saved',
-             data: mockTenant,
-             timestamp: '2025-01-13T15:14:06+01:00',
-           };
+      const mockResponse: GenericApiResponse<Tenant> = {
+        success: true,
+        message: 'Tenant saved',
+        data: mockTenant,
+        timestamp: '2025-01-13T15:14:06+01:00',
+      };
 
-      service.createTenant(mockTenant).subscribe({
+      service.createTenant(mockCreateRequest).subscribe({
         next: (response) => {
           expect(response).toEqual(mockTenant);
         },
@@ -201,7 +254,7 @@ describe('TenantService', () => {
 
       const req = httpMock.expectOne(environment.TENANT_API_URL());
       expect(req.request.method).toBe('POST');
-      expect(req.request.body).toEqual(mockTenant);
+      expect(req.request.body).toEqual(mockCreateRequest);
       req.flush(mockResponse);
 
       expect(snackbarService.openSnackBar).toHaveBeenCalledWith(
@@ -220,19 +273,19 @@ describe('TenantService', () => {
         timestamp: '2026-08-13T15:14:06+01:00',
       };
 
-      service.createTenant(mockTenant).subscribe({
-        error: (error) => {},
+      service.createTenant(mockCreateRequest).subscribe({
+        error: () => {},
       });
 
       const req = httpMock.expectOne(environment.TENANT_API_URL());
       expect(req.request.method).toBe('POST');
-      expect(req.request.body).toEqual(mockTenant);
+      expect(req.request.body).toEqual(mockCreateRequest);
 
       req.flush(mockErrorResponse, {
         status: 400,
         statusText: 'Bad Request',
       });
-    
+
       expect(snackbarService.openSnackBar).toHaveBeenCalledWith(
         'An error occurred: Tenant could not be saved',
         'OK',
@@ -253,7 +306,7 @@ describe('TenantService', () => {
         timestamp: '2025-01-13T15:14:06+01:00',
       };
 
-      service.updateTenant(tenantId, mockTenant).subscribe({
+      service.updateTenant(tenantId, mockUpdateRequest).subscribe({
         next: (response) => {
           expect(response).toEqual(mockTenant);
         },
@@ -261,7 +314,7 @@ describe('TenantService', () => {
 
       const req = httpMock.expectOne(`${environment.TENANT_API_URL()}/${tenantId}`);
       expect(req.request.method).toBe('PUT');
-      expect(req.request.body).toEqual(mockTenant);
+      expect(req.request.body).toEqual(mockUpdateRequest);
       req.flush(mockResponse);
 
       expect(snackbarService.openSnackBar).toHaveBeenCalledWith(
@@ -281,13 +334,13 @@ describe('TenantService', () => {
         timestamp: '2026-08-13T15:14:06+01:00',
       };
 
-      service.updateTenant(tenantId, mockTenant).subscribe({
-        error: (error) => {},
+      service.updateTenant(tenantId, mockUpdateRequest).subscribe({
+        error: () => {},
       });
 
       const req = httpMock.expectOne(`${environment.TENANT_API_URL()}/${tenantId}`);
       expect(req.request.method).toBe('PUT');
-      expect(req.request.body).toEqual(mockTenant);
+      expect(req.request.body).toEqual(mockUpdateRequest);
       req.flush(mockErrorResponse, { status: 400, statusText: 'Bad Request' });
 
       expect(snackbarService.openSnackBar).toHaveBeenCalledWith(
@@ -310,7 +363,7 @@ describe('TenantService', () => {
         timestamp: '2025-01-13T15:14:06+01:00',
       };
 
-      service.enableTeanant(tenantId).subscribe({
+      service.enableTenant(tenantId).subscribe({
         next: (response) => {
           expect(response.enabled).toBe(true);
         },
@@ -361,18 +414,18 @@ describe('TenantService', () => {
   });
 
   describe('deleteTenant', () => {
-    it('should delete a tenant successfully', () => {
+    it('should delete a tenant successfully and return the message', () => {
       const tenantId = 'test-tenant-id';
-      const mockResponse: GenericApiResponse<Tenant> = {
+      const mockResponse: GenericApiResponse<null> = {
         success: true,
         message: 'Tenant deleted',
-        data: mockTenant,
+        data: null,
         timestamp: '2025-01-13T15:14:06+01:00',
       };
 
       service.deleteTenant(tenantId).subscribe({
-        next: (response) => {
-          expect(response).toEqual(mockTenant);
+        next: (message) => {
+          expect(message).toBe('Tenant deleted');
         },
       });
 
@@ -398,7 +451,7 @@ describe('TenantService', () => {
       };
 
       service.deleteTenant(tenantId).subscribe({
-        error: (error) => {},
+        error: () => {},
       });
 
       const req = httpMock.expectOne(`${environment.TENANT_API_URL()}/${tenantId}`);
