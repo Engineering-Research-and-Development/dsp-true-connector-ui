@@ -20,6 +20,7 @@ import { environment } from '../environments/environment';
 import { AuthService } from './services/auth/auth.service';
 import { UserService } from './services/user/user.service';
 import { User } from './models/user';
+import { UserRole } from './models/enums/user-role.enum';
 
 @Component({
   selector: 'app-root',
@@ -54,6 +55,10 @@ export class AppComponent implements OnInit, OnDestroy {
   isUserLoggedIn = false;
 
   currentUser: User | null = null;
+
+  isSuperAdmin(): boolean {
+    return this.currentUser?.role === UserRole.SUPER_ADMIN;
+  }
 
   selectedMultipartType = localStorage.getItem('multipartType') || 'form';
 
@@ -199,11 +204,13 @@ export class AppComponent implements OnInit, OnDestroy {
     this.authService.logout().subscribe({
       next: () => {
         this.currentUser = null;
+        this.userService.clearCurrentUser();
         console.log('Logout successful');
         this.router.navigate(['/login']);
       },
       error: (error) => {
         this.currentUser = null;
+        this.userService.clearCurrentUser();
         console.error('Logout failed', error);
         this.router.navigate(['/login']);
       }

@@ -121,7 +121,7 @@
             </mat-list-item>
           </a>
         </div>
-        <div class="configuration">
+        <div class="configuration" *ngIf="isSuperAdmin()">
           <a routerLink="/connector-configuration" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
             <mat-list-item>
               <mat-icon>settings</mat-icon>
@@ -129,7 +129,7 @@
             </mat-list-item>
           </a>
         </div>
-        <div class="configuration">
+        <div class="configuration" *ngIf="isSuperAdmin()">
           <a routerLink="/tenant" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
             <mat-list-item>
               <mat-icon>corporate_fare</mat-icon>
@@ -137,7 +137,7 @@
             </mat-list-item>
           </a>
         </div>
-        <div class="configuration">
+        <div class="configuration" *ngIf="isSuperAdmin()">
           <a routerLink="/user-management" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" [class.active-parent]="userManagementActive">
             <mat-list-item>
               <mat-icon>people</mat-icon>

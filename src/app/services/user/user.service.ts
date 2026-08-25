@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, map, Observable } from 'rxjs';
+import { BehaviorSubject, catchError, finalize, map, Observable, of, shareReplay, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { GenericApiResponse, PagedAPIResponse } from '../../models/genericApiResponse';
 import { User } from '../../models/user';
@@ -14,6 +14,10 @@ import { SnackbarService } from '../snackbar/snackbar.service';
 })
 export class UserService {
   private apiUrl = environment.USER_API_URL();
+
+  private currentUserSubject = new BehaviorSubject<User | null>(null);
+  currentUser$ = this.currentUserSubject.asObservable();
+  private currentUserRequest$: Observable<User> | null = null;
 
   httpOptions = {
     headers: new HttpHeaders({
@@ -96,22 +100,46 @@ export class UserService {
   }
 
   /**
-   * Get the currently authenticated user
+   * Get the currently authenticated user.
+   * Returns the cached user if available; otherwise fetches and caches it.
+   * Concurrent calls share the same in-flight request.
    * @returns Observable<User>
    */
   getCurrentUser(): Observable<User> {
-    return this.http
-      .get<GenericApiResponse<User>>(`${this.apiUrl}/me`, this.httpOptions)
-      .pipe(
-        map((response: GenericApiResponse<User>) => {
-          if (response.success && response.data) {
-            return response.data;
-          } else {
-            throw new Error(response.message);
-          }
-        }),
-        catchError((error) => this.errorHandlerService.handleError(error))
-      );
+    const cachedUser = this.currentUserSubject.value;
+    if (cachedUser) {
+      return of(cachedUser);
+    }
+
+    if (!this.currentUserRequest$) {
+      this.currentUserRequest$ = this.http
+        .get<GenericApiResponse<User>>(`${this.apiUrl}/me`, this.httpOptions)
+        .pipe(
+          map((response: GenericApiResponse<User>) => {
+            if (response.success && response.data) {
+              return response.data;
+            } else {
+              throw new Error(response.message);
+            }
+          }),
+          tap((user) => this.currentUserSubject.next(user)),
+          catchError((error) => this.errorHandlerService.handleError(error)),
+          shareReplay(1),
+          finalize(() => {
+            this.currentUserRequest$ = null;
+          })
+        );
+    }
+
+    return this.currentUserRequest$;
+  }
+
+  /**
+   * Clear the cached current user. Call on logout to avoid stale data.
+   */
+  clearCurrentUser(): void {
+    this.currentUserSubject.next(null);
+    this.currentUserRequest$ = null;
   }
 
   /**

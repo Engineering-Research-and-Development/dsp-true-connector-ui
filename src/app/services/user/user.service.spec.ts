@@ -7,6 +7,7 @@ import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http'
 import { throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { UserRole } from '../../models/enums/user-role.enum';
+import { User } from '../../models/user';
 import { ErrorHandlerService } from '../error-handler/error-handler.service';
 import { SnackbarService } from '../snackbar/snackbar.service';
 import { UserService } from './user.service';
@@ -121,6 +122,75 @@ describe('UserService', () => {
       message: 'User created',
       data: { ...request, id: '1', role: UserRole.ADMIN, enabled: true, expired: false, locked: false },
       timestamp: new Date().toISOString(),
+    });
+  });
+
+  describe('currentUser cache', () => {
+    const mockUser: User = {
+      id: '1',
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'john@example.com',
+      role: UserRole.SUPER_ADMIN,
+      tenantId: null,
+      enabled: true,
+      expired: false,
+      locked: false,
+    };
+
+    it('should fetch and cache currentUser on first call', () => {
+      service.getCurrentUser().subscribe((user) => {
+        expect(user).toEqual(mockUser);
+      });
+
+      const req = httpMock.expectOne(`${apiUrl}/me`);
+      expect(req.request.method).toBe('GET');
+      req.flush({
+        success: true,
+        message: 'OK',
+        data: mockUser,
+        timestamp: new Date().toISOString(),
+      });
+
+      service.currentUser$.subscribe((cached) => {
+        expect(cached).toEqual(mockUser);
+      });
+    });
+
+    it('should return cached currentUser without a second HTTP call', () => {
+      service.getCurrentUser().subscribe();
+
+      const req = httpMock.expectOne(`${apiUrl}/me`);
+      req.flush({
+        success: true,
+        message: 'OK',
+        data: mockUser,
+        timestamp: new Date().toISOString(),
+      });
+
+      service.getCurrentUser().subscribe((user) => {
+        expect(user).toEqual(mockUser);
+      });
+
+      httpMock.verify();
+    });
+
+    it('should clear cached currentUser', () => {
+      service.getCurrentUser().subscribe();
+
+      const req = httpMock.expectOne(`${apiUrl}/me`);
+      req.flush({
+        success: true,
+        message: 'OK',
+        data: mockUser,
+        timestamp: new Date().toISOString(),
+      });
+
+      service.clearCurrentUser();
+
+      service.currentUser$.subscribe((cached) => {
+        expect(cached).toBeNull();
+      });
     });
   });
 });
