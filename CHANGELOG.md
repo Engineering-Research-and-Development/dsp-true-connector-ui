@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 # [Unreleased]
 
 ### Added
+
 - New **User Management** screen (`/user-management`) with listing, filtering, sorting, pagination, and create/view/edit/delete operations, reusing the Contract Negotiation card layout and Dataset details form pattern.
 - `UserService` for backend communication with the `/users` API, including a `getCurrentUser()` call to `/api/v1/users/me`.
 - `TenantService.getAllTenantsList()` to populate the user creation tenant dropdown.
