@@ -128,14 +128,14 @@ button[mat-button] mat-icon {
 }
 
 .filter-content {
-  padding: 16px 8px;
+  padding: 16px 8px 8px 8px;
 }
 
 .filter-fields-row {
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
-  align-items: flex-end;
+  align-items: center;
 }
 
 .filter-field {
@@ -143,12 +143,13 @@ button[mat-button] mat-icon {
   flex: 1 1 180px;
 }
 
-/* Filter Actions Inline & Alignment */
+/* Filter Actions Aligned (Contract Negotiation Style) */
 .filter-actions-inline {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
-  margin-bottom: 6px;
+  height: 56px;
+  margin-left: auto;
 }
 
 .filter-actions-inline button {
@@ -156,7 +157,7 @@ button[mat-button] mat-icon {
   height: 36px;
 }
 
-/* Apply button - Soft Purple Gradient Pill */
+/* Apply button - Gradient pill */
 .filter-actions-inline button[mat-raised-button] {
   background: linear-gradient(140deg, #8a9eed 0%, #b1c0ff 100%) !important;
   color: #ffffff !important;
@@ -184,7 +185,7 @@ button[mat-button] mat-icon {
   margin: 0 !important;
 }
 
-/* Clear button - Purple Text Pill */
+/* Clear button - Purple text pill */
 .filter-actions-inline button[mat-button] {
   color: #4a2db6 !important;
   font-weight: 500 !important;
@@ -212,6 +213,7 @@ button[mat-button] mat-icon {
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .sort-option {
@@ -486,6 +488,7 @@ button[mat-button] mat-icon {
   .filter-actions-inline {
     width: 100%;
     justify-content: flex-end;
+    margin-left: 0;
   }
 
   .service-card {

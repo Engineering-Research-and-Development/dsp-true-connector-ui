@@ -11,20 +11,16 @@
     <mat-card-content>
       <div class="headtitle">
         <div class="back">
-          <h1>Tenant Management</h1>
+          <h1>User Management</h1>
           <mat-icon
             class="help-icon"
-            matTooltip="Here you can manage tenants. You can view, create, edit, enable/disable, or delete tenants."
-            aria-label="Help regarding tenant management"
-            >help_outline</mat-icon
-          >
+            matTooltip="Here you can manage connector users. You can view, create, edit, or delete users."
+            aria-label="Help regarding user management"
+          >help_outline</mat-icon>
         </div>
         <div class="buttons">
-          <button mat-button matTooltip="Add new tenant" (click)="onAdd()">
+          <button mat-button matTooltip="Add new user" (click)="onAdd()">
             <mat-icon>add</mat-icon>
-          </button>
-          <button mat-button matTooltip="Refresh data" (click)="fetchTenants()">
-            <mat-icon>cached</mat-icon>
           </button>
         </div>
       </div>
@@ -38,35 +34,98 @@
             <mat-expansion-panel-header>
               <mat-panel-title>
                 <mat-icon>filter_list</mat-icon>
-                Filters
+                Advanced Filters
               </mat-panel-title>
               <mat-panel-description>
-                Filter tenants by name and status
+                Filter users by name, email, role, tenant, and status
               </mat-panel-description>
             </mat-expansion-panel-header>
 
             <div class="filter-content">
               <div class="filter-fields-row">
                 <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
-                  <mat-label>Name</mat-label>
+                  <mat-label>First Name</mat-label>
                   <input
                     matInput
-                    [(ngModel)]="nameFilter"
-                    placeholder="Enter tenant name"
+                    [(ngModel)]="firstNameFilter"
+                    placeholder="Enter first name"
                   />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
+                  <mat-label>Last Name</mat-label>
+                  <input
+                    matInput
+                    [(ngModel)]="lastNameFilter"
+                    placeholder="Enter last name"
+                  />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
+                  <mat-label>Email</mat-label>
+                  <input
+                    matInput
+                    [(ngModel)]="emailFilter"
+                    placeholder="Enter email"
+                  />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
+                  <mat-label>Role</mat-label>
+                  <mat-select [(value)]="selectedRole" placeholder="Select role">
+                    <mat-option [value]="null">All Roles</mat-option>
+                    <mat-option *ngFor="let role of userRoles" [value]="role">
+                      {{ role }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
+                  <mat-label>Tenant</mat-label>
+                  <mat-select
+                    [(value)]="selectedTenantId"
+                    placeholder="Select tenant"
+                  >
+                    <mat-option [value]="null">All Tenants</mat-option>
+                    <mat-option *ngFor="let tenant of tenants" [value]="tenant.id">
+                      {{ tenant.name }}
+                    </mat-option>
+                  </mat-select>
                 </mat-form-field>
 
                 <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
                   <mat-label>Enabled</mat-label>
                   <mat-select [(value)]="selectedEnabled">
-                    <mat-option *ngFor="let option of booleanOptions" [value]="option.value">
-                      {{ option.label }}
-                    </mat-option>
+                    <mat-option [value]="null">All</mat-option>
+                    <mat-option [value]="true">Yes</mat-option>
+                    <mat-option [value]="false">No</mat-option>
                   </mat-select>
                 </mat-form-field>
 
+                <!-- <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
+                  <mat-label>Expired</mat-label>
+                  <mat-select [(value)]="selectedExpired">
+                    <mat-option [value]="null">All</mat-option>
+                    <mat-option [value]="true">Yes</mat-option>
+                    <mat-option [value]="false">No</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
+                  <mat-label>Locked</mat-label>
+                  <mat-select [(value)]="selectedLocked">
+                    <mat-option [value]="null">All</mat-option>
+                    <mat-option [value]="true">Yes</mat-option>
+                    <mat-option [value]="false">No</mat-option>
+                  </mat-select>
+                </mat-form-field> -->
+
+                <!-- Filter Actions (Consistent with Contract Negotiation) -->
                 <div class="filter-actions-inline">
-                  <button mat-raised-button (click)="applyFilters()">
+                  <button
+                    mat-raised-button
+                    (click)="applyFilters()"
+                  >
                     <mat-icon>search</mat-icon>
                     Apply
                   </button>
@@ -127,43 +186,40 @@
         </div>
       </div>
 
-      <div class="space-card" *ngIf="tenants.length > 0">
-        <div *ngFor="let tenant of tenants" class="card-wrapper">
+      <div class="space-card" *ngIf="users.length > 0">
+        <div *ngFor="let user of users" class="card-wrapper">
           <div class="card">
             <div class="card-header">
               <div class="header-left">
-                <h2 class="card-title">{{ tenant.name }}</h2>
-                <p class="card-type">{{ tenant.id }}</p>
+                <h2 class="card-title">{{ user.firstName }} {{ user.lastName }}</h2>
+                <p class="card-type">{{ user.role }}</p>
               </div>
               <div class="status-badges">
-                <span
-                  class="state-badge"
-                  [ngClass]="tenant.enabled ? 'state-enabled' : 'state-disabled'"
-                >
-                  {{ tenant.enabled ? 'Enabled' : 'Disabled' }}
+                <span class="state-badge" [ngClass]="user.enabled ? 'state-enabled' : 'state-disabled'">
+                  {{ user.enabled ? 'Enabled' : 'Disabled' }}
                 </span>
-                <span *ngIf="tenant.automaticNegotiation" class="state-badge state-locked">
-                  Auto Negotiation
-                </span>
-                <span *ngIf="tenant.automaticTransfer" class="state-badge state-expired">
-                  Auto Transfer
-                </span>
+                <span *ngIf="user.locked" class="state-badge state-locked">Locked</span>
+                <span *ngIf="user.expired" class="state-badge state-expired">Expired</span>
               </div>
             </div>
 
             <div class="card-body">
               <div class="metadata-grid">
                 <div class="metadata-item">
-                  <span class="metadata-label">Participant ID</span>
-                  <span class="metadata-value">{{ tenant.participantId || '-' }}</span>
+                  <span class="metadata-label">ID</span>
+                  <span class="metadata-value">{{ user.id }}</span>
                 </div>
                 <div class="metadata-item">
-                  <span class="metadata-label">Description</span>
-                  <span class="metadata-value">{{ tenant.description || '-' }}</span>
+                  <span class="metadata-label">Email</span>
+                  <span class="metadata-value">{{ user.email }}</span>
                 </div>
                 <div class="metadata-item">
-                  <span class="metadata-label">Bucket Name</span>
-                  <span class="metadata-value">{{ tenant.bucketName || '-' }}</span>
+                  <span class="metadata-label">Tenant</span>
+                  <span class="metadata-value">{{ getTenantDisplayName(user.tenantId) }}</span>
+                </div>
+                <div class="metadata-item">
+                  <span class="metadata-label">Role</span>
+                  <span class="metadata-value">{{ user.role }}</span>
                 </div>
               </div>
             </div>
@@ -172,33 +228,24 @@
               <div class="btn-action">
                 <button
                   mat-icon-button
-                  matTooltip="View tenant"
-                  (click)="onView(tenant)"
+                  matTooltip="View user"
+                  (click)="onView(user)"
                   class="action-btn action-view"
                 >
                   <mat-icon>visibility</mat-icon>
                 </button>
                 <button
                   mat-icon-button
-                  matTooltip="Edit tenant"
-                  (click)="onEdit(tenant)"
+                  matTooltip="Edit user"
+                  (click)="onEdit(user)"
                   class="action-btn action-edit"
                 >
                   <mat-icon>edit</mat-icon>
                 </button>
                 <button
                   mat-icon-button
-                  matTooltip="{{ tenant.enabled ? 'Disable tenant' : 'Enable tenant' }}"
-                  (click)="onToggleEnabled(tenant)"
-                  class="action-btn"
-                  [ngClass]="tenant.enabled ? 'action-delete' : 'action-view'"
-                >
-                  <mat-icon>{{ tenant.enabled ? 'block' : 'check_circle' }}</mat-icon>
-                </button>
-                <button
-                  mat-icon-button
-                  matTooltip="Delete tenant"
-                  (click)="onDelete(tenant)"
+                  matTooltip="Delete user"
+                  (click)="onDelete(user)"
                   class="action-btn action-delete"
                 >
                   <mat-icon>delete</mat-icon>
@@ -209,9 +256,9 @@
         </div>
       </div>
 
-      <div *ngIf="tenants.length === 0" class="empty-state">
-        <mat-icon>search_off</mat-icon>
-        <span>No tenants found</span>
+      <div *ngIf="users.length === 0" class="empty-state">
+        <mat-icon>people_outline</mat-icon>
+        <span>No users found</span>
       </div>
 
       <mat-paginator
@@ -222,7 +269,7 @@
         [pageSizeOptions]="paginationState.pageSizeOptions"
         (page)="onPageChange($event)"
         showFirstLastButtons
-        aria-label="Select page of tenants"
+        aria-label="Select page of users"
       >
       </mat-paginator>
     </mat-card-content>
