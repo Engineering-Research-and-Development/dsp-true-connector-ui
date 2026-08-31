@@ -101,8 +101,8 @@
           <canvas
             baseChart
             [data]="negotiationStateChartData"
-            [options]="barChartOptions"
-            type="bar"
+            [options]="pieChartOptions"
+            type="pie"
           ></canvas>
         </div>
         <table mat-table [dataSource]="negotiationRoleStateRows" class="stats-table">
@@ -130,8 +130,8 @@
           <canvas
             baseChart
             [data]="transferStateChartData"
-            [options]="barChartOptions"
-            type="bar"
+            [options]="pieChartOptions"
+            type="pie"
           ></canvas>
         </div>
         <table mat-table [dataSource]="transferRoleStateRows" class="stats-table">

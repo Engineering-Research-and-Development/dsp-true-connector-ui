@@ -163,6 +163,37 @@ describe('DashboardComponent', () => {
     ]);
   });
 
+  it('should build negotiation/transfer state pie charts with semantic colors', () => {
+    fixture.detectChanges();
+
+    expect(component.negotiationStateChartData.labels).toEqual([
+      'REQUESTED',
+      'FINALIZED',
+    ]);
+    expect(
+      component.negotiationStateChartData.datasets[0].backgroundColor
+    ).toEqual(['#42a5f5', '#4caf50']);
+
+    expect(component.transferStateChartData.labels).toEqual([
+      'STARTED',
+      'COMPLETED',
+    ]);
+    expect(
+      component.transferStateChartData.datasets[0].backgroundColor
+    ).toEqual(['#5c6bc0', '#4caf50']);
+  });
+
+  it('should resolve reserved semantic colors for known states', () => {
+    expect(component.getStateColor('COMPLETED')).toBe('#4caf50');
+    expect(component.getStateColor('finalized')).toBe('#4caf50');
+    expect(component.getStateColor('TERMINATED')).toBe('#e53935');
+    expect(component.getStateColor('SUSPENDED')).toBe('#fdd835');
+  });
+
+  it('should fall back to the chart palette for unmapped states', () => {
+    expect(component.getStateColor('SOME_UNKNOWN_STATE')).toBeTruthy();
+  });
+
   it('should map countsOverTime into timeline chart datasets', () => {
     fixture.detectChanges();
 

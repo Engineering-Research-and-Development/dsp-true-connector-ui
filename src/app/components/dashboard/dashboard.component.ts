@@ -49,6 +49,34 @@ const CHART_PALETTE = [
   '#ab47bc',
 ];
 
+// Fixed, semantic colors for negotiation/transfer states, shared across both
+// pie charts so that states with the same name (e.g. REQUESTED, TERMINATED)
+// always render with the same color.
+const DASHBOARD_STATE_COLORS: Record<string, string> = {
+  COMPLETED: '#4caf50', // green
+  FINALIZED: '#4caf50', // green
+  TERMINATED: '#e53935', // red
+  SUSPENDED: '#fdd835', // yellow
+  REQUESTED: '#42a5f5', // blue
+  OFFERED: '#8a9eed', // periwinkle (app primary)
+  ACCEPTED: '#26a69a', // teal
+  AGREED: '#ffa726', // amber
+  VERIFIED: '#ab47bc', // purple
+  INITIALIZED: '#9e9e9e', // gray
+  STARTED: '#5c6bc0', // indigo
+};
+
+/**
+ * Resolves a fixed, semantic color for a negotiation/transfer state key. Falls
+ * back to cycling through the general chart palette for any unmapped state.
+ */
+function getStateColor(key: string, fallbackIndex: number): string {
+  return (
+    DASHBOARD_STATE_COLORS[key.toUpperCase()] ??
+    CHART_PALETTE[fallbackIndex % CHART_PALETTE.length]
+  );
+}
+
 @Component({
   selector: 'app-dashboard',
   imports: [
@@ -86,18 +114,18 @@ export class DashboardComponent implements OnInit {
   readonly roleStateColumns: string[] = ['role', 'state', 'count'];
   readonly keyCountColumns: string[] = ['key', 'count'];
 
-  negotiationStateChartData: ChartData<'bar'> = { labels: [], datasets: [] };
-  transferStateChartData: ChartData<'bar'> = { labels: [], datasets: [] };
+  negotiationStateChartData: ChartData<'pie'> = { labels: [], datasets: [] };
+  transferStateChartData: ChartData<'pie'> = { labels: [], datasets: [] };
   transferFormatChartData: ChartData<'doughnut'> = {
     labels: [],
     datasets: [],
   };
   eventsTimelineChartData: ChartData<'line'> = { labels: [], datasets: [] };
 
-  readonly barChartOptions: ChartConfiguration<'bar'>['options'] = {
+  readonly pieChartOptions: ChartConfiguration<'pie'>['options'] = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
+    plugins: { legend: { display: true, position: 'bottom' } },
   };
 
   readonly doughnutChartOptions: ChartConfiguration<'doughnut'>['options'] = {
@@ -159,14 +187,14 @@ export class DashboardComponent implements OnInit {
   }
 
   private buildViewModel(summary: DashboardSummaryResponse): void {
-    this.negotiationStateChartData = this.toBarChartData(
+    this.negotiationStateChartData = this.toPieChartData(
       summary.negotiations.countsByState
     );
     this.negotiationRoleStateRows = this.toRoleStateRows(
       summary.negotiations.countsByRoleAndState
     );
 
-    this.transferStateChartData = this.toBarChartData(
+    this.transferStateChartData = this.toPieChartData(
       summary.transfers.countsByState
     );
     this.transferRoleStateRows = this.toRoleStateRows(
@@ -179,14 +207,13 @@ export class DashboardComponent implements OnInit {
     this.eventsTimelineChartData = this.toTimelineChartData(summary);
   }
 
-  private toBarChartData(counts: KeyCount[]): ChartData<'bar'> {
+  private toPieChartData(counts: KeyCount[]): ChartData<'pie'> {
     return {
       labels: counts.map((c) => c.key),
       datasets: [
         {
-          label: 'Count',
           data: counts.map((c) => c.count),
-          backgroundColor: CHART_PALETTE[0],
+          backgroundColor: counts.map((c, i) => getStateColor(c.key, i)),
         },
       ],
     };
@@ -244,6 +271,14 @@ export class DashboardComponent implements OnInit {
 
   formatCpuRatio(value: number): string {
     return DashboardFormatHelper.formatCpuRatio(value);
+  }
+
+  /**
+   * Resolves the semantic color for a negotiation/transfer state (exposed
+   * publicly so it can be unit tested directly).
+   */
+  getStateColor(key: string): string {
+    return getStateColor(key, 0);
   }
 
   formatBytes(value: number): string {
