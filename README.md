@@ -23,6 +23,7 @@ For information on how to start connector with all modules, go to [user manual](
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Usage](#usage)
+  - [Statistics Dashboard](#statistics-dashboard)
   - [Catalog Browser](#catalog-browser)
   - [Catalog Management](#catalog-management)
   - [Service Management](#service-management)
@@ -41,6 +42,7 @@ For information on how to start connector with all modules, go to [user manual](
 
 ## Features
 
+- **Statistics Dashboard**: Landing page with negotiation, transfer, event, and runtime statistics for the connector.
 - **Catalog Browser**: View provider catalog data and initiate contract negotiations.
 - **Catalog Management**: Create, update, view, and delete catalog data of the connector.
 - **Service Management**: Create, update, view, and delete service data of the connector.
@@ -88,6 +90,10 @@ For information on how to start connector with all modules, go to [user manual](
    The application will be available at `http://localhost:4200` for Connector A, and at `http://localhost:4300` for Connector B.
 
 ## Usage
+
+### Statistics Dashboard
+
+The **Statistics Dashboard** is the landing page of the application. It shows KPI cards (total negotiations, total transfers, events processed in the selected time window, and process CPU usage), negotiation and transfer state charts with role/state breakdown tables, a transfer format breakdown and download-flag status cards, a historical events timeline, and a runtime panel (CPU, memory, thread count, and uptime). Use the time range and bucket (`hour`/`day`) selector at the top of the page to change the reporting window, then press "Refresh" to reload the data.
 
 ### Catalog Browser
 

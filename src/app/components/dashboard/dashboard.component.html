@@ -1,0 +1,257 @@
+<div *ngIf="loading" class="item">
+  <mat-card class="service-card">
+    <div class="loading-container">
+      <mat-spinner diameter="50"></mat-spinner>
+    </div>
+  </mat-card>
+</div>
+
+<div *ngIf="!loading && summary">
+  <mat-card class="service-card">
+    <mat-card-title class="service-title"></mat-card-title>
+    <mat-card-content>
+      <div class="headtitle">
+        <div class="back">
+          <h1>Statistics Dashboard</h1>
+          <mat-icon
+            class="help-icon"
+            matTooltip="Overview of negotiation, transfer, event and runtime statistics for the connector. Use the time range and bucket controls to change the reporting window, then press Refresh to reload."
+            aria-label="Help regarding the statistics dashboard"
+            >help_outline</mat-icon
+          >
+        </div>
+      </div>
+
+      <!-- Time window controls -->
+      <div class="filters-row">
+        <mat-form-field appearance="outline" class="filter-field date-field">
+          <mat-label>From Date</mat-label>
+          <input
+            matInput
+            [matDatepicker]="fromPicker"
+            [(ngModel)]="fromDateFilter"
+            placeholder="Select start date"
+            readonly
+          />
+          <mat-datepicker-toggle matSuffix [for]="fromPicker">
+          </mat-datepicker-toggle>
+          <mat-datepicker #fromPicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field date-field">
+          <mat-label>To Date</mat-label>
+          <input
+            matInput
+            [matDatepicker]="toPicker"
+            [(ngModel)]="toDateFilter"
+            placeholder="Select end date"
+            readonly
+          />
+          <mat-datepicker-toggle matSuffix [for]="toPicker">
+          </mat-datepicker-toggle>
+          <mat-datepicker #toPicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Bucket</mat-label>
+          <mat-select [(ngModel)]="bucket">
+            <mat-option *ngFor="let option of bucketOptions" [value]="option">
+              {{ option }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button
+          mat-raised-button
+          color="primary"
+          class="refresh-button"
+          (click)="refresh()"
+        >
+          <mat-icon>refresh</mat-icon>
+          Refresh
+        </button>
+      </div>
+
+      <!-- KPI cards -->
+      <div class="kpi-row">
+        <mat-card class="kpi-card">
+          <span class="kpi-label">Total Negotiations</span>
+          <span class="kpi-value">{{ summary.negotiations.total }}</span>
+        </mat-card>
+        <mat-card class="kpi-card">
+          <span class="kpi-label">Total Transfers</span>
+          <span class="kpi-value">{{ summary.transfers.total }}</span>
+        </mat-card>
+        <mat-card class="kpi-card">
+          <span class="kpi-label">Events In Window</span>
+          <span class="kpi-value">{{ summary.events.total }}</span>
+        </mat-card>
+        <mat-card class="kpi-card">
+          <span class="kpi-label">Process CPU</span>
+          <span class="kpi-value">{{
+            formatCpuRatio(summary.runtime.processCpuUsage)
+          }}</span>
+        </mat-card>
+      </div>
+
+      <!-- Negotiations -->
+      <h2>Negotiations</h2>
+      <div class="section-row">
+        <div class="chart-container">
+          <canvas
+            baseChart
+            [data]="negotiationStateChartData"
+            [options]="barChartOptions"
+            type="bar"
+          ></canvas>
+        </div>
+        <table mat-table [dataSource]="negotiationRoleStateRows" class="stats-table">
+          <ng-container matColumnDef="role">
+            <th mat-header-cell *matHeaderCellDef>Role</th>
+            <td mat-cell *matCellDef="let row">{{ row.role }}</td>
+          </ng-container>
+          <ng-container matColumnDef="state">
+            <th mat-header-cell *matHeaderCellDef>State</th>
+            <td mat-cell *matCellDef="let row">{{ row.state }}</td>
+          </ng-container>
+          <ng-container matColumnDef="count">
+            <th mat-header-cell *matHeaderCellDef>Count</th>
+            <td mat-cell *matCellDef="let row">{{ row.count }}</td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="roleStateColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: roleStateColumns"></tr>
+        </table>
+      </div>
+
+      <!-- Transfers -->
+      <h2>Transfers</h2>
+      <div class="section-row">
+        <div class="chart-container">
+          <canvas
+            baseChart
+            [data]="transferStateChartData"
+            [options]="barChartOptions"
+            type="bar"
+          ></canvas>
+        </div>
+        <table mat-table [dataSource]="transferRoleStateRows" class="stats-table">
+          <ng-container matColumnDef="role">
+            <th mat-header-cell *matHeaderCellDef>Role</th>
+            <td mat-cell *matCellDef="let row">{{ row.role }}</td>
+          </ng-container>
+          <ng-container matColumnDef="state">
+            <th mat-header-cell *matHeaderCellDef>State</th>
+            <td mat-cell *matCellDef="let row">{{ row.state }}</td>
+          </ng-container>
+          <ng-container matColumnDef="count">
+            <th mat-header-cell *matHeaderCellDef>Count</th>
+            <td mat-cell *matCellDef="let row">{{ row.count }}</td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="roleStateColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: roleStateColumns"></tr>
+        </table>
+      </div>
+      <div class="section-row">
+        <div class="chart-container chart-container--small">
+          <canvas
+            baseChart
+            [data]="transferFormatChartData"
+            [options]="doughnutChartOptions"
+            type="doughnut"
+          ></canvas>
+        </div>
+        <div class="status-cards">
+          <mat-card
+            *ngFor="let flag of summary.transfers.countsByDownloadFlag"
+            class="status-card"
+          >
+            <span class="kpi-label">{{ flag.key }}</span>
+            <span class="kpi-value">{{ flag.count }}</span>
+          </mat-card>
+        </div>
+      </div>
+
+      <!-- Events -->
+      <h2>Event History</h2>
+      <div class="section-row">
+        <div class="chart-container">
+          <canvas
+            baseChart
+            [data]="eventsTimelineChartData"
+            [options]="lineChartOptions"
+            type="line"
+          ></canvas>
+        </div>
+        <table mat-table [dataSource]="summary.events.countsByEventType" class="stats-table">
+          <ng-container matColumnDef="key">
+            <th mat-header-cell *matHeaderCellDef>Event Type</th>
+            <td mat-cell *matCellDef="let row">{{ row.key }}</td>
+          </ng-container>
+          <ng-container matColumnDef="count">
+            <th mat-header-cell *matHeaderCellDef>Count</th>
+            <td mat-cell *matCellDef="let row">{{ row.count }}</td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="keyCountColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: keyCountColumns"></tr>
+        </table>
+        <table mat-table [dataSource]="summary.events.countsByRole" class="stats-table">
+          <ng-container matColumnDef="key">
+            <th mat-header-cell *matHeaderCellDef>Role</th>
+            <td mat-cell *matCellDef="let row">{{ row.key }}</td>
+          </ng-container>
+          <ng-container matColumnDef="count">
+            <th mat-header-cell *matHeaderCellDef>Count</th>
+            <td mat-cell *matCellDef="let row">{{ row.count }}</td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="keyCountColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: keyCountColumns"></tr>
+        </table>
+      </div>
+
+      <!-- Runtime -->
+      <h2>Runtime</h2>
+      <div class="kpi-row">
+        <mat-card class="kpi-card">
+          <span class="kpi-label">Process CPU</span>
+          <span class="kpi-value">{{
+            formatCpuRatio(summary.runtime.processCpuUsage)
+          }}</span>
+        </mat-card>
+        <mat-card class="kpi-card">
+          <span class="kpi-label">System CPU</span>
+          <span class="kpi-value">{{
+            formatCpuRatio(summary.runtime.systemCpuUsage)
+          }}</span>
+        </mat-card>
+        <mat-card class="kpi-card">
+          <span class="kpi-label">Heap Used</span>
+          <span class="kpi-value">{{
+            formatBytes(summary.runtime.heapUsedBytes)
+          }}</span>
+        </mat-card>
+        <mat-card class="kpi-card">
+          <span class="kpi-label">Heap Max</span>
+          <span class="kpi-value">{{
+            formatBytes(summary.runtime.heapMaxBytes)
+          }}</span>
+        </mat-card>
+        <mat-card class="kpi-card">
+          <span class="kpi-label">Non-Heap Used</span>
+          <span class="kpi-value">{{
+            formatBytes(summary.runtime.nonHeapUsedBytes)
+          }}</span>
+        </mat-card>
+        <mat-card class="kpi-card">
+          <span class="kpi-label">Live Threads</span>
+          <span class="kpi-value">{{ summary.runtime.liveThreadCount }}</span>
+        </mat-card>
+        <mat-card class="kpi-card">
+          <span class="kpi-label">Uptime</span>
+          <span class="kpi-value">{{
+            formatUptime(summary.runtime.uptimeMilliseconds)
+          }}</span>
+        </mat-card>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

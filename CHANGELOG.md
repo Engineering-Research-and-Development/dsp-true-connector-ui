@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- New Statistics Dashboard (`/dashboard`), now the application's landing page, showing negotiation, transfer, event, and runtime statistics from the backend `/api/v1/dashboard` endpoints. Includes KPI cards, negotiation/transfer state charts with role/state breakdown tables, a transfer format breakdown with download-flag status cards, a historical events timeline, a runtime panel, and a time-range/bucket (`hour`/`day`) selector with manual refresh.
 - Proactive JWT expiration check before every outgoing HTTP request in `authInterceptor`; the access token is refreshed automatically via the refresh token before it expires.
 - Reactive 401 handling in `authInterceptor`: a single refresh-and-retry attempt on `401` responses, falling back to clearing the session and redirecting to `/login` (with `returnUrl`) if the retry also fails.
 - Refresh-request de-duplication in `AuthService` so concurrent requests that all need a new token trigger only one `/auth/refresh` call.
@@ -13,6 +14,8 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- The root route (`/`) now redirects to `/dashboard` instead of `/catalog-browser`; "Dashboard" is the first item in the sidenav.
+- Added `ng2-charts` and `chart.js` as dependencies for dashboard chart rendering.
 - Access token is now kept in memory only (never written to `localStorage`); the refresh token remains in `localStorage` so sessions still survive a browser restart. Any legacy `access_token` key left by a previous version is cleaned up automatically.
 - `AuthService.refresh()`/`logout()` now send the refresh token as `refresh_token` (snake_case) to match the backend's `@JsonProperty("refresh_token")` contract; previously requests sent camelCase `refreshToken` and would fail backend validation.
 

@@ -1,0 +1,136 @@
+/* Container and card styles (mirrors audit-trail.component.css conventions) */
+.service-card {
+  margin: 20px;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.headtitle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  min-height: 40px;
+}
+
+.back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.help-icon {
+  color: #8a9eed;
+  cursor: help;
+}
+
+/* Loading spinner styles */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  padding: 20px;
+}
+
+/* Time window controls */
+.filters-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.filter-field {
+  min-width: 160px;
+}
+
+.date-field {
+  width: 180px;
+}
+
+.refresh-button {
+  height: 56px;
+}
+
+/* KPI cards */
+.kpi-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.kpi-card,
+.status-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  min-width: 160px;
+  flex: 1 1 160px;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.kpi-label {
+  font-size: 13px;
+  color: #646464;
+  margin-bottom: 8px;
+}
+
+.kpi-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: #383838;
+}
+
+/* Section layout (chart + table side by side) */
+.section-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-bottom: 32px;
+  align-items: flex-start;
+}
+
+.chart-container {
+  position: relative;
+  flex: 1 1 400px;
+  min-width: 320px;
+  height: 300px;
+}
+
+.chart-container--small {
+  flex: 1 1 280px;
+  min-width: 240px;
+  height: 260px;
+}
+
+.stats-table {
+  flex: 1 1 320px;
+  min-width: 280px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.status-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  flex: 1 1 280px;
+}
+
+@media (max-width: 900px) {
+  .service-card {
+    margin: 10px;
+    padding: 16px;
+  }
+
+  .section-row {
+    flex-direction: column;
+  }
+}
