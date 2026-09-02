@@ -99,22 +99,64 @@
 
 .chart-container {
   position: relative;
-  flex: 1 1 400px;
-  min-width: 320px;
-  height: 300px;
+  flex: 1 1 360px;
+  min-width: 280px;
+  max-width: 420px;
+  height: 280px;
 }
 
 .chart-container--small {
-  flex: 1 1 280px;
-  min-width: 240px;
-  height: 260px;
+  flex: 1 1 240px;
+  min-width: 220px;
+  max-width: 320px;
+  height: 240px;
+}
+
+/* Event History timeline chart: full-width row, taller than the pie/doughnut
+   containers so its legend (up to ~11 series) and plot area both have room
+   instead of the plot being squashed into a sliver. */
+.chart-row {
+  margin-bottom: 24px;
+}
+
+.chart-container--timeline {
+  position: relative;
+  width: 100%;
+  max-width: none;
+  height: 420px;
+}
+
+.empty-state {
+  padding: 24px;
+  margin-bottom: 24px;
+  border-radius: 8px;
+  background: #f5f5f7;
+  color: #646464;
+  font-style: italic;
+  text-align: center;
 }
 
 .stats-table {
+  width: 100%;
+}
+
+.stats-table-wrapper {
   flex: 1 1 320px;
   min-width: 280px;
   max-height: 300px;
   overflow-y: auto;
+}
+
+/* Compact row density so tabular data doesn't leave large vertical gaps next
+   to the (comparatively small) charts. */
+.stats-table .mat-mdc-header-row,
+.stats-table .mat-mdc-row {
+  min-height: 36px;
+}
+
+.stats-table .mat-mdc-cell,
+.stats-table .mat-mdc-header-cell {
+  padding: 4px 12px;
 }
 
 .status-cards {

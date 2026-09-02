@@ -136,6 +136,29 @@ export class DashboardComponent implements OnInit {
   readonly lineChartOptions: ChartConfiguration<'line'>['options'] = {
     responsive: true,
     maintainAspectRatio: false,
+    // Multiple event-type series can overlap heavily; showing a combined
+    // tooltip for the hovered bucket (rather than requiring a pixel-perfect
+    // hover on a single line) makes it possible to actually read the data.
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: {
+        display: true,
+        position: 'bottom',
+        labels: { boxWidth: 12, boxHeight: 12, padding: 8 },
+      },
+      tooltip: { mode: 'index', intersect: false },
+    },
+    scales: {
+      x: {
+        ticks: {
+          autoSkip: true,
+          maxTicksLimit: 12,
+          maxRotation: 45,
+          minRotation: 0,
+        },
+      },
+      y: { beginAtZero: true },
+    },
   };
 
   negotiationRoleStateRows: RoleStateRow[] = [];
@@ -253,13 +276,37 @@ export class DashboardComponent implements OnInit {
       }),
       borderColor: CHART_PALETTE[index % CHART_PALETTE.length],
       backgroundColor: CHART_PALETTE[index % CHART_PALETTE.length],
+      borderWidth: 2,
+      pointRadius: 3,
+      pointHoverRadius: 5,
       fill: false,
     }));
 
     return {
-      labels: buckets.map((b) => new Date(b).toLocaleString()),
+      labels: buckets.map((b) => this.formatTimelineLabel(b)),
       datasets,
     };
+  }
+
+  /**
+   * Formats a bucket timestamp as a short, non-overlapping axis label (e.g.
+   * "Sep 24" for day buckets, "Sep 24, 2:00 AM" for hour buckets) instead of
+   * the full locale date-time string.
+   */
+  private formatTimelineLabel(bucketStart: string): string {
+    const date = new Date(bucketStart);
+    const isMidnight = date.getHours() === 0 && date.getMinutes() === 0;
+    return isMidnight
+      ? new Intl.DateTimeFormat(undefined, {
+          month: 'short',
+          day: 'numeric',
+        }).format(date)
+      : new Intl.DateTimeFormat(undefined, {
+          month: 'short',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+        }).format(date);
   }
 
   private toRoleStateRows(counts: KeyCount[]): RoleStateRow[] {
@@ -271,6 +318,22 @@ export class DashboardComponent implements OnInit {
 
   formatCpuRatio(value: number): string {
     return DashboardFormatHelper.formatCpuRatio(value);
+  }
+
+  /**
+   * These flags drive the "Select period to show ... data" empty-state
+   * messages so charts/tables don't render blank when a window has no data.
+   */
+  get hasNegotiationsData(): boolean {
+    return !!this.summary && this.summary.negotiations.countsByState.length > 0;
+  }
+
+  get hasTransfersData(): boolean {
+    return !!this.summary && this.summary.transfers.countsByState.length > 0;
+  }
+
+  get hasEventsData(): boolean {
+    return !!this.summary && this.summary.events.countsOverTime.length > 0;
   }
 
   /**

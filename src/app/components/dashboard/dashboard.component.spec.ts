@@ -201,6 +201,31 @@ describe('DashboardComponent', () => {
     expect(component.eventsTimelineChartData.datasets[0].data).toEqual([
       1, 2,
     ]);
+    // Bucket labels should be short (no full locale date-time string) so the
+    // x-axis doesn't overflow with overlapping text.
+    expect(component.eventsTimelineChartData.labels?.length).toBe(2);
+    (component.eventsTimelineChartData.labels as string[]).forEach((label) => {
+      expect(label.length).toBeLessThan(20);
+    });
+  });
+
+  it('should expose empty-state flags based on summary data', () => {
+    fixture.detectChanges();
+    expect(component.hasNegotiationsData).toBeTrue();
+    expect(component.hasTransfersData).toBeTrue();
+    expect(component.hasEventsData).toBeTrue();
+
+    dashboardServiceSpy.getSummary.and.returnValue(of(emptySummary));
+    component.refresh();
+    fixture.detectChanges();
+
+    expect(component.hasNegotiationsData).toBeFalse();
+    expect(component.hasTransfersData).toBeFalse();
+    expect(component.hasEventsData).toBeFalse();
+
+    const emptyStateEls =
+      fixture.nativeElement.querySelectorAll('.empty-state');
+    expect(emptyStateEls.length).toBeGreaterThan(0);
   });
 
   it('should re-fetch the summary with the selected bucket when refreshed', () => {
