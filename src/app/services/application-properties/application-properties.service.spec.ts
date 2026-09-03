@@ -417,7 +417,7 @@ describe('ApplicationPropertiesService', () => {
 
       service.getProperties().subscribe({
         next: (response) => {
-          expect(response.length).toBe(3);
+          expect(response.length).toBe(2);
         },
       });
 

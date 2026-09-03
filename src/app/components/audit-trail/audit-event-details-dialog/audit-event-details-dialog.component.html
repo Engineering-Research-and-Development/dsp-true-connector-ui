@@ -59,6 +59,13 @@
       </h3>
 
       <div class="info-row">
+        <span class="info-label">Tenant:</span>
+        <span class="info-value">
+          {{ auditEvent.tenantId || "-" }}
+        </span>
+      </div>
+
+      <div class="info-row">
         <span class="info-label">Username:</span>
         <span class="info-value">{{ auditEvent.username || "-" }}</span>
       </div>

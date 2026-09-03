@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -15,44 +15,52 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { NavigationEnd, Router, RouterModule, RouterOutlet } from '@angular/router';
-import { filter } from 'rxjs';
+import { filter, Subject, takeUntil } from 'rxjs';
 import { environment } from '../environments/environment';
 import { AuthService } from './services/auth/auth.service';
+import { UserService } from './services/user/user.service';
+import { User } from './models/user';
+import { UserRole } from './models/enums/user-role.enum';
 
 @Component({
-    selector: 'app-root',
-    imports: [
-        CommonModule,
-        MatToolbarModule,
-        MatIconModule,
-        MatButtonModule,
-        MatSidenavModule,
-        MatListModule,
-        RouterModule,
-        MatExpansionModule,
-        RouterOutlet,
-        MatDialogModule,
-        MatMenuModule,
-        MatFormFieldModule,
-        MatSelectModule,
-        FormsModule,
-        ReactiveFormsModule,
-    ],
-    templateUrl: './app.component.html',
-    styleUrls: ['./app.component.css']
+  selector: 'app-root',
+  imports: [
+    CommonModule,
+    MatToolbarModule,
+    MatIconModule,
+    MatButtonModule,
+    MatSidenavModule,
+    MatListModule,
+    RouterModule,
+    MatExpansionModule,
+    RouterOutlet,
+    MatDialogModule,
+    MatMenuModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    FormsModule,
+    ReactiveFormsModule,
+  ],
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
   title = 'TRUE Connector UI';
   appVersion = environment.APP_VERSION;
   currentYear = new Date().getFullYear();
   hasCustomLogo = environment.CUSTOM_LOGO_PRESENT === 'true';
   isExpanded = true;
-  isUserLoggedIn = true;
+  
+  // Track login state dynamically
+  isUserLoggedIn = false;
 
-  userName: string = '';
+  currentUser: User | null = null;
 
-  currentUserType: 'provider' | 'consumer' | null = null;
-  selectedMultipartType = localStorage.getItem('multipartType') || 'form'; // Default value for the multipart type
+  isSuperAdmin(): boolean {
+    return this.currentUser?.role === UserRole.SUPER_ADMIN;
+  }
+
+  selectedMultipartType = localStorage.getItem('multipartType') || 'form';
 
   // Track active routes for parent menu items
   catalogBrowserActive = false;
@@ -60,6 +68,7 @@ export class AppComponent implements OnInit {
   serviceManagementActive = false;
   distributionManagementActive = false;
   datasetManagementActive = false;
+  userManagementActive = false;
 
   @ViewChild('providerPanel') providerPanel!: MatExpansionPanel;
   @ViewChild('consumerPanel') consumerPanel!: MatExpansionPanel;
@@ -67,43 +76,48 @@ export class AppComponent implements OnInit {
   @ViewChild('contractNegotiationPanel') contractNegotiationPanel!: MatExpansionPanel;
   @ViewChild('dataTransfersPanel') dataTransfersPanel!: MatExpansionPanel;
 
+  private destroy$ = new Subject<void>();
+
   constructor(
     private dialog: MatDialog,
     private router: Router,
     public authService: AuthService,
-    private matIconReg: MatIconRegistry
+    private matIconReg: MatIconRegistry,
+    private userService: UserService,
   ) {}
 
-  /**
-   * Subscribes to authentication status and profile type updates, and navigates accordingly.
-   */
   ngOnInit() {
     this.matIconReg.setDefaultFontSetClass('material-symbols-outlined');
 
+    // Dynamically update login state and fetch/clear user info based on token state
+    this.authService.accessToken$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((token) => {
+        this.isUserLoggedIn = !!token;
+
+        if (token) {
+          this.fetchCurrentUser();
+        } else {
+          this.currentUser = null;
+        }
+      });
+
     // Track route changes to update active parent menu items
     this.router.events
-      .pipe(filter(event => event instanceof NavigationEnd))
+      .pipe(
+        filter((event) => event instanceof NavigationEnd),
+        takeUntil(this.destroy$)
+      )
       .subscribe((event: any) => {
         this.updateActiveMenuItems(event.urlAfterRedirects);
       });
 
     this.updateActiveMenuItems(this.router.url);
+  }
 
-    // this.authService.authStatus$.subscribe((status) => {
-    //   this.isUserLoggedIn = status.provider;
-    //   this.isConsumerLoggedIn = status.consumer;
-    //   if (!this.isUserLoggedIn && !this.isConsumerLoggedIn) {
-    //     this.router.navigate(['/login']);
-    //   } else if (this.isUserLoggedIn) {
-    //     this.setAccountType('provider');
-    //   } else if (this.isConsumerLoggedIn) {
-    //     this.setAccountType('consumer');
-    //   }
-    // });
-    // this.authService.currentProfileType$.subscribe((status) => {
-    //   this.currentUserType = status.profileType as 'provider' | 'consumer';
-    //   this.userName = this.authService.getUserName(this.currentUserType);
-    // });
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   /**
@@ -116,6 +130,7 @@ export class AppComponent implements OnInit {
     this.serviceManagementActive = false;
     this.distributionManagementActive = false;
     this.datasetManagementActive = false;
+    this.userManagementActive = false;
 
     // Check which specific route is active
     if (url.includes('/catalog-browser')) {
@@ -125,28 +140,43 @@ export class AppComponent implements OnInit {
       this.catalogManagementActive = true;
       this.closeAllPanels();
       this.catalogManagementPanel?.open();
-    } else if (url === '/catalog-management/service-management' ||
-        url.startsWith('/catalog-management/service-management/')) {
+    } else if (
+      url === '/catalog-management/service-management' ||
+      url.startsWith('/catalog-management/service-management/')
+    ) {
       this.serviceManagementActive = true;
       this.closeAllPanels();
       this.catalogManagementPanel?.open();
-    } else if (url === '/catalog-management/distribution-management' ||
-               url.startsWith('/catalog-management/distribution-management/')) {
+    } else if (
+      url === '/catalog-management/distribution-management' ||
+      url.startsWith('/catalog-management/distribution-management/')
+    ) {
       this.distributionManagementActive = true;
       this.closeAllPanels();
       this.catalogManagementPanel?.open();
-    } else if (url === '/catalog-management/dataset-management' ||
-               url.startsWith('/catalog-management/dataset-management/')) {
+    } else if (
+      url === '/catalog-management/dataset-management' ||
+      url.startsWith('/catalog-management/dataset-management/')
+    ) {
       this.datasetManagementActive = true;
       this.closeAllPanels();
       this.catalogManagementPanel?.open();
+    } else if (
+      url === '/user-management' ||
+      url.startsWith('/user-management/')
+    ) {
+      this.userManagementActive = true;
+      this.closeAllPanels();
     } else if (url.includes('/contract-negotiation')) {
       this.closeAllPanels();
       this.contractNegotiationPanel?.open();
     } else if (url.includes('/data-transfer')) {
       this.closeAllPanels();
       this.dataTransfersPanel?.open();
-    } else if (url.includes('/audit-trail') || url.includes('/connector-configuration')) {
+    } else if (
+      url.includes('/audit-trail') ||
+      url.includes('/connector-configuration')
+    ) {
       this.closeAllPanels();
     }
   }
@@ -161,27 +191,6 @@ export class AppComponent implements OnInit {
   }
 
   /**
-   * Sets the current user type and navigates to the appropriate page.
-   * @param type The type of user to set ('provider' or 'consumer').
-   */
-  setAccountType(type: 'provider' | 'consumer') {
-    // this.currentUserType = type;
-    // this.userName = this.authService.getUserName(type);
-    // this.authService.setCurrentUserType(type);
-    // if (type === 'provider') {
-    //   this.router.navigate(['/self-description']);
-    //   setTimeout(() => {
-    //     this.providerPanel.open();
-    //   });
-    // } else if (type === 'consumer') {
-    //   this.router.navigate(['/download-artifact']);
-    //   setTimeout(() => {
-    //     this.consumerPanel.open();
-    //   });
-    // }
-  }
-
-  /**
    * Toggles the state of the side navigation.
    */
   toggleSidenav() {
@@ -189,77 +198,63 @@ export class AppComponent implements OnInit {
   }
 
   /**
-   * Opens the login modal to allow the user to log in as a different user type.
-   */
-  loginAsDifferentUser() {
-    let newLoginUserType: string = '';
-    if (this.currentUserType === 'provider') {
-      newLoginUserType = 'consumer';
-    }
-    if (this.currentUserType === 'consumer') {
-      newLoginUserType = 'provider';
-    }
-  }
-
-  /**
    * Logs out the user by clearing authentication tokens and navigating to the login page.
    */
   logout() {
-    // this.authService.logout('provider');
-    // this.authService.logout('consumer');
-    this.currentUserType = null;
-    this.router.navigate(['/login']);
+    this.authService.logout().subscribe({
+      next: () => {
+        this.currentUser = null;
+        this.userService.clearCurrentUser();
+        console.log('Logout successful');
+        this.router.navigate(['/login']);
+      },
+      error: (error) => {
+        this.currentUser = null;
+        this.userService.clearCurrentUser();
+        console.error('Logout failed', error);
+        this.router.navigate(['/login']);
+      }
+    });
   }
 
-  /**
-   * Navigates to the contract negotiation page for providers and forces a refresh.
-   */
   goToProviderContractNegotiation() {
-    console.log('Navigating to contract negotiation page for providers');
     this.forceReload('/contract-negotiation', { userType: 'provider' });
   }
 
-  /**
-   * Navigates to the contract negotiation page for consumers and forces a refresh.
-   */
   goToConsumerContractNegotiation() {
-    console.log('Navigating to contract negotiation page for consumers');
     this.forceReload('/contract-negotiation', { userType: 'consumer' });
   }
 
-  /**
-   * Navigates to the contract negotiation page for providers and forces a refresh.
-   */
   goToProviderDataTransfers() {
-    console.log('Navigating to data transfers page for providers');
     this.forceReload('/data-transfer', { userType: 'provider' });
   }
 
-  /**
-   * Navigates to the contract negotiation page for consumers and forces a refresh.
-   */
   goToConsumerDataTransfers() {
-    console.log('Navigating to data transfers  page for consumers');
     this.forceReload('/data-transfer', { userType: 'consumer' });
   }
 
-  /**
-   * Navigates to the data consumption page
-   * */
   goToDataConsumption() {
-    console.log('Navigating to data consumption page');
     this.router.navigate(['/data-consumption']);
   }
 
-  /**
-   * Forces a refresh by temporarily navigating to a different URL and then back to the desired URL.
-   * @param targetUrl The target URL to navigate to.
-   * @param state The state object to pass to the target URL.
-   */
   private forceReload(targetUrl: string, state: any) {
-    // Navigate away to a temporary route and then back to force a refresh
     this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
       this.router.navigate([targetUrl], { state });
     });
+  }
+
+  fetchCurrentUser(): void {
+    this.userService
+      .getCurrentUser()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (user) => {
+          this.currentUser = user;
+        },
+        error: (error) => {
+          console.error('Error fetching current user:', error);
+          this.currentUser = null;
+        },
+      });
   }
 }

@@ -66,17 +66,14 @@ export class AuditEventDetailsDialogComponent {
   }
 
   /**
-   * Check if details object has any content
+   * Check if details object has remaining items after excluding main sections
    */
   hasDetails(): boolean {
-    return (
-      this.auditEvent.details != null &&
-      Object.keys(this.auditEvent.details).length > 0
-    );
+    return this.getStructuredDetails().length > 0;
   }
 
   /**
-   * Get structured details for display - show actual JSON content
+   * Get structured details for display - excluding fields already rendered in main sections
    */
   getStructuredDetails(): Array<{
     key: string;
@@ -93,7 +90,6 @@ export class AuditEventDetailsDialogComponent {
       isComplex?: boolean;
     }> = [];
 
-    // Handle specific known fields with better formatting
     const detailsObj = this.auditEvent.details;
 
     // Contract Negotiation details
@@ -130,9 +126,21 @@ export class AuditEventDetailsDialogComponent {
         });
     }
 
+    // Keys that are already explicitly rendered in main dialog sections
+    const excludedKeys = [
+      'contractnegotiation',
+      'datatransfer',
+      'tenantid',
+      'tenant_id',
+      'tenant',
+      'email',
+      'username',
+      'source',
+    ];
+
     // Handle other fields - show full JSON for complex objects
     Object.keys(detailsObj).forEach((key) => {
-      if (key === 'contractNegotiation' || key === 'dataTransfer') return; // Already handled
+      if (excludedKeys.includes(key.toLowerCase())) return;
 
       const value = detailsObj[key];
       if (value !== null && value !== undefined) {
