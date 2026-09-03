@@ -5,8 +5,13 @@ All notable changes to this project will be documented in this file.
 # [Unreleased]
 
 ### Added
-
 - New Statistics Dashboard (`/dashboard`), now the application's landing page, showing negotiation, transfer, event, and runtime statistics from the backend `/api/v1/dashboard` endpoints. Includes KPI cards, negotiation/transfer state charts with role/state breakdown tables, a transfer format breakdown with download-flag status cards, a historical events timeline, a runtime panel, and a time-range/bucket (`hour`/`day`) selector with manual refresh.
+- New **User Management** screen (`/user-management`) with listing, filtering, sorting, pagination, and create/view/edit/delete operations, reusing the Contract Negotiation card layout and Dataset details form pattern.
+- `UserService` for backend communication with the `/users` API, including a `getCurrentUser()` call to `/api/v1/users/me`.
+- `TenantService.getAllTenantsList()` to populate the user creation tenant dropdown.
+- `UserRole` enum and `UserCreateRequest` / `UserUpdateRequest` models aligned with the backend contracts.
+- Added delete guards that are preventing removal of the current user and the only enabled SUPER_ADMIN.
+- Tenant management: card-based overview with filters, sorting and actions; new tenant create/view/edit detail page using reactive forms, edit-state tracking and S3 bucket credentials.
 - Proactive JWT expiration check before every outgoing HTTP request in `authInterceptor`; the access token is refreshed automatically via the refresh token before it expires.
 - Reactive 401 handling in `authInterceptor`: a single refresh-and-retry attempt on `401` responses, falling back to clearing the session and redirecting to `/login` (with `returnUrl`) if the retry also fails.
 - Refresh-request de-duplication in `AuthService` so concurrent requests that all need a new token trigger only one `/auth/refresh` call.
@@ -25,7 +30,7 @@ All notable changes to this project will be documented in this file.
 - `auth.interceptor.spec.ts` and `auth.service.spec.ts` rewritten to cover the new expiry/refresh/dedup logic (previously the interceptor spec still tested the old Basic-auth behavior and the service spec had only a placeholder test).
 - `login.component.spec.ts` now provides `HttpClient`/`Router`/`ActivatedRoute` test doubles required by `AuthService`/`LoginComponent`, fixing a pre-existing failure (the component construction previously depended on providers the spec never configured).
 
-# [0.6.3] - 03-07-2026.
+# [0.6.3] - 03-07-2026
 
 ### Added
 

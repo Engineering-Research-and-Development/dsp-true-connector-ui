@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { AuthGuard } from './auth.guard';
 import { LoginGuard } from './login.guard';
+import { SuperAdminGuard } from './super-admin.guard';
 
 export const routes: Routes = [
   // Public Login Route
@@ -137,20 +138,58 @@ export const routes: Routes = [
         title: 'Data Transfer',
       },
       {
-        path: 'connector-configuration',
-        loadComponent: () =>
-          import(
-            './components/connector-configuration/connector-configuration.component'
-          ).then((m) => m.ConnectorConfigurationComponent),
-        title: 'Connector Configuration',
-      },
-      {
         path: 'audit-trail',
         loadComponent: () =>
           import('./components/audit-trail/audit-trail.component').then(
             (m) => m.AuditTrailComponent
           ),
         title: 'Audit Trail',
+      },
+      {
+        path: '',
+        canActivateChild: [SuperAdminGuard],
+        children: [
+          {
+            path: 'connector-configuration',
+            loadComponent: () =>
+              import(
+                './components/connector-configuration/connector-configuration.component'
+              ).then((m) => m.ConnectorConfigurationComponent),
+            title: 'Connector Configuration',
+          },
+          {
+            path: 'tenant',
+            loadComponent: () =>
+              import('./components/tenant/tenant.component').then(
+                (m) => m.TenantComponent
+              ),
+            title: 'Tenant Management',
+          },
+          {
+            path: 'tenant/details',
+            loadComponent: () =>
+              import(
+                './components/tenant/tenant-details/tenant-details.component'
+              ).then((m) => m.TenantDetailsComponent),
+            title: 'Tenant Details',
+          },
+          {
+            path: 'user-management',
+            loadComponent: () =>
+              import(
+                './components/user-management/user-management.component'
+              ).then((m) => m.UserManagementComponent),
+            title: 'User Management',
+          },
+          {
+            path: 'user-management/details',
+            loadComponent: () =>
+              import(
+                './components/user-management/user-details/user-details.component'
+              ).then((m) => m.UserDetailsComponent),
+            title: 'User Details',
+          },
+        ],
       },
     ],
   },

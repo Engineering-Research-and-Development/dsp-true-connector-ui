@@ -14,5 +14,7 @@ export const environment = {
   PROXY_API_URL: () => `${environment.TC_ROOT_API_URL}/proxy`,
   PROPERTIES_API_URL: () => `${environment.TC_ROOT_API_URL}/properties`,
   AUDIT_API_URL: () => `${environment.TC_ROOT_API_URL}/audit`,
+  TENANT_API_URL: () => `${environment.TC_ROOT_API_URL}/tenants`,
+  USER_API_URL: () => `${environment.TC_ROOT_API_URL}/users`,
   DASHBOARD_API_URL: () => `${environment.TC_ROOT_API_URL}/dashboard`,
 };

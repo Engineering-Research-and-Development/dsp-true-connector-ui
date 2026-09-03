@@ -81,7 +81,7 @@ describe('DataTransferService', () => {
       req.flush(mockResponse);
 
       expect(snackbarService.openSnackBar).toHaveBeenCalledWith(
-        mockResponse.message,
+        'Transfer request initiated successfully!',
         'OK',
         'center',
         'bottom',
@@ -579,75 +579,89 @@ describe('DataTransferService', () => {
 
   describe('viewArtifact', () => {
     it('should view artifact successfully', () => {
-      const presignedUrl = 'https://example.com/presigned-url';
+      const filename = 'test-file.txt';
+      const presignedUrl = `https://example.com/presigned-url?response-content-disposition=attachment%3B%20filename%3D%22${filename}%22`;
       const transferId = 'test-transfer-id';
-      const mockBlob = new Blob(['test content'], { type: 'text/plain' });
-      const mockResponse = {
-        body: mockBlob,
-        headers: new HttpHeaders({
-          'Content-Disposition': 'attachment; filename="test-file.txt"',
-        }),
-      };
 
       const mockLink = {
         href: '',
         download: '',
+        target: '',
+        style: { display: '' },
         click: jasmine.createSpy('click'),
       };
       spyOn(document, 'createElement').and.returnValue(mockLink as any);
-      spyOn(window.URL, 'createObjectURL').and.returnValue('mock-url');
-      spyOn(window.URL, 'revokeObjectURL');
+      spyOn(document.body, 'appendChild');
+      spyOn(document.body, 'removeChild');
 
       service.viewArtifact(presignedUrl, transferId).subscribe({
         next: (response) => {
-          expect(response).toBeTruthy();
-          expect(mockLink.download).toBe('test-file.txt');
+          expect(response).toBeTrue();
+          expect(mockLink.href).toBe(presignedUrl);
+          expect(mockLink.download).toBe(filename);
+          expect(mockLink.target).toBe('_blank');
+          expect(mockLink.style.display).toBe('none');
           expect(mockLink.click).toHaveBeenCalled();
-          expect(window.URL.createObjectURL).toHaveBeenCalledWith(mockBlob);
-          expect(window.URL.revokeObjectURL).toHaveBeenCalledWith('mock-url');
+          expect(document.body.appendChild).toHaveBeenCalledWith(mockLink as any);
+          expect(document.body.removeChild).toHaveBeenCalledWith(mockLink as any);
         },
       });
 
-      const req = httpMock.expectOne(presignedUrl);
-      expect(req.request.method).toBe('GET');
-      expect(req.request.responseType).toBe('blob');
-      req.flush(mockBlob, {
-        headers: new HttpHeaders({
-          'Content-Disposition': 'attachment; filename="test-file.txt"',
-        }),
-      });
+      expect(snackbarService.openSnackBar).toHaveBeenCalledWith(
+        'Starting download...',
+        'OK',
+        'center',
+        'bottom',
+        'snackbar-success'
+      );
+      expect(snackbarService.openSnackBar).toHaveBeenCalledWith(
+        'Download initiated successfully!',
+        'OK',
+        'center',
+        'bottom',
+        'snackbar-success'
+      );
     });
 
     it('should handle missing content disposition header', () => {
       const presignedUrl = 'https://example.com/presigned-url';
       const transferId = 'test-transfer-id';
-      const mockBlob = new Blob(['test content'], { type: 'text/plain' });
 
       const mockLink = {
         href: '',
         download: '',
+        target: '',
+        style: { display: '' },
         click: jasmine.createSpy('click'),
       };
       spyOn(document, 'createElement').and.returnValue(mockLink as any);
-      spyOn(window.URL, 'createObjectURL').and.returnValue('mock-url');
-      spyOn(window.URL, 'revokeObjectURL');
+      spyOn(document.body, 'appendChild');
+      spyOn(document.body, 'removeChild');
 
       service.viewArtifact(presignedUrl, transferId).subscribe({
         next: (response) => {
-          expect(response).toBeTruthy();
+          expect(response).toBeTrue();
           expect(mockLink.download).toBe('download');
           expect(mockLink.click).toHaveBeenCalled();
-          expect(window.URL.createObjectURL).toHaveBeenCalledWith(mockBlob);
-          expect(window.URL.revokeObjectURL).toHaveBeenCalledWith('mock-url');
+          expect(document.body.appendChild).toHaveBeenCalledWith(mockLink as any);
+          expect(document.body.removeChild).toHaveBeenCalledWith(mockLink as any);
         },
       });
 
-      const req = httpMock.expectOne(presignedUrl);
-      expect(req.request.method).toBe('GET');
-      expect(req.request.responseType).toBe('blob');
-      req.flush(mockBlob, {
-        headers: new HttpHeaders({}), // No Content-Disposition header
-      });
+      expect(snackbarService.openSnackBar).toHaveBeenCalledWith(
+        'Starting download...',
+        'OK',
+        'center',
+        'bottom',
+        'snackbar-success'
+      );
+      expect(snackbarService.openSnackBar).toHaveBeenCalledWith(
+        'Download initiated successfully!',
+        'OK',
+        'center',
+        'bottom',
+        'snackbar-success'
+      );
     });
   });
 });

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -15,33 +15,36 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { NavigationEnd, Router, RouterModule, RouterOutlet } from '@angular/router';
-import { filter } from 'rxjs';
+import { filter, Subject, takeUntil } from 'rxjs';
 import { environment } from '../environments/environment';
 import { AuthService } from './services/auth/auth.service';
+import { UserService } from './services/user/user.service';
+import { User } from './models/user';
+import { UserRole } from './models/enums/user-role.enum';
 
 @Component({
-    selector: 'app-root',
-    imports: [
-        CommonModule,
-        MatToolbarModule,
-        MatIconModule,
-        MatButtonModule,
-        MatSidenavModule,
-        MatListModule,
-        RouterModule,
-        MatExpansionModule,
-        RouterOutlet,
-        MatDialogModule,
-        MatMenuModule,
-        MatFormFieldModule,
-        MatSelectModule,
-        FormsModule,
-        ReactiveFormsModule,
-    ],
-    templateUrl: './app.component.html',
-    styleUrls: ['./app.component.css']
+  selector: 'app-root',
+  imports: [
+    CommonModule,
+    MatToolbarModule,
+    MatIconModule,
+    MatButtonModule,
+    MatSidenavModule,
+    MatListModule,
+    RouterModule,
+    MatExpansionModule,
+    RouterOutlet,
+    MatDialogModule,
+    MatMenuModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    FormsModule,
+    ReactiveFormsModule,
+  ],
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
   title = 'TRUE Connector UI';
   appVersion = environment.APP_VERSION;
   currentYear = new Date().getFullYear();
@@ -51,9 +54,12 @@ export class AppComponent implements OnInit {
   // Track login state dynamically
   isUserLoggedIn = false;
 
-  userName: string = '';
+  currentUser: User | null = null;
 
-  currentUserType: 'provider' | 'consumer' | null = null;
+  isSuperAdmin(): boolean {
+    return this.currentUser?.role === UserRole.SUPER_ADMIN;
+  }
+
   selectedMultipartType = localStorage.getItem('multipartType') || 'form';
 
   // Track active routes for parent menu items
@@ -62,6 +68,7 @@ export class AppComponent implements OnInit {
   serviceManagementActive = false;
   distributionManagementActive = false;
   datasetManagementActive = false;
+  userManagementActive = false;
 
   @ViewChild('providerPanel') providerPanel!: MatExpansionPanel;
   @ViewChild('consumerPanel') consumerPanel!: MatExpansionPanel;
@@ -69,29 +76,48 @@ export class AppComponent implements OnInit {
   @ViewChild('contractNegotiationPanel') contractNegotiationPanel!: MatExpansionPanel;
   @ViewChild('dataTransfersPanel') dataTransfersPanel!: MatExpansionPanel;
 
+  private destroy$ = new Subject<void>();
+
   constructor(
     private dialog: MatDialog,
     private router: Router,
     public authService: AuthService,
-    private matIconReg: MatIconRegistry
+    private matIconReg: MatIconRegistry,
+    private userService: UserService,
   ) {}
 
   ngOnInit() {
     this.matIconReg.setDefaultFontSetClass('material-symbols-outlined');
 
-    // Dynamically update isUserLoggedIn based on accessToken$ stream
-    this.authService.accessToken$.subscribe((token) => {
-      this.isUserLoggedIn = !!token;
-    });
+    // Dynamically update login state and fetch/clear user info based on token state
+    this.authService.accessToken$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((token) => {
+        this.isUserLoggedIn = !!token;
+
+        if (token) {
+          this.fetchCurrentUser();
+        } else {
+          this.currentUser = null;
+        }
+      });
 
     // Track route changes to update active parent menu items
     this.router.events
-      .pipe(filter(event => event instanceof NavigationEnd))
+      .pipe(
+        filter((event) => event instanceof NavigationEnd),
+        takeUntil(this.destroy$)
+      )
       .subscribe((event: any) => {
         this.updateActiveMenuItems(event.urlAfterRedirects);
       });
 
     this.updateActiveMenuItems(this.router.url);
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   /**
@@ -104,6 +130,7 @@ export class AppComponent implements OnInit {
     this.serviceManagementActive = false;
     this.distributionManagementActive = false;
     this.datasetManagementActive = false;
+    this.userManagementActive = false;
 
     // Check which specific route is active
     if (url.includes('/catalog-browser')) {
@@ -113,28 +140,43 @@ export class AppComponent implements OnInit {
       this.catalogManagementActive = true;
       this.closeAllPanels();
       this.catalogManagementPanel?.open();
-    } else if (url === '/catalog-management/service-management' ||
-        url.startsWith('/catalog-management/service-management/')) {
+    } else if (
+      url === '/catalog-management/service-management' ||
+      url.startsWith('/catalog-management/service-management/')
+    ) {
       this.serviceManagementActive = true;
       this.closeAllPanels();
       this.catalogManagementPanel?.open();
-    } else if (url === '/catalog-management/distribution-management' ||
-               url.startsWith('/catalog-management/distribution-management/')) {
+    } else if (
+      url === '/catalog-management/distribution-management' ||
+      url.startsWith('/catalog-management/distribution-management/')
+    ) {
       this.distributionManagementActive = true;
       this.closeAllPanels();
       this.catalogManagementPanel?.open();
-    } else if (url === '/catalog-management/dataset-management' ||
-               url.startsWith('/catalog-management/dataset-management/')) {
+    } else if (
+      url === '/catalog-management/dataset-management' ||
+      url.startsWith('/catalog-management/dataset-management/')
+    ) {
       this.datasetManagementActive = true;
       this.closeAllPanels();
       this.catalogManagementPanel?.open();
+    } else if (
+      url === '/user-management' ||
+      url.startsWith('/user-management/')
+    ) {
+      this.userManagementActive = true;
+      this.closeAllPanels();
     } else if (url.includes('/contract-negotiation')) {
       this.closeAllPanels();
       this.contractNegotiationPanel?.open();
     } else if (url.includes('/data-transfer')) {
       this.closeAllPanels();
       this.dataTransfersPanel?.open();
-    } else if (url.includes('/audit-trail') || url.includes('/connector-configuration')) {
+    } else if (
+      url.includes('/audit-trail') ||
+      url.includes('/connector-configuration')
+    ) {
       this.closeAllPanels();
     }
   }
@@ -161,10 +203,14 @@ export class AppComponent implements OnInit {
   logout() {
     this.authService.logout().subscribe({
       next: () => {
+        this.currentUser = null;
+        this.userService.clearCurrentUser();
         console.log('Logout successful');
         this.router.navigate(['/login']);
       },
       error: (error) => {
+        this.currentUser = null;
+        this.userService.clearCurrentUser();
         console.error('Logout failed', error);
         this.router.navigate(['/login']);
       }
@@ -195,5 +241,20 @@ export class AppComponent implements OnInit {
     this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
       this.router.navigate([targetUrl], { state });
     });
+  }
+
+  fetchCurrentUser(): void {
+    this.userService
+      .getCurrentUser()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (user) => {
+          this.currentUser = user;
+        },
+        error: (error) => {
+          console.error('Error fetching current user:', error);
+          this.currentUser = null;
+        },
+      });
   }
 }

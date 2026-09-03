@@ -15,6 +15,18 @@ export class ConfirmationDialogComponent {
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {}
 
+  get confirmLabel(): string {
+    return this.data.confirmLabel || 'Delete';
+  }
+
+  get cancelLabel(): string {
+    return this.data.cancelLabel || 'Cancel';
+  }
+
+  get hideActions(): boolean {
+    return this.data.hideActions === true;
+  }
+
   /**
    * Function for closing modal
    */
