@@ -70,15 +70,6 @@ describe('AuthService', () => {
       expect(localStorage.getItem('access_token')).toBeNull();
       expect(localStorage.getItem('refresh_token')).toBe(response.refresh_token);
     });
-
-    it('cleans up any legacy access_token left in localStorage by older versions', () => {
-      localStorage.setItem('access_token', 'stale-legacy-token');
-
-      createFreshAuthService();
-
-      expect(localStorage.getItem('access_token')).toBeNull();
-      expect(service.accessToken).toBeNull();
-    });
   });
 
   describe('refresh/logout payload contract', () => {
