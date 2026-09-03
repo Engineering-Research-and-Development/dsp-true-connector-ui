@@ -35,7 +35,7 @@ export class DashboardService {
       .get<GenericApiResponse<DashboardSummaryResponse>>(
         `${this.apiUrl}/summary`,
         {
-          ...this.httpOptions,
+          headers: this.toHttpHeaders(params),
           params: this.toHttpParams(params),
         }
       )
@@ -47,6 +47,16 @@ export class DashboardService {
           return response.data;
         })
       );
+  }
+
+  /**
+   * Builds request headers, adding X-Tenant-Id when a SUPER_ADMIN has scoped
+   * the dashboard to a specific tenant (overriding the default tenant scope).
+   */
+  private toHttpHeaders(params: DashboardSummaryParams): HttpHeaders {
+    return params.tenantId
+      ? this.httpOptions.headers.set('X-Tenant-Id', params.tenantId)
+      : this.httpOptions.headers;
   }
 
   private toHttpParams(params: DashboardSummaryParams): HttpParams {

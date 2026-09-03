@@ -6,6 +6,11 @@ import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { DashboardSummaryResponse } from '../../models/dashboard';
 import { DashboardService } from '../../services/dashboard/dashboard.service';
 import { SnackbarService } from '../../services/snackbar/snackbar.service';
+import { UserService } from '../../services/user/user.service';
+import { TenantService } from '../../services/tenant/tenant.service';
+import { User } from '../../models/user';
+import { Tenant } from '../../models/tenant';
+import { UserRole } from '../../models/enums/user-role.enum';
 import { DashboardComponent } from './dashboard.component';
 
 describe('DashboardComponent', () => {
@@ -13,42 +18,87 @@ describe('DashboardComponent', () => {
   let fixture: ComponentFixture<DashboardComponent>;
   let dashboardServiceSpy: jasmine.SpyObj<DashboardService>;
   let snackbarServiceSpy: jasmine.SpyObj<SnackbarService>;
+  let userServiceSpy: jasmine.SpyObj<UserService>;
+  let tenantServiceSpy: jasmine.SpyObj<TenantService>;
+
+  const adminUser: User = {
+    id: 'u1',
+    firstName: 'Admin',
+    lastName: 'User',
+    email: 'admin@example.com',
+    role: UserRole.ADMIN,
+    tenantId: 'tenant-1',
+    enabled: true,
+    expired: false,
+    locked: false,
+  };
+
+  const superAdminUser: User = {
+    ...adminUser,
+    id: 'u2',
+    email: 'superadmin@example.com',
+    role: UserRole.SUPER_ADMIN,
+    tenantId: null,
+  };
+
+  const mockTenants: Tenant[] = [
+    {
+      id: 'tenant-1',
+      name: 'Tenant One',
+      description: '',
+      participantId: 'p1',
+      automaticNegotiation: false,
+      automaticTransfer: false,
+      enabled: true,
+      bucketName: 'bucket-1',
+    },
+    {
+      id: 'tenant-2',
+      name: 'Tenant Two',
+      description: '',
+      participantId: 'p2',
+      automaticNegotiation: false,
+      automaticTransfer: false,
+      enabled: true,
+      bucketName: 'bucket-2',
+    },
+  ];
 
   const mockSummary: DashboardSummaryResponse = {
     negotiations: {
-      total: 18,
-      countsByState: [
+      totalCount: 18,
+      byState: [
         { key: 'REQUESTED', count: 4 },
         { key: 'FINALIZED', count: 5 },
       ],
-      countsByRoleAndState: [
+      byRoleAndState: [
         { key: 'CONSUMER:REQUESTED', count: 2 },
         { key: 'PROVIDER:REQUESTED', count: 2 },
       ],
+      byTenant: null,
     },
     transfers: {
-      total: 14,
-      countsByState: [
+      totalCount: 14,
+      byState: [
         { key: 'STARTED', count: 4 },
         { key: 'COMPLETED', count: 4 },
       ],
-      countsByRoleAndState: [{ key: 'CONSUMER:STARTED', count: 3 }],
-      countsByFormat: [
+      byRoleAndState: [{ key: 'CONSUMER:STARTED', count: 3 }],
+      byFormat: [
         { key: 'HTTP_PULL', count: 9 },
         { key: 'HTTP_PUSH', count: 4 },
       ],
-      countsByDownloadFlag: [
-        { key: 'DOWNLOADED_TRUE', count: 4 },
-        { key: 'DOWNLOADED_FALSE', count: 10 },
-      ],
+      downloadedCount: 4,
+      downloadInProgressCount: 1,
+      byTenant: null,
     },
     events: {
-      total: 26,
-      countsByEventType: [
+      totalCount: 26,
+      byEventType: [
         { key: 'Protocol negotiation requested', count: 6 },
       ],
-      countsByRole: [{ key: 'ROLE_API', count: 11 }],
-      countsOverTime: [
+      byRole: [{ key: 'ROLE_API', count: 11 }],
+      overTime: [
         {
           bucketStart: '2026-05-20T13:00:00Z',
           key: 'Transfer requested',
@@ -60,6 +110,7 @@ describe('DashboardComponent', () => {
           count: 2,
         },
       ],
+      byTenant: null,
     },
     runtime: {
       processCpuUsage: 0.37,
@@ -73,19 +124,27 @@ describe('DashboardComponent', () => {
   };
 
   const emptySummary: DashboardSummaryResponse = {
-    negotiations: { total: 0, countsByState: [], countsByRoleAndState: [] },
+    negotiations: {
+      totalCount: 0,
+      byState: [],
+      byRoleAndState: [],
+      byTenant: null,
+    },
     transfers: {
-      total: 0,
-      countsByState: [],
-      countsByRoleAndState: [],
-      countsByFormat: [],
-      countsByDownloadFlag: [],
+      totalCount: 0,
+      byState: [],
+      byRoleAndState: [],
+      byFormat: [],
+      downloadedCount: 0,
+      downloadInProgressCount: 0,
+      byTenant: null,
     },
     events: {
-      total: 0,
-      countsByEventType: [],
-      countsByRole: [],
-      countsOverTime: [],
+      totalCount: 0,
+      byEventType: [],
+      byRole: [],
+      overTime: [],
+      byTenant: null,
     },
     runtime: {
       processCpuUsage: -1,
@@ -105,7 +164,13 @@ describe('DashboardComponent', () => {
     snackbarServiceSpy = jasmine.createSpyObj('SnackbarService', [
       'openSnackBar',
     ]);
+    userServiceSpy = jasmine.createSpyObj('UserService', ['getCurrentUser']);
+    tenantServiceSpy = jasmine.createSpyObj('TenantService', [
+      'getAllTenantsList',
+    ]);
     dashboardServiceSpy.getSummary.and.returnValue(of(mockSummary));
+    userServiceSpy.getCurrentUser.and.returnValue(of(adminUser));
+    tenantServiceSpy.getAllTenantsList.and.returnValue(of(mockTenants));
 
     await TestBed.configureTestingModule({
       imports: [DashboardComponent, BrowserAnimationsModule],
@@ -113,11 +178,17 @@ describe('DashboardComponent', () => {
         provideCharts(withDefaultRegisterables()),
         { provide: DashboardService, useValue: dashboardServiceSpy },
         { provide: SnackbarService, useValue: snackbarServiceSpy },
+        { provide: UserService, useValue: userServiceSpy },
+        { provide: TenantService, useValue: tenantServiceSpy },
       ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(DashboardComponent);
     component = fixture.componentInstance;
+  });
+
+  afterEach(() => {
+    localStorage.removeItem('dashboardSelectedTenantId');
   });
 
   it('should create', () => {
@@ -138,7 +209,6 @@ describe('DashboardComponent', () => {
     expect(kpiText).toContain('18');
     expect(kpiText).toContain('14');
     expect(kpiText).toContain('26');
-    expect(kpiText).toContain('37%');
   });
 
   it('should render the empty state without errors', () => {
@@ -151,7 +221,6 @@ describe('DashboardComponent', () => {
       el.textContent.trim()
     );
     expect(kpiText).toContain('0');
-    expect(kpiText).toContain('N/A');
   });
 
   it('should split role/state keys correctly into table rows', () => {
@@ -194,7 +263,7 @@ describe('DashboardComponent', () => {
     expect(component.getStateColor('SOME_UNKNOWN_STATE')).toBeTruthy();
   });
 
-  it('should map countsOverTime into timeline chart datasets', () => {
+  it('should map overTime into timeline chart datasets', () => {
     fixture.detectChanges();
 
     expect(component.eventsTimelineChartData.datasets.length).toBe(1);
@@ -250,4 +319,83 @@ describe('DashboardComponent', () => {
     expect(snackbarServiceSpy.openSnackBar).toHaveBeenCalled();
     expect(component.loading).toBeFalse();
   });
+
+  it('should render download status cards from scalar counts', () => {
+    fixture.detectChanges();
+
+    const statusCards = fixture.nativeElement.querySelectorAll(
+      '.status-card .kpi-value'
+    );
+    const statusValues = Array.from(statusCards).map((el: any) =>
+      el.textContent.trim()
+    );
+    expect(statusValues).toEqual(['4', '1']);
+  });
+
+  it('should not show the tenant selector for ADMIN users', () => {
+    fixture.detectChanges();
+
+    expect(component.isSuperAdmin).toBeFalse();
+    expect(tenantServiceSpy.getAllTenantsList).not.toHaveBeenCalled();
+    expect(component.tenants.length).toBe(0);
+  });
+
+  it('should show the tenant selector and load tenants for SUPER_ADMIN users', () => {
+    userServiceSpy.getCurrentUser.and.returnValue(of(superAdminUser));
+
+    fixture.detectChanges();
+
+    expect(component.isSuperAdmin).toBeTrue();
+    expect(tenantServiceSpy.getAllTenantsList).toHaveBeenCalled();
+    expect(component.tenants).toEqual(mockTenants);
+    expect(component.selectedTenantId).toBeNull();
+  });
+
+  it('should persist and send the selected tenant when a SUPER_ADMIN changes it', () => {
+    userServiceSpy.getCurrentUser.and.returnValue(of(superAdminUser));
+    fixture.detectChanges();
+    dashboardServiceSpy.getSummary.calls.reset();
+
+    component.selectedTenantId = 'tenant-2';
+    component.onTenantChange();
+
+    expect(localStorage.getItem('dashboardSelectedTenantId')).toBe(
+      'tenant-2'
+    );
+    expect(dashboardServiceSpy.getSummary).toHaveBeenCalledWith(
+      jasmine.objectContaining({ tenantId: 'tenant-2' })
+    );
+  });
+
+  it('should restore a previously persisted tenant selection on init', () => {
+    localStorage.setItem('dashboardSelectedTenantId', 'tenant-2');
+    userServiceSpy.getCurrentUser.and.returnValue(of(superAdminUser));
+
+    fixture.detectChanges();
+
+    expect(component.selectedTenantId).toBe('tenant-2');
+  });
+
+  it('should bound the From Date picker max by the selected To Date', () => {
+    fixture.detectChanges();
+
+    expect(component.maxFromDate).toBeNull();
+
+    const toDate = new Date('2024-06-15');
+    component.toDateFilter = toDate;
+
+    expect(component.maxFromDate).toBe(toDate);
+  });
+
+  it('should bound the To Date picker min by the selected From Date', () => {
+    fixture.detectChanges();
+
+    expect(component.minToDate).toBeNull();
+
+    const fromDate = new Date('2024-06-01');
+    component.fromDateFilter = fromDate;
+
+    expect(component.minToDate).toBe(fromDate);
+  });
 });
+

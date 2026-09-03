@@ -9,6 +9,7 @@ import {
   MAT_DATE_LOCALE,
 } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -31,6 +32,17 @@ import {
 import { DashboardService } from '../../services/dashboard/dashboard.service';
 import { SnackbarService } from '../../services/snackbar/snackbar.service';
 import { DashboardFormatHelper } from '../../shared/utils/dashboard-format.utils';
+import { UserService } from '../../services/user/user.service';
+import { TenantService } from '../../services/tenant/tenant.service';
+import { Tenant } from '../../models/tenant';
+import { UserRole } from '../../models/enums/user-role.enum';
+import {
+  FilterExpansionState,
+  PaginationHelper,
+} from '../../shared/utils/pagination.utils';
+
+// Key used to persist the SUPER_ADMIN's selected tenant scope across reloads.
+const SELECTED_TENANT_STORAGE_KEY = 'dashboardSelectedTenantId';
 
 interface RoleStateRow {
   role: string;
@@ -89,6 +101,7 @@ function getStateColor(key: string, fallbackIndex: number): string {
     MatInputModule,
     MatSelectModule,
     MatDatepickerModule,
+    MatExpansionModule,
     MatTableModule,
     MatTooltipModule,
     MatProgressSpinnerModule,
@@ -110,9 +123,22 @@ export class DashboardComponent implements OnInit {
   toDateFilter: Date | null = null;
   bucket: DashboardBucket = 'hour';
 
+  /** Upper bound for the From Date picker: it cannot be later than To Date. */
+  get maxFromDate(): Date | null {
+    return this.toDateFilter;
+  }
+
+  /** Lower bound for the To Date picker: it cannot be earlier than From Date. */
+  get minToDate(): Date | null {
+    return this.fromDateFilter;
+  }
+
   readonly bucketOptions: DashboardBucket[] = ['hour', 'day'];
   readonly roleStateColumns: string[] = ['role', 'state', 'count'];
   readonly keyCountColumns: string[] = ['key', 'count'];
+
+  filterExpansionState: FilterExpansionState =
+    PaginationHelper.createFilterExpansionState(false);
 
   negotiationStateChartData: ChartData<'pie'> = { labels: [], datasets: [] };
   transferStateChartData: ChartData<'pie'> = { labels: [], datasets: [] };
@@ -164,16 +190,87 @@ export class DashboardComponent implements OnInit {
   negotiationRoleStateRows: RoleStateRow[] = [];
   transferRoleStateRows: RoleStateRow[] = [];
 
+  isSuperAdmin = false;
+  tenants: Tenant[] = [];
+  selectedTenantId: string | null = null;
+
   constructor(
     private readonly dashboardService: DashboardService,
-    private readonly snackbarService: SnackbarService
+    private readonly snackbarService: SnackbarService,
+    private readonly userService: UserService,
+    private readonly tenantService: TenantService
   ) {}
 
   ngOnInit(): void {
+    this.userService.getCurrentUser().subscribe({
+      next: (user) => {
+        this.isSuperAdmin = user.role === UserRole.SUPER_ADMIN;
+        if (this.isSuperAdmin) {
+          this.loadTenants();
+        } else {
+          this.loadSummary();
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching current user:', error);
+        this.loadSummary();
+      },
+    });
+  }
+
+  /**
+   * Loads the tenant list for the SUPER_ADMIN tenant selector, restoring a
+   * previously persisted selection if it still refers to an existing tenant.
+   */
+  private loadTenants(): void {
+    this.tenantService.getAllTenantsList().subscribe({
+      next: (tenants) => {
+        this.tenants = tenants;
+        const storedTenantId = localStorage.getItem(
+          SELECTED_TENANT_STORAGE_KEY
+        );
+        this.selectedTenantId =
+          storedTenantId && tenants.some((t) => t.id === storedTenantId)
+            ? storedTenantId
+            : null;
+        this.loadSummary();
+      },
+      error: (error) => {
+        console.error('Error fetching tenants:', error);
+        this.loadSummary();
+      },
+    });
+  }
+
+  /**
+   * Handles a tenant selection change from the SUPER_ADMIN dropdown: persists
+   * the choice and immediately reloads the dashboard scoped to it (or to all
+   * tenants when "All Tenants" is selected).
+   */
+  onTenantChange(): void {
+    if (this.selectedTenantId) {
+      localStorage.setItem(SELECTED_TENANT_STORAGE_KEY, this.selectedTenantId);
+    } else {
+      localStorage.removeItem(SELECTED_TENANT_STORAGE_KEY);
+    }
     this.loadSummary();
   }
 
   refresh(): void {
+    this.loadSummary();
+  }
+
+  /**
+   * Resets all dashboard filters (date range, bucket, tenant) to their
+   * defaults, clears any persisted tenant selection, and reloads the
+   * summary — mirroring User Management's Clear Filters behavior.
+   */
+  clearFilters(): void {
+    this.fromDateFilter = null;
+    this.toDateFilter = null;
+    this.bucket = 'hour';
+    this.selectedTenantId = null;
+    localStorage.removeItem(SELECTED_TENANT_STORAGE_KEY);
     this.loadSummary();
   }
 
@@ -188,6 +285,7 @@ export class DashboardComponent implements OnInit {
           ? this.formatDateForAPI(this.toDateFilter, true)
           : undefined,
         bucket: this.bucket,
+        tenantId: this.selectedTenantId ?? undefined,
       })
       .subscribe({
         next: (summary) => {
@@ -211,20 +309,20 @@ export class DashboardComponent implements OnInit {
 
   private buildViewModel(summary: DashboardSummaryResponse): void {
     this.negotiationStateChartData = this.toPieChartData(
-      summary.negotiations.countsByState
+      summary.negotiations.byState
     );
     this.negotiationRoleStateRows = this.toRoleStateRows(
-      summary.negotiations.countsByRoleAndState
+      summary.negotiations.byRoleAndState
     );
 
     this.transferStateChartData = this.toPieChartData(
-      summary.transfers.countsByState
+      summary.transfers.byState
     );
     this.transferRoleStateRows = this.toRoleStateRows(
-      summary.transfers.countsByRoleAndState
+      summary.transfers.byRoleAndState
     );
     this.transferFormatChartData = this.toDoughnutChartData(
-      summary.transfers.countsByFormat
+      summary.transfers.byFormat
     );
 
     this.eventsTimelineChartData = this.toTimelineChartData(summary);
@@ -260,16 +358,16 @@ export class DashboardComponent implements OnInit {
     summary: DashboardSummaryResponse
   ): ChartData<'line'> {
     const buckets = Array.from(
-      new Set(summary.events.countsOverTime.map((c) => c.bucketStart))
+      new Set(summary.events.overTime.map((c) => c.bucketStart))
     ).sort();
     const eventTypes = Array.from(
-      new Set(summary.events.countsOverTime.map((c) => c.key))
+      new Set(summary.events.overTime.map((c) => c.key))
     );
 
     const datasets = eventTypes.map((eventType, index) => ({
       label: eventType,
       data: buckets.map((bucketStart) => {
-        const match = summary.events.countsOverTime.find(
+        const match = summary.events.overTime.find(
           (c) => c.bucketStart === bucketStart && c.key === eventType
         );
         return match ? match.count : 0;
@@ -325,15 +423,15 @@ export class DashboardComponent implements OnInit {
    * messages so charts/tables don't render blank when a window has no data.
    */
   get hasNegotiationsData(): boolean {
-    return !!this.summary && this.summary.negotiations.countsByState.length > 0;
+    return !!this.summary && this.summary.negotiations.byState.length > 0;
   }
 
   get hasTransfersData(): boolean {
-    return !!this.summary && this.summary.transfers.countsByState.length > 0;
+    return !!this.summary && this.summary.transfers.byState.length > 0;
   }
 
   get hasEventsData(): boolean {
-    return !!this.summary && this.summary.events.countsOverTime.length > 0;
+    return !!this.summary && this.summary.events.overTime.length > 0;
   }
 
   /**

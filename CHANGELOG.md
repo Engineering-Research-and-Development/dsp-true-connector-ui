@@ -16,9 +16,15 @@ All notable changes to this project will be documented in this file.
 - Reactive 401 handling in `authInterceptor`: a single refresh-and-retry attempt on `401` responses, falling back to clearing the session and redirecting to `/login` (with `returnUrl`) if the retry also fails.
 - Refresh-request de-duplication in `AuthService` so concurrent requests that all need a new token trigger only one `/auth/refresh` call.
 - Silent session restore on app bootstrap (`AuthService.initSession()`, wired via `provideAppInitializer`) so a valid refresh token restores the session on page reload without forcing a re-login.
+- Statistics Dashboard filters (date range, bucket, tenant) are now grouped in a collapsible "Advanced Filters" panel matching the User Management screen's styling, with gradient-pill **Apply** and text **Clear** buttons replacing the previous single "Refresh" button.
 
 ### Changed
 
+- Post-login redirect and role-guard fallback redirects (`login.component.ts`, `login.guard.ts`, `super-admin.guard.ts`) now default to `/dashboard` instead of `/catalog-browser`, so the Statistics Dashboard is consistently the landing page after login, not just for the root `/` route.
+- Statistics Dashboard API contract updated to match the backend's revised `/api/v1/dashboard/summary` shape: `total`→`totalCount`, `countsByState`→`byState`, `countsByRoleAndState`→`byRoleAndState`, `countsByEventType`→`byEventType`, `countsByRole`→`byRole`, `countsOverTime`→`overTime`, `countsByFormat`→`byFormat`; `countsByDownloadFlag` replaced by scalar `downloadedCount`/`downloadInProgressCount` fields, rendered as two status cards instead of an iterated list.
+- Added a `TenantMetrics<T>` type and a `byTenant` field to the negotiation/transfer/event metrics models to match the backend contract (not yet rendered in the UI).
+- Removed the "Process CPU" KPI card and the entire Runtime section (CPU, heap/non-heap memory, live thread count, uptime) from the Statistics Dashboard UI.
+- SUPER_ADMIN users now see a tenant selector in the Statistics Dashboard filters row ("All Tenants" by default, or a specific tenant from `TenantService.getAllTenantsList()`); selecting a tenant sends an `X-Tenant-Id` header on the summary request and the choice persists across reloads. ADMIN users continue to see only their own tenant's data with no selector.
 - Statistics Dashboard negotiation and transfer state charts changed from bar charts to pie charts, each slice colored by a fixed semantic state color (`COMPLETED`/`FINALIZED` = green, `TERMINATED` = red, `SUSPENDED` = yellow, other states use distinct colors chosen to match the existing UI palette).
 - The root route (`/`) now redirects to `/dashboard` instead of `/catalog-browser`; "Dashboard" is the first item in the sidenav.
 - Added `ng2-charts` and `chart.js` as dependencies for dashboard chart rendering.

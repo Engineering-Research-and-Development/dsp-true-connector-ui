@@ -103,6 +103,16 @@ export class AuditTrailComponent implements OnInit {
   fromDateFilter: Date | null = null;
   toDateFilter: Date | null = null;
 
+  /** Upper bound for the From Date picker: it cannot be later than To Date. */
+  get maxFromDate(): Date | null {
+    return this.toDateFilter;
+  }
+
+  /** Lower bound for the To Date picker: it cannot be earlier than From Date. */
+  get minToDate(): Date | null {
+    return this.fromDateFilter;
+  }
+
   // Available event types for dropdown
   auditEventTypes: AuditEventType[] = [];
   loadingEventTypes = false;

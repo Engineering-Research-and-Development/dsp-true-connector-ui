@@ -118,6 +118,7 @@
                   matInput
                   [matDatepicker]="fromPicker"
                   [(ngModel)]="fromDateFilter"
+                  [max]="maxFromDate"
                   placeholder="Select start date"
                   readonly
                 />
@@ -136,6 +137,7 @@
                   matInput
                   [matDatepicker]="toPicker"
                   [(ngModel)]="toDateFilter"
+                  [min]="minToDate"
                   placeholder="Select end date"
                   readonly
                 />

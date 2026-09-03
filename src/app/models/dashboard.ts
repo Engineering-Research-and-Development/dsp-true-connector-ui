@@ -9,25 +9,35 @@ export interface TimeBucketCount {
   count: number;
 }
 
+export interface TenantMetrics<T> {
+  tenantId: string;
+  tenantName: string;
+  metrics: T;
+}
+
 export interface NegotiationSnapshotMetrics {
-  countsByState: KeyCount[];
-  countsByRoleAndState: KeyCount[];
-  total: number;
+  totalCount: number;
+  byState: KeyCount[];
+  byRoleAndState: KeyCount[];
+  byTenant: TenantMetrics<NegotiationSnapshotMetrics>[] | null;
 }
 
 export interface TransferSnapshotMetrics {
-  countsByState: KeyCount[];
-  countsByRoleAndState: KeyCount[];
-  countsByFormat: KeyCount[];
-  countsByDownloadFlag: KeyCount[];
-  total: number;
+  totalCount: number;
+  byState: KeyCount[];
+  byRoleAndState: KeyCount[];
+  byFormat: KeyCount[];
+  downloadedCount: number;
+  downloadInProgressCount: number;
+  byTenant: TenantMetrics<TransferSnapshotMetrics>[] | null;
 }
 
 export interface HistoricalEventMetrics {
-  countsByEventType: KeyCount[];
-  countsByRole: KeyCount[];
-  countsOverTime: TimeBucketCount[];
-  total: number;
+  totalCount: number;
+  byEventType: KeyCount[];
+  byRole: KeyCount[];
+  overTime: TimeBucketCount[];
+  byTenant: TenantMetrics<HistoricalEventMetrics>[] | null;
 }
 
 export interface RuntimeMetricsResponse {
@@ -53,4 +63,6 @@ export interface DashboardSummaryParams {
   from?: string;
   to?: string;
   bucket?: DashboardBucket;
+  /** When set (SUPER_ADMIN scoping to a specific tenant), sent as the X-Tenant-Id header. */
+  tenantId?: string;
 }

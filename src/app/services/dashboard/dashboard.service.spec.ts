@@ -15,42 +15,46 @@ describe('DashboardService', () => {
 
   const mockSummary: DashboardSummaryResponse = {
     negotiations: {
-      total: 18,
-      countsByState: [
+      totalCount: 18,
+      byState: [
         { key: 'REQUESTED', count: 4 },
         { key: 'FINALIZED', count: 5 },
       ],
-      countsByRoleAndState: [
+      byRoleAndState: [
         { key: 'CONSUMER:REQUESTED', count: 2 },
         { key: 'PROVIDER:REQUESTED', count: 2 },
       ],
+      byTenant: null,
     },
     transfers: {
-      total: 14,
-      countsByState: [
+      totalCount: 14,
+      byState: [
         { key: 'STARTED', count: 4 },
         { key: 'COMPLETED', count: 4 },
       ],
-      countsByRoleAndState: [{ key: 'CONSUMER:STARTED', count: 3 }],
-      countsByFormat: [
+      byRoleAndState: [{ key: 'CONSUMER:STARTED', count: 3 }],
+      byFormat: [
         { key: 'HTTP_PULL', count: 9 },
         { key: 'HTTP_PUSH', count: 4 },
       ],
-      countsByDownloadFlag: [{ key: 'DOWNLOADED_TRUE', count: 4 }],
+      downloadedCount: 4,
+      downloadInProgressCount: 1,
+      byTenant: null,
     },
     events: {
-      total: 26,
-      countsByEventType: [
+      totalCount: 26,
+      byEventType: [
         { key: 'Protocol negotiation requested', count: 6 },
       ],
-      countsByRole: [{ key: 'ROLE_API', count: 11 }],
-      countsOverTime: [
+      byRole: [{ key: 'ROLE_API', count: 11 }],
+      overTime: [
         {
           bucketStart: '2026-05-20T13:00:00Z',
           key: 'Transfer requested',
           count: 1,
         },
       ],
+      byTenant: null,
     },
     runtime: {
       processCpuUsage: 0.37,
@@ -134,6 +138,26 @@ describe('DashboardService', () => {
         );
       });
       expect(req.request.method).toBe('GET');
+      req.flush(mockResponse);
+    });
+
+    it('should set the X-Tenant-Id header when a tenantId is provided', () => {
+      service.getSummary({ tenantId: 'tenant-1' }).subscribe();
+
+      const req = httpMock.expectOne(
+        `${environment.DASHBOARD_API_URL()}/summary`
+      );
+      expect(req.request.headers.get('X-Tenant-Id')).toBe('tenant-1');
+      req.flush(mockResponse);
+    });
+
+    it('should not set the X-Tenant-Id header when no tenantId is provided', () => {
+      service.getSummary().subscribe();
+
+      const req = httpMock.expectOne(
+        `${environment.DASHBOARD_API_URL()}/summary`
+      );
+      expect(req.request.headers.has('X-Tenant-Id')).toBeFalse();
       req.flush(mockResponse);
     });
 

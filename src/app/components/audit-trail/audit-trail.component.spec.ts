@@ -27,4 +27,22 @@ describe('AuditTrailComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('should bound the From Date picker max by the selected To Date', () => {
+    expect(component.maxFromDate).toBeNull();
+
+    const toDate = new Date('2024-06-15');
+    component.toDateFilter = toDate;
+
+    expect(component.maxFromDate).toBe(toDate);
+  });
+
+  it('should bound the To Date picker min by the selected From Date', () => {
+    expect(component.minToDate).toBeNull();
+
+    const fromDate = new Date('2024-06-01');
+    component.fromDateFilter = fromDate;
+
+    expect(component.minToDate).toBe(fromDate);
+  });
 });

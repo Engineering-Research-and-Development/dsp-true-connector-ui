@@ -38,9 +38,9 @@ export class SuperAdminGuard implements CanActivate, CanActivateChild {
       map((user) =>
         user.role === UserRole.SUPER_ADMIN
           ? true
-          : this.router.createUrlTree(['/catalog-browser'])
+          : this.router.createUrlTree(['/dashboard'])
       ),
-      catchError(() => of(this.router.createUrlTree(['/catalog-browser'])))
+      catchError(() => of(this.router.createUrlTree(['/dashboard'])))
     );
   }
 }

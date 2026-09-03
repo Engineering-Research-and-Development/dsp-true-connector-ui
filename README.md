@@ -42,7 +42,7 @@ For information on how to start connector with all modules, go to [user manual](
 
 ## Features
 
-- **Statistics Dashboard**: Landing page with negotiation, transfer, event, and runtime statistics for the connector.
+- **Statistics Dashboard**: Landing page with negotiation, transfer, and event statistics for the connector, with a tenant selector for SUPER_ADMIN users.
 - **Catalog Browser**: View provider catalog data and initiate contract negotiations.
 - **Catalog Management**: Create, update, view, and delete catalog data of the connector.
 - **Service Management**: Create, update, view, and delete service data of the connector.
@@ -93,7 +93,7 @@ For information on how to start connector with all modules, go to [user manual](
 
 ### Statistics Dashboard
 
-The **Statistics Dashboard** is the landing page of the application. It shows KPI cards (total negotiations, total transfers, events processed in the selected time window, and process CPU usage), negotiation and transfer state charts with role/state breakdown tables, a transfer format breakdown and download-flag status cards, a historical events timeline, and a runtime panel (CPU, memory, thread count, and uptime). Use the time range and bucket (`hour`/`day`) selector at the top of the page to change the reporting window, then press "Refresh" to reload the data.
+The **Statistics Dashboard** is the landing page of the application. It shows KPI cards (total negotiations, total transfers, and events processed in the selected time window), negotiation and transfer state charts with role/state breakdown tables, a transfer format breakdown with downloaded/download-in-progress status cards, and a historical events timeline. SUPER_ADMIN users additionally get a tenant selector ("All Tenants" or a specific tenant) to scope the dashboard data; ADMIN users only see their own tenant's data. Use the time range and bucket (`hour`/`day`) selector at the top of the page to change the reporting window, then press "Refresh" to reload the data.
 
 ### Catalog Browser
 
