@@ -147,7 +147,7 @@ export class DashboardComponent implements OnInit {
     labels: [],
     datasets: [],
   };
-  eventsTimelineChartData: ChartData<'line'> = { labels: [], datasets: [] };
+  eventsTimelineChartData: ChartData<'bar'> = { labels: [], datasets: [] };
 
   readonly pieChartOptions: ChartConfiguration<'pie'>['options'] = {
     responsive: true,
@@ -160,12 +160,12 @@ export class DashboardComponent implements OnInit {
     maintainAspectRatio: false,
   };
 
-  readonly lineChartOptions: ChartConfiguration<'line'>['options'] = {
+  readonly barChartOptions: ChartConfiguration<'bar'>['options'] = {
     responsive: true,
     maintainAspectRatio: false,
     // Multiple event-type series can overlap heavily; showing a combined
     // tooltip for the hovered bucket (rather than requiring a pixel-perfect
-    // hover on a single line) makes it possible to actually read the data.
+    // hover on a single bar) makes it possible to actually read the data.
     interaction: { mode: 'index', intersect: false },
     plugins: {
       legend: {
@@ -357,7 +357,7 @@ export class DashboardComponent implements OnInit {
 
   private toTimelineChartData(
     summary: DashboardSummaryResponse
-  ): ChartData<'line'> {
+  ): ChartData<'bar'> {
     const buckets = Array.from(
       new Set(summary.events.overTime.map((c) => c.bucketStart))
     ).sort();
@@ -378,10 +378,6 @@ export class DashboardComponent implements OnInit {
       }),
       borderColor: timelineColors[index],
       backgroundColor: timelineColors[index],
-      borderWidth: 2,
-      pointRadius: 3,
-      pointHoverRadius: 5,
-      fill: false,
     }));
 
     return {
