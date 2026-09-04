@@ -30,6 +30,8 @@ import {
   KeyCount,
 } from '../../models/dashboard';
 import { DashboardService } from '../../services/dashboard/dashboard.service';
+import { AuditService } from '../../services/audit/audit.service';
+import { AuditEventType } from '../../models/auditEventType';
 import { SnackbarService } from '../../services/snackbar/snackbar.service';
 import { DashboardFormatHelper } from '../../shared/utils/dashboard-format.utils';
 import { ChartColorHelper } from '../../shared/utils/chart-color.utils';
@@ -195,14 +197,23 @@ export class DashboardComponent implements OnInit {
   tenants: Tenant[] = [];
   selectedTenantId: string | null = null;
 
+  /** Code -> description lookup for audit event types, used to render
+   * human-readable event names (e.g. "Application login" instead of
+   * "APPLICATION_LOGIN") in the Event Type table and events-over-time
+   * chart. Populated once on init; falls back to the raw code if the
+   * lookup fails or a code is unmapped. */
+  eventTypes: AuditEventType[] = [];
+
   constructor(
     private readonly dashboardService: DashboardService,
     private readonly snackbarService: SnackbarService,
     private readonly userService: UserService,
-    private readonly tenantService: TenantService
+    private readonly tenantService: TenantService,
+    private readonly auditService: AuditService
   ) {}
 
   ngOnInit(): void {
+    this.loadEventTypes();
     this.userService.getCurrentUser().subscribe({
       next: (user) => {
         this.isSuperAdmin = user.role === UserRole.SUPER_ADMIN;
@@ -217,6 +228,40 @@ export class DashboardComponent implements OnInit {
         this.loadSummary();
       },
     });
+  }
+
+  /**
+   * Loads the audit event type list (code -> description) used to render
+   * human-readable event names. This is a static/global reference list, not
+   * scoped by date range or tenant, so it's loaded once and independently of
+   * the summary data. Failures are silently ignored: display falls back to
+   * raw event codes via `getEventTypeDisplayName`.
+   */
+  private loadEventTypes(): void {
+    this.auditService.getAuditEventTypes().subscribe({
+      next: (eventTypes) => {
+        this.eventTypes = eventTypes;
+        // If the summary already loaded before this resolved, rebuild the
+        // view model so event-type labels pick up the friendly names
+        // instead of staying stuck on the raw codes used as a fallback.
+        if (this.summary) {
+          this.buildViewModel(this.summary);
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching audit event types:', error);
+      },
+    });
+  }
+
+  /**
+   * Resolves the human-readable name for an event type code (e.g.
+   * "APPLICATION_LOGIN" -> "Application login"), falling back to the raw
+   * code if it isn't found in the fetched event type list.
+   */
+  getEventTypeDisplayName(code: string): string {
+    const eventType = this.eventTypes.find((type) => type.code === code);
+    return eventType ? eventType.description : code;
   }
 
   /**
@@ -369,7 +414,7 @@ export class DashboardComponent implements OnInit {
     );
 
     const datasets = eventTypes.map((eventType, index) => ({
-      label: eventType,
+      label: this.getEventTypeDisplayName(eventType),
       data: buckets.map((bucketStart) => {
         const match = summary.events.overTime.find(
           (c) => c.bucketStart === bucketStart && c.key === eventType

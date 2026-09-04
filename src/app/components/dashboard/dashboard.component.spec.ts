@@ -5,6 +5,8 @@ import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 
 import { DashboardSummaryResponse } from '../../models/dashboard';
 import { DashboardService } from '../../services/dashboard/dashboard.service';
+import { AuditService } from '../../services/audit/audit.service';
+import { AuditEventType } from '../../models/auditEventType';
 import { SnackbarService } from '../../services/snackbar/snackbar.service';
 import { UserService } from '../../services/user/user.service';
 import { TenantService } from '../../services/tenant/tenant.service';
@@ -20,6 +22,7 @@ describe('DashboardComponent', () => {
   let snackbarServiceSpy: jasmine.SpyObj<SnackbarService>;
   let userServiceSpy: jasmine.SpyObj<UserService>;
   let tenantServiceSpy: jasmine.SpyObj<TenantService>;
+  let auditServiceSpy: jasmine.SpyObj<AuditService>;
 
   const adminUser: User = {
     id: 'u1',
@@ -40,6 +43,12 @@ describe('DashboardComponent', () => {
     role: UserRole.SUPER_ADMIN,
     tenantId: null,
   };
+
+  const mockEventTypes: AuditEventType[] = [
+    { code: 'Protocol negotiation requested', description: 'Protocol negotiation requested' },
+    { code: 'Transfer requested', description: 'Transfer requested' },
+    { code: 'APPLICATION_LOGIN', description: 'Application login' },
+  ];
 
   const mockTenants: Tenant[] = [
     {
@@ -168,9 +177,13 @@ describe('DashboardComponent', () => {
     tenantServiceSpy = jasmine.createSpyObj('TenantService', [
       'getAllTenantsList',
     ]);
+    auditServiceSpy = jasmine.createSpyObj('AuditService', [
+      'getAuditEventTypes',
+    ]);
     dashboardServiceSpy.getSummary.and.returnValue(of(mockSummary));
     userServiceSpy.getCurrentUser.and.returnValue(of(adminUser));
     tenantServiceSpy.getAllTenantsList.and.returnValue(of(mockTenants));
+    auditServiceSpy.getAuditEventTypes.and.returnValue(of(mockEventTypes));
 
     await TestBed.configureTestingModule({
       imports: [DashboardComponent, BrowserAnimationsModule],
@@ -180,6 +193,7 @@ describe('DashboardComponent', () => {
         { provide: SnackbarService, useValue: snackbarServiceSpy },
         { provide: UserService, useValue: userServiceSpy },
         { provide: TenantService, useValue: tenantServiceSpy },
+        { provide: AuditService, useValue: auditServiceSpy },
       ],
     }).compileComponents();
 
@@ -261,6 +275,90 @@ describe('DashboardComponent', () => {
 
   it('should fall back to the chart palette for unmapped states', () => {
     expect(component.getStateColor('SOME_UNKNOWN_STATE')).toBeTruthy();
+  });
+
+  it('should resolve friendly display names for known event type codes, falling back to the raw code otherwise', () => {
+    fixture.detectChanges();
+    expect(component.getEventTypeDisplayName('APPLICATION_LOGIN')).toBe(
+      'Application login'
+    );
+    expect(component.getEventTypeDisplayName('SOME_UNKNOWN_CODE')).toBe(
+      'SOME_UNKNOWN_CODE'
+    );
+  });
+
+  it('should silently fall back to raw codes when fetching event types fails', () => {
+    auditServiceSpy.getAuditEventTypes.and.returnValue(
+      throwError(() => new Error('network error'))
+    );
+
+    fixture.detectChanges();
+
+    expect(component.eventTypes).toEqual([]);
+    expect(component.getEventTypeDisplayName('APPLICATION_LOGIN')).toBe(
+      'APPLICATION_LOGIN'
+    );
+  });
+
+  it('should render friendly event type names in the timeline chart legend once event types are loaded', () => {
+    const applicationEventSummary = {
+      ...mockSummary,
+      events: {
+        ...mockSummary.events,
+        overTime: [
+          {
+            bucketStart: '2026-05-20T13:00:00Z',
+            key: 'APPLICATION_LOGIN',
+            count: 3,
+          },
+        ],
+      },
+    };
+    dashboardServiceSpy.getSummary.and.returnValue(
+      of(applicationEventSummary)
+    );
+
+    fixture.detectChanges();
+
+    expect(component.eventsTimelineChartData.datasets[0].label).toBe(
+      'Application login'
+    );
+  });
+
+  it('should render friendly event type names in the Event Type table', () => {
+    const applicationEventSummary = {
+      ...mockSummary,
+      events: {
+        ...mockSummary.events,
+        byEventType: [{ key: 'APPLICATION_LOGIN', count: 5 }],
+      },
+    };
+    dashboardServiceSpy.getSummary.and.returnValue(
+      of(applicationEventSummary)
+    );
+
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Application login');
+  });
+
+  it('should show a role-aware Advanced Filters description', () => {
+    userServiceSpy.getCurrentUser.and.returnValue(of(superAdminUser));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain(
+      'Filter statistics by date range, bucket, and tenant'
+    );
+  });
+
+  it('should hide tenant mention from the Advanced Filters description for non-SUPER_ADMIN users', () => {
+    userServiceSpy.getCurrentUser.and.returnValue(of(adminUser));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain(
+      'Filter statistics by date range and bucket'
+    );
+    expect(fixture.nativeElement.textContent).not.toContain(
+      'Filter statistics by date range, bucket, and tenant'
+    );
   });
 
   it('should map overTime into timeline chart datasets', () => {
