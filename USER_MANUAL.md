@@ -18,6 +18,7 @@ The DSP TRUE ('TRU'sted 'E'ngineering) Connector UI is a comprehensive frontend 
   - [Getting Started](#getting-started)
   - [System Monitoring](#system-monitoring)
 - [Application Features](#application-features)
+- [Statistics Dashboard](#statistics-dashboard)
 - [Catalog Management](#catalog-management)
   - [Overview](#overview)
   - [Available Operations](#available-operations)
@@ -346,6 +347,7 @@ docker-compose down -v
 The DSP TRUE Connector UI provides comprehensive management capabilities for dataspace operations:
 
 - **Catalog Management**: Complete catalog lifecycle management
+- **Statistics Dashboard**: Landing page overview of negotiation, transfer, and event statistics, with a tenant selector for SUPER_ADMIN users
 - **Service Management**: Service registration and configuration
 - **Dataset Management**: Data asset organization and control
 - **Distribution Management**: Data distribution configuration
@@ -354,6 +356,21 @@ The DSP TRUE Connector UI provides comprehensive management capabilities for dat
 - **Data Transfer Management**: Secure data exchange operations
 - **Audit Trail**: Comprehensive system activity monitoring
 - **Connector Configuration**: System parameter management
+
+---
+
+## Statistics Dashboard
+
+### Overview
+
+The Statistics Dashboard is the landing page shown after login. It provides a single-page overview of connector activity: KPI cards (total negotiations, total transfers, events processed in the selected window), negotiation and transfer counts-by-state charts with role/state breakdown tables, a transfer format breakdown with downloaded/download-in-progress status cards, and a historical events timeline. SUPER_ADMIN users additionally see a tenant selector to scope the dashboard to a single tenant or view aggregate data across all tenants; ADMIN users only ever see their own tenant's data.
+
+### Available Operations
+
+- **Time range selection**: choose a "From Date" and "To Date" to scope the reporting window (defaults to the last 24 hours).
+- **Bucket selection**: switch the event timeline granularity between `hour` and `day`.
+- **Tenant selection** (SUPER_ADMIN only): choose "All Tenants" (default) or a specific tenant to scope the dashboard data; the selection is remembered across reloads.
+- **Refresh**: reload the dashboard with the current time range and bucket selection. The dashboard does not auto-refresh; use this button to fetch the latest statistics.
 
 ---
 

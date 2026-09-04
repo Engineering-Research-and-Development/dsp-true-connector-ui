@@ -34,6 +34,14 @@
     <mat-nav-list>
       <div>
         <div class="configuration">
+          <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+            <mat-list-item>
+              <mat-icon>dashboard</mat-icon>
+              <span>Dashboard</span>
+            </mat-list-item>
+          </a>
+        </div>
+        <div class="configuration">
           <a routerLink="/catalog-browser" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" [class.active-parent]="catalogBrowserActive">
             <mat-list-item>
               <mat-icon>find_in_page</mat-icon>

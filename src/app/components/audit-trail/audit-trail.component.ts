@@ -7,7 +7,6 @@ import {
   DateAdapter,
   MAT_DATE_FORMATS,
   MAT_DATE_LOCALE,
-  NativeDateAdapter,
 } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDialog } from '@angular/material/dialog';
@@ -26,6 +25,10 @@ import { AuditEventType } from '../../models/auditEventType';
 import { AuditService } from '../../services/audit/audit.service';
 import { SnackbarService } from '../../services/snackbar/snackbar.service';
 import {
+  CUSTOM_DATE_FORMATS,
+  CustomDateAdapter,
+} from '../../shared/utils/date-adapter.utils';
+import {
   FilterExpansionState,
   PaginationHelper,
   PaginationState,
@@ -33,45 +36,6 @@ import {
 } from '../../shared/utils/pagination.utils';
 import { AuditEventDetailsDialogComponent } from './audit-event-details-dialog/audit-event-details-dialog.component';
 import { ResizableColumnDirective } from '../../shared/resizable-column/resizable-column.directive';
-
-// Custom date adapter to force DD/MM/YYYY format
-export class CustomDateAdapter extends NativeDateAdapter {
-  override format(date: Date, displayFormat: Object): string {
-    if (displayFormat === 'input') {
-      const day = date.getDate().toString().padStart(2, '0');
-      const month = (date.getMonth() + 1).toString().padStart(2, '0');
-      const year = date.getFullYear();
-      return `${day}/${month}/${year}`;
-    }
-    return date.toDateString();
-  }
-
-  override parse(value: any): Date | null {
-    if (typeof value === 'string' && value.includes('/')) {
-      const parts = value.split('/');
-      if (parts.length === 3) {
-        const day = parseInt(parts[0], 10);
-        const month = parseInt(parts[1], 10) - 1; // Month is 0-based
-        const year = parseInt(parts[2], 10);
-        return new Date(year, month, day);
-      }
-    }
-    return super.parse(value);
-  }
-}
-
-// Custom date format configuration
-export const CUSTOM_DATE_FORMATS = {
-  parse: {
-    dateInput: 'input',
-  },
-  display: {
-    dateInput: 'input',
-    monthYearLabel: { year: 'numeric', month: 'short' },
-    dateA11yLabel: { year: 'numeric', month: 'long', day: 'numeric' },
-    monthYearA11yLabel: { year: 'numeric', month: 'long' },
-  },
-};
 
 @Component({
   selector: 'app-audit-trail',
@@ -138,6 +102,16 @@ export class AuditTrailComponent implements OnInit {
   consumerPidFilter: string = '';
   fromDateFilter: Date | null = null;
   toDateFilter: Date | null = null;
+
+  /** Upper bound for the From Date picker: it cannot be later than To Date. */
+  get maxFromDate(): Date | null {
+    return this.toDateFilter;
+  }
+
+  /** Lower bound for the To Date picker: it cannot be earlier than From Date. */
+  get minToDate(): Date | null {
+    return this.fromDateFilter;
+  }
 
   // Available event types for dropdown
   auditEventTypes: AuditEventType[] = [];

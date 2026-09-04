@@ -1,0 +1,296 @@
+<div *ngIf="loading" class="item">
+  <mat-card class="service-card">
+    <div class="loading-container">
+      <mat-spinner diameter="50"></mat-spinner>
+    </div>
+  </mat-card>
+</div>
+
+<div *ngIf="!loading && summary">
+  <mat-card class="service-card">
+    <mat-card-title class="service-title"></mat-card-title>
+    <mat-card-content>
+      <div class="headtitle">
+        <div class="back">
+          <h1>Statistics Dashboard</h1>
+          <mat-icon
+            class="help-icon"
+            matTooltip="Overview of negotiation, transfer, event and runtime statistics for the connector. Use the time range and bucket controls to change the reporting window, then press Refresh to reload."
+            aria-label="Help regarding the statistics dashboard"
+            >help_outline</mat-icon
+          >
+        </div>
+      </div>
+
+      <!-- Time window controls -->
+      <div class="filter-div">
+        <div class="filters-row">
+          <mat-expansion-panel
+            class="filter-expansion-panel"
+            [(expanded)]="filterExpansionState.filtersExpanded"
+          >
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <mat-icon>filter_list</mat-icon>
+                Advanced Filters
+              </mat-panel-title>
+              <mat-panel-description>
+                {{ isSuperAdmin
+                  ? 'Filter statistics by date range, bucket, and tenant'
+                  : 'Filter statistics by date range and bucket' }}
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+
+            <div class="filter-content">
+              <div class="filter-fields-row">
+                <mat-form-field appearance="outline" class="filter-field date-field" subscriptSizing="dynamic">
+                  <mat-label>From Date</mat-label>
+                  <input
+                    matInput
+                    [matDatepicker]="fromPicker"
+                    [(ngModel)]="fromDateFilter"
+                    [max]="maxFromDate"
+                    placeholder="Select start date"
+                    readonly
+                  />
+                  <mat-datepicker-toggle matSuffix [for]="fromPicker">
+                  </mat-datepicker-toggle>
+                  <mat-datepicker #fromPicker></mat-datepicker>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="filter-field date-field" subscriptSizing="dynamic">
+                  <mat-label>To Date</mat-label>
+                  <input
+                    matInput
+                    [matDatepicker]="toPicker"
+                    [(ngModel)]="toDateFilter"
+                    [min]="minToDate"
+                    placeholder="Select end date"
+                    readonly
+                  />
+                  <mat-datepicker-toggle matSuffix [for]="toPicker">
+                  </mat-datepicker-toggle>
+                  <mat-datepicker #toPicker></mat-datepicker>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
+                  <mat-label>Bucket</mat-label>
+                  <mat-select [(ngModel)]="bucket">
+                    <mat-option *ngFor="let option of bucketOptions" [value]="option">
+                      {{ option }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field
+                  *ngIf="isSuperAdmin"
+                  appearance="outline"
+                  class="filter-field"
+                  subscriptSizing="dynamic"
+                >
+                  <mat-label>Tenant</mat-label>
+                  <mat-select
+                    [(ngModel)]="selectedTenantId"
+                    (selectionChange)="onTenantChange()"
+                  >
+                    <mat-option [value]="null">All Tenants</mat-option>
+                    <mat-option *ngFor="let tenant of tenants" [value]="tenant.id">
+                      {{ tenant.name }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <!-- Filter Actions (Consistent with User Management) -->
+                <div class="filter-actions-inline">
+                  <button
+                    mat-raised-button
+                    (click)="refresh()"
+                  >
+                    <mat-icon>search</mat-icon>
+                    Apply
+                  </button>
+                  <button mat-button (click)="clearFilters()">
+                    <mat-icon>clear</mat-icon>
+                    Clear
+                  </button>
+                </div>
+              </div>
+            </div>
+          </mat-expansion-panel>
+        </div>
+      </div>
+
+      <!-- KPI cards -->
+      <div class="kpi-row">
+        <mat-card class="kpi-card">
+          <span class="kpi-label">Total Negotiations</span>
+          <span class="kpi-value">{{ summary.negotiations.totalCount }}</span>
+        </mat-card>
+        <mat-card class="kpi-card">
+          <span class="kpi-label">Total Transfers</span>
+          <span class="kpi-value">{{ summary.transfers.totalCount }}</span>
+        </mat-card>
+        <mat-card class="kpi-card">
+          <span class="kpi-label">Events In Window</span>
+          <span class="kpi-value">{{ summary.events.totalCount }}</span>
+        </mat-card>
+      </div>
+
+      <!-- Events -->
+      <h2>Event History</h2>
+      <div class="empty-state" *ngIf="!hasEventsData">
+        Select period to show event data
+      </div>
+      <ng-container *ngIf="hasEventsData">
+        <div class="chart-row">
+          <div class="chart-container chart-container--timeline">
+            <canvas
+              baseChart
+              [data]="eventsTimelineChartData"
+              [options]="barChartOptions"
+              type="bar"
+            ></canvas>
+          </div>
+        </div>
+        <div class="section-row">
+        <div class="stats-table-wrapper">
+          <table
+            mat-table
+            [dataSource]="summary.events.byEventType"
+            class="stats-table"
+          >
+            <ng-container matColumnDef="key">
+              <th mat-header-cell *matHeaderCellDef>Event Type</th>
+              <td mat-cell *matCellDef="let row">{{ getEventTypeDisplayName(row.key) }}</td>
+            </ng-container>
+            <ng-container matColumnDef="count">
+              <th mat-header-cell *matHeaderCellDef>Count</th>
+              <td mat-cell *matCellDef="let row">{{ row.count }}</td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="keyCountColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: keyCountColumns"></tr>
+          </table>
+        </div>
+        <div class="stats-table-wrapper">
+          <table
+            mat-table
+            [dataSource]="summary.events.byRole"
+            class="stats-table"
+          >
+            <ng-container matColumnDef="key">
+              <th mat-header-cell *matHeaderCellDef>Role</th>
+              <td mat-cell *matCellDef="let row">{{ row.key }}</td>
+            </ng-container>
+            <ng-container matColumnDef="count">
+              <th mat-header-cell *matHeaderCellDef>Count</th>
+              <td mat-cell *matCellDef="let row">{{ row.count }}</td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="keyCountColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: keyCountColumns"></tr>
+          </table>
+        </div>
+      </div>
+    </ng-container>
+
+      <!-- Negotiations -->
+      <h2>Negotiations</h2>
+      <div class="empty-state" *ngIf="!hasNegotiationsData">
+        Select period to show negotiation data
+      </div>
+      <div class="section-row" *ngIf="hasNegotiationsData">
+        <div class="chart-container">
+          <canvas
+            baseChart
+            [data]="negotiationStateChartData"
+            [options]="pieChartOptions"
+            type="pie"
+          ></canvas>
+        </div>
+        <div class="stats-table-wrapper">
+          <table
+            mat-table
+            [dataSource]="negotiationRoleStateRows"
+            class="stats-table"
+          >
+            <ng-container matColumnDef="role">
+              <th mat-header-cell *matHeaderCellDef>Role</th>
+              <td mat-cell *matCellDef="let row">{{ row.role }}</td>
+            </ng-container>
+            <ng-container matColumnDef="state">
+              <th mat-header-cell *matHeaderCellDef>State</th>
+              <td mat-cell *matCellDef="let row">{{ row.state }}</td>
+            </ng-container>
+            <ng-container matColumnDef="count">
+              <th mat-header-cell *matHeaderCellDef>Count</th>
+              <td mat-cell *matCellDef="let row">{{ row.count }}</td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="roleStateColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: roleStateColumns"></tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- Transfers -->
+      <h2>Transfers</h2>
+      <div class="empty-state" *ngIf="!hasTransfersData">
+        Select period to show transfer data
+      </div>
+      <div class="section-row" *ngIf="hasTransfersData">
+        <div class="chart-container">
+          <canvas
+            baseChart
+            [data]="transferStateChartData"
+            [options]="pieChartOptions"
+            type="pie"
+          ></canvas>
+        </div>
+        <div class="stats-table-wrapper">
+          <table
+            mat-table
+            [dataSource]="transferRoleStateRows"
+            class="stats-table"
+          >
+            <ng-container matColumnDef="role">
+              <th mat-header-cell *matHeaderCellDef>Role</th>
+              <td mat-cell *matCellDef="let row">{{ row.role }}</td>
+            </ng-container>
+            <ng-container matColumnDef="state">
+              <th mat-header-cell *matHeaderCellDef>State</th>
+              <td mat-cell *matCellDef="let row">{{ row.state }}</td>
+            </ng-container>
+            <ng-container matColumnDef="count">
+              <th mat-header-cell *matHeaderCellDef>Count</th>
+              <td mat-cell *matCellDef="let row">{{ row.count }}</td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="roleStateColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: roleStateColumns"></tr>
+          </table>
+        </div>
+      </div>
+      <div class="section-row" *ngIf="hasTransfersData">
+        <div class="chart-container chart-container--small">
+          <canvas
+            baseChart
+            [data]="transferFormatChartData"
+            [options]="doughnutChartOptions"
+            type="doughnut"
+          ></canvas>
+        </div>
+        <div class="status-cards">
+          <mat-card class="status-card">
+            <span class="kpi-label">Downloaded</span>
+            <span class="kpi-value">{{
+              summary.transfers.downloadedCount
+            }}</span>
+          </mat-card>
+          <mat-card class="status-card">
+            <span class="kpi-label">Download In Progress</span>
+            <span class="kpi-value">{{
+              summary.transfers.downloadInProgressCount
+            }}</span>
+          </mat-card>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
