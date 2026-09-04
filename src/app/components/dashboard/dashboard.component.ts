@@ -32,6 +32,7 @@ import {
 import { DashboardService } from '../../services/dashboard/dashboard.service';
 import { SnackbarService } from '../../services/snackbar/snackbar.service';
 import { DashboardFormatHelper } from '../../shared/utils/dashboard-format.utils';
+import { ChartColorHelper } from '../../shared/utils/chart-color.utils';
 import { UserService } from '../../services/user/user.service';
 import { TenantService } from '../../services/tenant/tenant.service';
 import { Tenant } from '../../models/tenant';
@@ -363,6 +364,9 @@ export class DashboardComponent implements OnInit {
     const eventTypes = Array.from(
       new Set(summary.events.overTime.map((c) => c.key))
     );
+    const timelineColors = ChartColorHelper.generateDistinctColors(
+      eventTypes.length
+    );
 
     const datasets = eventTypes.map((eventType, index) => ({
       label: eventType,
@@ -372,8 +376,8 @@ export class DashboardComponent implements OnInit {
         );
         return match ? match.count : 0;
       }),
-      borderColor: CHART_PALETTE[index % CHART_PALETTE.length],
-      backgroundColor: CHART_PALETTE[index % CHART_PALETTE.length],
+      borderColor: timelineColors[index],
+      backgroundColor: timelineColors[index],
       borderWidth: 2,
       pointRadius: 3,
       pointHoverRadius: 5,

@@ -134,6 +134,62 @@
         </mat-card>
       </div>
 
+      <!-- Events -->
+      <h2>Event History</h2>
+      <div class="empty-state" *ngIf="!hasEventsData">
+        Select period to show event data
+      </div>
+      <ng-container *ngIf="hasEventsData">
+        <div class="chart-row">
+          <div class="chart-container chart-container--timeline">
+            <canvas
+              baseChart
+              [data]="eventsTimelineChartData"
+              [options]="lineChartOptions"
+              type="line"
+            ></canvas>
+          </div>
+        </div>
+        <div class="section-row">
+        <div class="stats-table-wrapper">
+          <table
+            mat-table
+            [dataSource]="summary.events.byEventType"
+            class="stats-table"
+          >
+            <ng-container matColumnDef="key">
+              <th mat-header-cell *matHeaderCellDef>Event Type</th>
+              <td mat-cell *matCellDef="let row">{{ row.key }}</td>
+            </ng-container>
+            <ng-container matColumnDef="count">
+              <th mat-header-cell *matHeaderCellDef>Count</th>
+              <td mat-cell *matCellDef="let row">{{ row.count }}</td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="keyCountColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: keyCountColumns"></tr>
+          </table>
+        </div>
+        <div class="stats-table-wrapper">
+          <table
+            mat-table
+            [dataSource]="summary.events.byRole"
+            class="stats-table"
+          >
+            <ng-container matColumnDef="key">
+              <th mat-header-cell *matHeaderCellDef>Role</th>
+              <td mat-cell *matCellDef="let row">{{ row.key }}</td>
+            </ng-container>
+            <ng-container matColumnDef="count">
+              <th mat-header-cell *matHeaderCellDef>Count</th>
+              <td mat-cell *matCellDef="let row">{{ row.count }}</td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="keyCountColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: keyCountColumns"></tr>
+          </table>
+        </div>
+      </div>
+    </ng-container>
+
       <!-- Negotiations -->
       <h2>Negotiations</h2>
       <div class="empty-state" *ngIf="!hasNegotiationsData">
@@ -233,62 +289,6 @@
           </mat-card>
         </div>
       </div>
-
-      <!-- Events -->
-      <h2>Event History</h2>
-      <div class="empty-state" *ngIf="!hasEventsData">
-        Select period to show event data
-      </div>
-      <ng-container *ngIf="hasEventsData">
-        <div class="chart-row">
-          <div class="chart-container chart-container--timeline">
-            <canvas
-              baseChart
-              [data]="eventsTimelineChartData"
-              [options]="lineChartOptions"
-              type="line"
-            ></canvas>
-          </div>
-        </div>
-        <div class="section-row">
-        <div class="stats-table-wrapper">
-          <table
-            mat-table
-            [dataSource]="summary.events.byEventType"
-            class="stats-table"
-          >
-            <ng-container matColumnDef="key">
-              <th mat-header-cell *matHeaderCellDef>Event Type</th>
-              <td mat-cell *matCellDef="let row">{{ row.key }}</td>
-            </ng-container>
-            <ng-container matColumnDef="count">
-              <th mat-header-cell *matHeaderCellDef>Count</th>
-              <td mat-cell *matCellDef="let row">{{ row.count }}</td>
-            </ng-container>
-            <tr mat-header-row *matHeaderRowDef="keyCountColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: keyCountColumns"></tr>
-          </table>
-        </div>
-        <div class="stats-table-wrapper">
-          <table
-            mat-table
-            [dataSource]="summary.events.byRole"
-            class="stats-table"
-          >
-            <ng-container matColumnDef="key">
-              <th mat-header-cell *matHeaderCellDef>Role</th>
-              <td mat-cell *matCellDef="let row">{{ row.key }}</td>
-            </ng-container>
-            <ng-container matColumnDef="count">
-              <th mat-header-cell *matHeaderCellDef>Count</th>
-              <td mat-cell *matCellDef="let row">{{ row.count }}</td>
-            </ng-container>
-            <tr mat-header-row *matHeaderRowDef="keyCountColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: keyCountColumns"></tr>
-          </table>
-        </div>
-      </div>
-    </ng-container>
     </mat-card-content>
   </mat-card>
 </div>

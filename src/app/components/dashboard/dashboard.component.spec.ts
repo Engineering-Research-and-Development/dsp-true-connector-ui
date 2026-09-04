@@ -278,6 +278,28 @@ describe('DashboardComponent', () => {
     });
   });
 
+  it('should assign a unique color to every event type in the timeline chart, even beyond the fixed palette size', () => {
+    const manyEventTypesSummary = {
+      ...mockSummary,
+      events: {
+        ...mockSummary.events,
+        overTime: Array.from({ length: 12 }, (_, i) => ({
+          bucketStart: '2026-05-20T13:00:00Z',
+          key: `Event type ${i}`,
+          count: i + 1,
+        })),
+      },
+    };
+    dashboardServiceSpy.getSummary.and.returnValue(of(manyEventTypesSummary));
+
+    fixture.detectChanges();
+
+    const datasets = component.eventsTimelineChartData.datasets;
+    expect(datasets.length).toBe(12);
+    const borderColors = datasets.map((d) => d.borderColor);
+    expect(new Set(borderColors).size).toBe(12);
+  });
+
   it('should expose empty-state flags based on summary data', () => {
     fixture.detectChanges();
     expect(component.hasNegotiationsData).toBeTrue();

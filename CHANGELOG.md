@@ -28,6 +28,7 @@ All notable changes to this project will be documented in this file.
 - Statistics Dashboard negotiation and transfer state charts changed from bar charts to pie charts, each slice colored by a fixed semantic state color (`COMPLETED`/`FINALIZED` = green, `TERMINATED` = red, `SUSPENDED` = yellow, other states use distinct colors chosen to match the existing UI palette).
 - The root route (`/`) now redirects to `/dashboard` instead of `/catalog-browser`; "Dashboard" is the first item in the sidenav.
 - Added `ng2-charts` and `chart.js` as dependencies for dashboard chart rendering.
+- Statistics Dashboard section order changed so **Event History** (timeline chart and its event-type/role tables) now renders first, above Negotiations, Transfers, and Transfer Format.
 - Access token is now kept in memory only (never written to `localStorage`); the refresh token remains in `localStorage` so sessions still survive a browser restart. Any legacy `access_token` key left by a previous version is cleaned up automatically.
 - `AuthService.refresh()`/`logout()` now send the refresh token as `refresh_token` (snake_case) to match the backend's `@JsonProperty("refresh_token")` contract; previously requests sent camelCase `refreshToken` and would fail backend validation.
 
