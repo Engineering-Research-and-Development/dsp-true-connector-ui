@@ -10,7 +10,8 @@
       "enabled": true,
       "expired": false,
       "locked": false,
-      "role": "ROLE_ADMIN"
+      "role": "ADMIN",
+      "tenantId": "connector-a"
     },
     {
       "_class": "it.eng.connector.model.User",
@@ -22,7 +23,20 @@
       "enabled": "true",
       "expired": false,
       "locked": false,
-      "role": "ROLE_CONNECTOR"
+      "role": "CONNECTOR",
+      "tenantId": "connector-a"
+    },
+    {
+      "_class": "it.eng.connector.model.User",
+      "_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "firstName": "Super",
+      "lastName": "Admin",
+      "email": "superadmin@mail.com",
+      "password": "$2a$10$wQgl7stAxkVI1oxaynYU2uj.1IxzQ/ETygs32RoveH.rkgAfXAk5q",
+      "enabled": true,
+      "expired": false,
+      "locked": false,
+      "role": "SUPER_ADMIN"
     }
   ],
   "catalogs": [
@@ -76,7 +90,8 @@
       "participantId": "urn:example:DataProviderA",
       "createdBy": "admin@mail.com",
       "lastModifiedBy": "admin@mail.com",
-      "version": 0
+      "version": 0,
+      "tenantId": "connector-a"
     }
   ],
   "datasets": [
@@ -138,7 +153,8 @@
       },
       "createdBy": "admin@mail.com",
       "lastModifiedBy": "admin@mail.com",
-      "version": 0
+      "version": 0,
+      "tenantId": "connector-a"
     }
   ],
   "dataservices": [
@@ -168,7 +184,8 @@
       "endpointURL": "http://connector-a:8080/",
       "createdBy": "admin@mail.com",
       "lastModifiedBy": "admin@mail.com",
-      "version": 0
+      "version": 0,
+      "tenantId": "connector-a"
     }
   ],
   "distributions": [
@@ -185,7 +202,8 @@
       "lastModifiedBy": "admin@mail.com",
       "issued": "2024-04-23T16:26:00.000Z",
       "modified": "2024-04-23T16:26:00.000Z",
-      "version": 0
+      "version": 0,
+      "tenantId": "connector-a"
     },
     {
       "_id": "urn:uuid:1dc45797-push-4932-8baf-ab7fd66ql4d5",
@@ -200,7 +218,8 @@
       "lastModifiedBy": "admin@mail.com",
       "issued": "2024-04-23T16:26:00.000Z",
       "modified": "2024-04-23T16:26:00.000Z",
-      "version": 0
+      "version": 0,
+      "tenantId": "connector-a"
     }
   ],
   "artifacts": [
@@ -300,6 +319,21 @@
       "mandatory": false,
       "issued": "2025-09-15T16:26:00.000Z",
       "modified": "2025-09-15T16:26:00.000Z",
+      "version": 0
+    }
+  ],
+  "tenants": [
+    {
+      "_class": "it.eng.tools.model.Tenant",
+      "_id": "connector-a",
+      "name": "Connector A",
+      "description": "Default Connector A tenant",
+      "connectorId": "urn:connector:connector-a",
+      "callbackAddress": "http://connector-a:8080/connector-a",
+      "bucketName": "dsp-true-connector-a",
+      "enabled": true,
+      "automaticNegotiation": false,
+      "automaticTransfer": false,
       "version": 0
     }
   ]

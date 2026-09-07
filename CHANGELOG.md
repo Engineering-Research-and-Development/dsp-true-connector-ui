@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
 
 - Access token is now kept in memory only (never written to `localStorage`); the refresh token remains in `localStorage` so sessions still survive a browser restart. Any legacy `access_token` key left by a previous version is cleaned up automatically.
 - `AuthService.refresh()`/`logout()` now send the refresh token as `refresh_token` (snake_case) to match the backend's `@JsonProperty("refresh_token")` contract; previously requests sent camelCase `refreshToken` and would fail backend validation.
+- Updated docker demo resources (`docker/connector_a_resources` = consumer, `docker/connector_b_resources` = provider) for compatibility with the backend's multitenant branch: `application.auth.provider` switched from `BASIC` to `INTERNAL` with JWT secret/expiration, Keycloak login/admin, and FTP property blocks added; seed `initial_data.json` files renamed roles (`ROLE_ADMIN`→`ADMIN`, `ROLE_CONNECTOR`→`CONNECTOR`), added a `SUPER_ADMIN` seed user, added `tenantId` to catalog entities, and added a `tenants` collection (`connector-a` / `connector-b`).
 
 ### Fixed
 

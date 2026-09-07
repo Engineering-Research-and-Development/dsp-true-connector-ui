@@ -1,71 +1,71 @@
 services:
 ### Instance A
-  connector-a:
-    image: ghcr.io/engineering-research-and-development/dsp-true-connector:latest
-    deploy:
-      resources:
-        limits:
-          cpus: "1"
-          memory: 1024M
-    logging:
-      options:
-        max-size: "200M"
-    networks:
-      - network-a
-      - network-b
-    container_name: connector-a
-    ports:
-      - 8080:8080
-    depends_on:
-      - mongodb-a
-      - minio
-    environment:
-      - "JDK_JAVA_OPTIONS=-Xmx1024m"
-      - CALLBACK_ADDRESS=${CONNECTOR_A_CALLBACK_ADDRESS}
-      - SSL_ENABLED=${SSL_ENABLED}
-      - KEYSTORE_NAME=${CONNECTOR_A_KEYSTORE_NAME}
-      - KEY_PASSWORD=${CONNECTOR_A_KEY_PASSWORD}
-      - KEYSTORE_PASSWORD=${CONNECTOR_A_KEYSTORE_PASSWORD}
-      - KEYSTORE_ALIAS=${CONNECTOR_A_KEYSTORE_ALIAS}
-      - TRUSTSTORE_NAME=${TRUSTSTORE_NAME}
-      - TRUSTSTORE_PASSWORD=${TRUSTSTORE_PASSWORD}
-    volumes:
-      - ./connector_a_resources:/config
-      - ./tc_cert/connector-a:/cert
-      - tc_a_log:/var/log/tc
+  # connector-a:
+  #   image: tc-mt-be
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         cpus: "1"
+  #         memory: 1024M
+  #   logging:
+  #     options:
+  #       max-size: "200M"
+  #   networks:
+  #     - network-a
+  #     - network-b
+  #   container_name: connector-a
+  #   ports:
+  #     - 8080:8080
+  #   depends_on:
+  #     - mongodb-a
+  #     - minio
+  #   environment:
+  #     - "JDK_JAVA_OPTIONS=-Xmx1024m"
+  #     - CALLBACK_ADDRESS=${CONNECTOR_A_CALLBACK_ADDRESS}
+  #     - SSL_ENABLED=${SSL_ENABLED}
+  #     - KEYSTORE_NAME=${CONNECTOR_A_KEYSTORE_NAME}
+  #     - KEY_PASSWORD=${CONNECTOR_A_KEY_PASSWORD}
+  #     - KEYSTORE_PASSWORD=${CONNECTOR_A_KEYSTORE_PASSWORD}
+  #     - KEYSTORE_ALIAS=${CONNECTOR_A_KEYSTORE_ALIAS}
+  #     - TRUSTSTORE_NAME=${TRUSTSTORE_NAME}
+  #     - TRUSTSTORE_PASSWORD=${TRUSTSTORE_PASSWORD}
+  #   volumes:
+  #     - ./connector_a_resources:/config
+  #     - ./tc_cert/connector-a:/cert
+  #     - tc_a_log:/var/log/tc
   
-  ui-a:
-    image: ghcr.io/engineering-research-and-development/dsp-true-connector-ui:latest
-    container_name: ui-a
-    networks:
-      - network-a
-    ports:
-      - "4200:80"   # Only HTTP
-      - "4222:443"  # HTTPS
-    environment:
-      - TC_ROOT_API_URL=${CONNECTOR_A_TC_ROOT_API_URL}
-    depends_on:
-      - connector-a
-    volumes:
-      - ./ui_a_resources/nginx.conf:/etc/nginx/nginx.conf
-      - ./tc_cert/ui-a-cert:/etc/nginx/ssl:ro
-      - ./ui_a_resources/assets/img:/custom-assets:ro
+  # ui-a:
+  #   image: tc-mt-fe
+  #   container_name: ui-a
+  #   networks:
+  #     - network-a
+  #   ports:
+  #     - "4200:80"   # Only HTTP
+  #     - "4222:443"  # HTTPS
+  #   environment:
+  #     - TC_ROOT_API_URL=${CONNECTOR_A_TC_ROOT_API_URL}
+  #   depends_on:
+  #     - connector-a
+  #   volumes:
+  #     - ./ui_a_resources/nginx.conf:/etc/nginx/nginx.conf
+  #     - ./tc_cert/ui-a-cert:/etc/nginx/ssl:ro
+  #     - ./ui_a_resources/assets/img:/custom-assets:ro
 
-  mongodb-a:
-    container_name: mongodb-a
-    image: mongo:7.0.12
-    networks:
-      - network-a
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb-data_a:/data/db
-      - mongodb-configdb_a:/data/configdb
+  # mongodb-a:
+  #   container_name: mongodb-a
+  #   image: mongo:7.0.12
+  #   networks:
+  #     - network-a
+  #   ports:
+  #     - "27017:27017"
+  #   volumes:
+  #     - mongodb-data_a:/data/db
+  #     - mongodb-configdb_a:/data/configdb
       
 ### instance b
 
   connector-b:
-    image: ghcr.io/engineering-research-and-development/dsp-true-connector:latest
+    image: tc-mt-be
     deploy:
       resources:
         limits:
@@ -99,7 +99,7 @@ services:
       - tc_b_log:/var/log/tc
 
   ui-b:
-    image: ghcr.io/engineering-research-and-development/dsp-true-connector-ui:latest
+    image: tc-mt-fe
     container_name: ui-b
     networks:
       - network-b
@@ -150,9 +150,9 @@ networks:
   network-b: { }
   
 volumes:
-  tc_a_log: { }
-  mongodb-data_a: { }
-  mongodb-configdb_a: { }
+  # tc_a_log: { }
+  # mongodb-data_a: { }
+  # mongodb-configdb_a: { }
   tc_b_log: { }
   mongodb-data_b: { }
   mongodb-configdb_b: { }
