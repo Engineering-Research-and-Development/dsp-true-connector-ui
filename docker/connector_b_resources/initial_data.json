@@ -181,7 +181,7 @@
       "modified": "2024-04-23T16:26:00.000Z",
       "title": "DSP TRUE Connector",
       "endpointDescription": "connector",
-      "endpointURL": "http://connector-b:8080/",
+      "endpointURL": "http://connector-b:8080/connector-b",
       "createdBy": "admin@mail.com",
       "lastModifiedBy": "admin@mail.com",
       "version": 0,
@@ -328,12 +328,12 @@
       "_id": "connector-b",
       "name": "Connector B",
       "description": "Default Connector B tenant",
-      "connectorId": "urn:connector:connector-b",
+      "participantId": "urn:connector:connector-b",
       "callbackAddress": "http://connector-b:8080/connector-b",
       "bucketName": "dsp-true-connector-b",
       "enabled": true,
-      "automaticNegotiation": false,
-      "automaticTransfer": false,
+      "automaticNegotiation": true,
+      "automaticTransfer": true,
       "version": 0
     }
   ]
