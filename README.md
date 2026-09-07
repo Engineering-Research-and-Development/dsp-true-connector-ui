@@ -187,6 +187,13 @@ Access the instances:
 
 ### Troubleshooting
 
+#### endpointURL
+
+Following property - Catalog-> Data Service.endpointURL has important role. Its value will be used by other conenctors to construct base URL for sending Contract Negotiation requests, and start interaction with connector. This value should point to public available URL where connector can be reached. Make sure to update value, through UI or in initial_data.json file to match with setup you are running (depending on deployemnt).
+
+It must be in the format baseURL + tenantId, for example `https://engineering.com/some-tenant` . TenantId can be check/obtained from intial-data.json, from Tenant document section.
+ 
+
 #### 413 Request Entity Too Large on dataset/artifact upload (Docker only)
 
 **Symptom**: Adding or updating a dataset with an artifact larger than ~1MB fails with an HTTP `413 Request Entity Too Large` error when the app is run via Docker (`docker-compose up`), but the same action succeeds when running the UI locally through the IDE/terminal (`ng serve`).
