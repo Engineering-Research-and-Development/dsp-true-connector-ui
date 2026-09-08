@@ -327,9 +327,10 @@
               <mat-form-field
                 appearance="outline"
                 [tcModified]="{ key: 'endpointURL', state: editState }"
+                *ngIf="service['@id']"
               >
                 <mat-label>Endpoint URL</mat-label>
-                <input matInput formControlName="endpointURL" />
+                <input matInput formControlName="endpointURL" [disabled]="true" />
                 <mat-icon
                   *ngIf="editState.isChanged('endpointURL')"
                   matSuffix
@@ -339,11 +340,6 @@
                   "
                   >edit</mat-icon
                 >
-                <mat-error
-                  *ngIf="serviceForm.get('endpointURL')?.hasError('required')"
-                >
-                  Endpoint URL is required
-                </mat-error>
               </mat-form-field>
             </div>
             <!-- <mat-form-field appearance="outline">

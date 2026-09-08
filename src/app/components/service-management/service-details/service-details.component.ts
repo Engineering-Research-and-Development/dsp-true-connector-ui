@@ -392,7 +392,7 @@ export class ServiceDetailsComponent implements OnInit {
       creator: null,
       conformsTo: null,
       endpointDescription: ['', Validators.required],
-      endpointURL: ['', Validators.required],
+      endpointURL: [''],
       createdBy: null,
       lastModifiedBy: null,
       version: null,

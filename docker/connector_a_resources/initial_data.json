@@ -328,7 +328,7 @@
       "_id": "connector-a",
       "name": "Connector A",
       "description": "Default Connector A tenant",
-      "connectorId": "urn:connector:connector-a",
+      "participantId": "urn:connector:connector-a",
       "callbackAddress": "http://connector-a:8080/connector-a",
       "bucketName": "dsp-true-connector-a",
       "enabled": true,
