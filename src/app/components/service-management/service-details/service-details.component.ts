@@ -423,6 +423,10 @@ export class ServiceDetailsComponent implements OnInit {
         modified: service.modified,
       });
 
+      if (service['@id']) {
+        this.serviceForm.get('endpointURL')?.disable();
+      }
+
       if (
         service.description.length === 0 &&
         service.keyword.length === 0 &&

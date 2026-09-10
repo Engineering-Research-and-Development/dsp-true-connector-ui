@@ -330,7 +330,7 @@
                 *ngIf="service['@id']"
               >
                 <mat-label>Endpoint URL</mat-label>
-                <input matInput formControlName="endpointURL" [disabled]="true" />
+                <input matInput formControlName="endpointURL" />
                 <mat-icon
                   *ngIf="editState.isChanged('endpointURL')"
                   matSuffix
