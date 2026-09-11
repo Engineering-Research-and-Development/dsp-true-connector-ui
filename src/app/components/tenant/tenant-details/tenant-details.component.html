@@ -1,0 +1,157 @@
+<div *ngIf="loading" class="item">
+  <mat-card class="service-card">
+    <div class="loading-container">
+      <mat-spinner diameter="50"></mat-spinner>
+    </div>
+  </mat-card>
+</div>
+
+<div *ngIf="!loading">
+  <mat-card class="service-card">
+    <mat-card-content>
+      <div class="headtitle">
+        <div class="back">
+          <button mat-icon-button (click)="goBack()" matTooltip="Go back">
+            <mat-icon>arrow_back</mat-icon>
+          </button>
+          <h1>
+            {{ isCreate ? 'Add New Tenant' : (editMode ? 'Edit Tenant' : 'Tenant Details') }}
+          </h1>
+        </div>
+        <div class="buttons">
+          <ng-container *ngIf="!editMode && !isCreate">
+            <button mat-button matTooltip="Enable tenant" (click)="enableTenant()" *ngIf="!tenant.enabled">
+              <mat-icon>check_circle</mat-icon>
+            </button>
+            <button mat-button matTooltip="Disable tenant" (click)="disableTenant()" *ngIf="tenant.enabled">
+              <mat-icon>block</mat-icon>
+            </button>
+            <button mat-button matTooltip="Edit tenant" (click)="toggleEditMode()">
+              <mat-icon>edit</mat-icon>
+            </button>
+          </ng-container>
+          <ng-container *ngIf="editMode">
+            <button mat-button matTooltip="Save tenant" (click)="saveTenant()" [disabled]="tenantForm.invalid">
+              <mat-icon>save</mat-icon>
+            </button>
+            <button mat-button matTooltip="Cancel" (click)="cancelEdit()">
+              <mat-icon>cancel</mat-icon>
+            </button>
+          </ng-container>
+        </div>
+      </div>
+
+      <unsaved-changes [active]="editState.hasChanges()"></unsaved-changes>
+
+      <form [formGroup]="tenantForm" *ngIf="editMode" class="tenant-form">
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field" [tcModified]="{key:'id', state: editState}">
+            <mat-label>ID</mat-label>
+            <input matInput formControlName="id" placeholder="Enter tenant ID" />
+            <mat-hint *ngIf="editState.isChanged('id')">Original: {{ 'id' | oldValue : editState }}</mat-hint>
+            <mat-error *ngIf="tenantForm.get('id')?.hasError('required')">ID is required</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field" [tcModified]="{key:'name', state: editState}">
+            <mat-label>Name</mat-label>
+            <input matInput formControlName="name" placeholder="Enter tenant name" />
+            <mat-hint *ngIf="editState.isChanged('name')">Original: {{ 'name' | oldValue : editState }}</mat-hint>
+            <mat-error *ngIf="tenantForm.get('name')?.hasError('required')">Name is required</mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field" [tcModified]="{key:'participantId', state: editState}">
+            <mat-label>Participant ID</mat-label>
+            <input matInput formControlName="participantId" placeholder="Enter participant ID" />
+            <mat-hint *ngIf="editState.isChanged('participantId')">Original: {{ 'participantId' | oldValue : editState }}</mat-hint>
+            <mat-error *ngIf="tenantForm.get('participantId')?.hasError('required')">Participant ID is required</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field" [tcModified]="{key:'description', state: editState}">
+            <mat-label>Description</mat-label>
+            <input matInput formControlName="description" placeholder="Enter description" />
+            <mat-hint *ngIf="editState.isChanged('description')">Original: {{ 'description' | oldValue : editState }}</mat-hint>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row toggles-row">
+          <mat-slide-toggle formControlName="automaticNegotiation" [tcModified]="{key:'automaticNegotiation', state: editState}">
+            Automatic Negotiation
+          </mat-slide-toggle>
+          <mat-slide-toggle formControlName="automaticTransfer" [tcModified]="{key:'automaticTransfer', state: editState}">
+            Automatic Transfer
+          </mat-slide-toggle>
+          <mat-slide-toggle formControlName="enabled" *ngIf="isCreate" [tcModified]="{key:'enabled', state: editState}">
+            Enabled
+          </mat-slide-toggle>
+        </div>
+
+        <mat-divider class="section-divider"></mat-divider>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field" [tcModified]="{key:'bucketName', state: editState}">
+            <mat-label>Bucket Name</mat-label>
+            <input matInput formControlName="bucketName" placeholder="Enter S3 bucket name" />
+            <mat-hint *ngIf="editState.isChanged('bucketName')">Original: {{ 'bucketName' | oldValue : editState }}</mat-hint>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field" [tcModified]="{key:'accessKey', state: editState}">
+            <mat-label>Access Key</mat-label>
+            <input matInput formControlName="accessKey" placeholder="Enter S3 access key" />
+            <mat-hint *ngIf="editState.isChanged('accessKey')">Original: {{ 'accessKey' | oldValue : editState }}</mat-hint>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field" [tcModified]="{key:'secretKey', state: editState}">
+            <mat-label>Secret Key</mat-label>
+            <input matInput type="password" formControlName="secretKey" placeholder="Enter S3 secret key" />
+            <mat-hint *ngIf="editState.isChanged('secretKey')">Original: {{ 'secretKey' | oldValue : editState }}</mat-hint>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row toggles-row">
+          <mat-slide-toggle formControlName="verifyConnection" [tcModified]="{key:'verifyConnection', state: editState}">
+            Verify S3 Connection
+          </mat-slide-toggle>
+        </div>
+      </form>
+
+      <div *ngIf="!editMode" class="details-grid">
+        <div class="detail-item">
+          <span class="detail-label">ID</span>
+          <span class="detail-value">{{ tenant.id }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Name</span>
+          <span class="detail-value">{{ tenant.name }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Participant ID</span>
+          <span class="detail-value">{{ tenant.participantId }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Description</span>
+          <span class="detail-value">{{ tenant.description || '-' }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Enabled</span>
+          <span class="detail-value">{{ tenant.enabled ? 'Yes' : 'No' }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Automatic Negotiation</span>
+          <span class="detail-value">{{ tenant.automaticNegotiation ? 'Yes' : 'No' }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Automatic Transfer</span>
+          <span class="detail-value">{{ tenant.automaticTransfer ? 'Yes' : 'No' }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Bucket Name</span>
+          <span class="detail-value">{{ tenant.bucketName || '-' }}</span>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -2,6 +2,58 @@
 
 All notable changes to this project will be documented in this file.
 
+# [0.7.0] - 11-09-2026 - Multi-Tenant Support
+
+### Added
+
+- New **User Management** screen (`/user-management`) with listing, filtering, sorting, pagination, and create/view/edit/delete operations, reusing the Contract Negotiation card layout and Dataset details form pattern.
+- `UserService` for backend communication with the `/users` API, including a `getCurrentUser()` call to `/api/v1/users/me`.
+- `TenantService.getAllTenantsList()` to populate the user creation tenant dropdown.
+- `UserRole` enum and `UserCreateRequest` / `UserUpdateRequest` models aligned with the backend contracts.
+- Added delete guards that are preventing removal of the current user and the only enabled SUPER_ADMIN.
+- Tenant management: card-based overview with filters, sorting and actions; new tenant create/view/edit detail page using reactive forms, edit-state tracking and S3 bucket credentials.
+- Proactive JWT expiration check before every outgoing HTTP request in `authInterceptor`; the access token is refreshed automatically via the refresh token before it expires.
+- Reactive 401 handling in `authInterceptor`: a single refresh-and-retry attempt on `401` responses, falling back to clearing the session and redirecting to `/login` (with `returnUrl`) if the retry also fails.
+- Refresh-request de-duplication in `AuthService` so concurrent requests that all need a new token trigger only one `/auth/refresh` call.
+- Silent session restore on app bootstrap (`AuthService.initSession()`, wired via `provideAppInitializer`) so a valid refresh token restores the session on page reload without forcing a re-login.
+
+### Changed
+
+- Access token is now kept in memory only (never written to `localStorage`); the refresh token remains in `localStorage` so sessions still survive a browser restart. Any legacy `access_token` key left by a previous version is cleaned up automatically.
+- `AuthService.refresh()`/`logout()` now send the refresh token as `refresh_token` (snake_case) to match the backend's `@JsonProperty("refresh_token")` contract; previously requests sent camelCase `refreshToken` and would fail backend validation.
+- Updated docker demo resources (`docker/connector_a_resources` = consumer, `docker/connector_b_resources` = provider) for compatibility with the backend's multitenant branch: `application.auth.provider` switched from `BASIC` to `INTERNAL` with JWT secret/expiration, Keycloak login/admin, and FTP property blocks added; seed `initial_data.json` files renamed roles (`ROLE_ADMIN`→`ADMIN`, `ROLE_CONNECTOR`→`CONNECTOR`), added a `SUPER_ADMIN` seed user, added `tenantId` to catalog entities, and added a `tenants` collection (`connector-a` / `connector-b`).
+
+### Fixed
+
+- `auth.interceptor.spec.ts` and `auth.service.spec.ts` rewritten to cover the new expiry/refresh/dedup logic (previously the interceptor spec still tested the old Basic-auth behavior and the service spec had only a placeholder test).
+- `login.component.spec.ts` now provides `HttpClient`/`Router`/`ActivatedRoute` test doubles required by `AuthService`/`LoginComponent`, fixing a pre-existing failure (the component construction previously depended on providers the spec never configured).
+
+# [0.6.3] - 03-07-2026
+
+### Added
+
+- AI Agentic approach skills and instruction files for functional slicing, including workflow split, choice-first rule, UI slicing rules, required slice content, coverage audit, and do not do this sections.
+
+### Changed
+
+- Upgraded GitHub action versions for build and release workflows to latest stable versions.
+
+# [0.6.2] - 08-04-2026
+
+### Added
+
+- `downloadInProgress` flag to the `DataTransfer` model to reflect backend in-progress download state
+- `ensureTrackedAsDownloading` method in `DataTransferService` to sync the backend flag into in-memory state on page load/refresh
+
+### Changed
+
+- Download spinner in the Data Transfers component now considers both the in-memory tracking state and the backend `downloading` flag, so a page refresh no longer loses a download in progress
+- `cleanupCompleted` in `DataTransferService` now also clears stale spinner state when the backend reports `downloading: false`, and persists the updated state to sessionStorage
+- `fetchDataTransfers` resumes polling for transfers the backend marks as still downloading, eliminating the dependency on sessionStorage being present after a refresh
+
+### Removed
+- Removed DAPS
+
 # [0.6.1] - 24-12-2025
 
 ### Changed

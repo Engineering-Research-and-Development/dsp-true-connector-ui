@@ -8,8 +8,8 @@
     <p>{{ data.message }}</p>
   </div>
   <br />
-  <div class="buttons">
-    <button mat-button (click)="onCancel()">Cancel</button>
-    <button mat-raised-button (click)="onConfirm()" color="warn">Delete</button>
+  <div class="buttons" *ngIf="!hideActions">
+    <button mat-button (click)="onCancel()">{{ cancelLabel }}</button>
+    <button mat-raised-button (click)="onConfirm()" color="warn">{{ confirmLabel }}</button>
   </div>
 </div>

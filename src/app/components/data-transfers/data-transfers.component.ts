@@ -16,7 +16,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
 import { ActivatedRoute } from '@angular/router';
-import { Subject } from 'rxjs';
+import { merge, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { DataTransfer } from '../../models/dataTransfer';
 import { DataTransferState } from '../../models/enums/dataTransferState';
@@ -123,8 +123,8 @@ export class DataTransfersComponent implements OnInit, OnDestroy {
       .getRemoteDatasetFormats(callbackAddress, datasetId)
       .subscribe({
         next: (formats) => {
-          this.requestFormatsMap[transferId] =
-            formats && formats.length > 0 ? formats : this.defaultRequestFormats;
+          const resolved = formats && formats.length > 0 ? formats : this.defaultRequestFormats;
+          this.requestFormatsMap[transferId] = [...resolved].sort();
           this.requestFormatsLoading[transferId] = false;
           this.requestFormatsLoaded[transferId] = true;
         },
@@ -220,6 +220,22 @@ export class DataTransfersComponent implements OnInit, OnDestroy {
             );
           }
           this.dataTransferService.cleanupCompleted(this.dataTransfers);
+          // Sync backend downloading flag to in-memory state so the spinner
+          // is restored correctly after a page refresh. Only track IDs not
+          // already known to avoid redundant sessionStorage writes.
+          this.dataTransfers
+            .filter((t) => t.downloadInProgress === true && !this.dataTransferService.isDownloading(t['@id']))
+            .forEach((t) => this.dataTransferService.ensureTrackedAsDownloading(t['@id']));
+          // Resume polling for any transfers that were downloading before a page refresh.
+          // Merge all streams and trigger a single refresh to avoid concurrent overlapping fetches.
+          const pollingStreams = this.dataTransfers
+            .filter((t) => this.dataTransferService.isDownloading(t['@id']))
+            .map((t) => this.dataTransferService.resumePollingIfNeeded(t['@id']));
+          if (pollingStreams.length > 0) {
+            merge(...pollingStreams)
+              .pipe(takeUntil(this.destroy$))
+              .subscribe({ complete: () => this.fetchDataTransfers() });
+          }
           this.loading = false;
         },
         error: (error) => {
@@ -310,12 +326,12 @@ export class DataTransfersComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Check if the data transfer is downloading
-   * @param transferId The ID of the data transfer
+   * Check if the data transfer is downloading (in-memory or backend flag)
+   * @param transfer The data transfer object
    * @returns True if the data transfer is downloading, false otherwise
    * */
-  isDownloading(transferId: string): boolean {
-    return this.dataTransferService.isDownloading(transferId);
+  isDownloading(transfer: DataTransfer): boolean {
+    return this.dataTransferService.isDownloading(transfer['@id']) || transfer.downloadInProgress === true;
   }
 
   /**

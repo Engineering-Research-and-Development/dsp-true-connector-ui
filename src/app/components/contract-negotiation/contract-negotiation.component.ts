@@ -56,6 +56,11 @@ export class ContractNegotiationComponent implements OnInit, OnDestroy {
   contractNegotiations: ContractNegotiation[] = [];
   selectedState: ContractNegotiationState | null = null;
   contractNegotiationStates = Object.values(ContractNegotiationState);
+  /** States available in the filter dropdown — OFFERED is excluded because it is
+   *  still a work in progress on the backend. */
+  filterableContractNegotiationStates = this.contractNegotiationStates.filter(
+    (s) => s !== ContractNegotiationState.OFFERED
+  );
 
   // Pagination and sorting using shared utility
   paginationState: PaginationState =

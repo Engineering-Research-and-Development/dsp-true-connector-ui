@@ -12,6 +12,20 @@ import { ContractNegotiationState } from '../models/enums/contractNegotiationSta
 import { DataTransferState } from '../models/enums/dataTransferState';
 import { Offer } from '../models/offer';
 import { Permission } from '../models/permission';
+import { Tenant } from '../models/tenant';
+
+export const MOCK_TENANT: Tenant = {
+  id: 'urn:uuid:test-tenant-id',
+  name: 'Test Tenant',
+  description: 'This is a test tenant for unit testing.',
+  automaticNegotiation: true,
+  automaticTransfer: true,
+  participantId: 'urn:uuid:test-participant-id',
+  enabled: true,
+  createdBy: 'admin@admin.com',
+  lastModifiedBy: 'admin@admin.com',
+  bucketName: 'test-tenant-bucket'
+};
 
 export const MOCK_ARTIFACT: Artifact = {
   id: 'urn:uuid:test-artifact-id', // Keep this generic one if used elsewhere
@@ -393,17 +407,6 @@ export const MOCK_EXTERNAL_ARTIFACT_OTHER_AUTH: Artifact = {
 
 // --- Application Property Mocks ---
 
-export const MOCK_APPLICATION_PROPERTY_DAPS: ApplicationProperty = {
-  key: 'daps.url',
-  value: 'https://daps.example.com',
-  sampleValue: 'https://daps.example.com',
-  mandatory: true,
-  group: 'DAPS',
-  label: 'DAPS URL',
-  tooltip: 'The URL of the DAPS (Dynamic Attribute Provisioning Service)',
-  type: 'string',
-};
-
 export const MOCK_APPLICATION_PROPERTY_SECURITY: ApplicationProperty = {
   key: 'security.authentication.enabled',
   value: 'true',
@@ -427,7 +430,6 @@ export const MOCK_APPLICATION_PROPERTY_GENERAL: ApplicationProperty = {
 };
 
 export const MOCK_APPLICATION_PROPERTIES = [
-  MOCK_APPLICATION_PROPERTY_DAPS,
   MOCK_APPLICATION_PROPERTY_SECURITY,
   MOCK_APPLICATION_PROPERTY_GENERAL,
 ];

@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, map, Observable, of, switchMap, tap, timer } from 'rxjs';
+import { catchError, EMPTY, finalize, map, Observable, of, switchMap, tap, timer } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { DataTransfer } from '../../models/dataTransfer';
 import {
@@ -17,6 +17,9 @@ export class DataTransferService {
   private apiUrl = environment.DATA_TRANSFER_API_URL();
   private downloadingTransfers = new Set<string>();
   private viewingTransfers = new Set<string>();
+  /** Tracks transfers whose polling observable is currently active in memory. */
+  private activelyPolling = new Set<string>();
+  private readonly DOWNLOADING_STORAGE_KEY = 'downloading_transfers';
 
   // Polling configuration
   private readonly POLLING_INTERVALS = [3000, 6000, 12000, 30000, 60000]; // 3s, 6s, 12s, 30s, 60s
@@ -32,7 +35,32 @@ export class DataTransferService {
     private http: HttpClient,
     private snackBarService: SnackbarService,
     private errorHandlerService: ErrorHandlerService
-  ) {}
+  ) {
+    this.restoreDownloadingState();
+  }
+
+  private saveDownloadingState(): void {
+    try {
+      sessionStorage.setItem(
+        this.DOWNLOADING_STORAGE_KEY,
+        JSON.stringify([...this.downloadingTransfers])
+      );
+    } catch {
+      // Storage may be blocked (e.g. private browsing) or full — treat as non-fatal
+    }
+  }
+
+  private restoreDownloadingState(): void {
+    const stored = sessionStorage.getItem(this.DOWNLOADING_STORAGE_KEY);
+    if (stored) {
+      try {
+        const ids: string[] = JSON.parse(stored);
+        ids.forEach((id) => this.downloadingTransfers.add(id));
+      } catch {
+        sessionStorage.removeItem(this.DOWNLOADING_STORAGE_KEY);
+      }
+    }
+  }
   httpOptions = {
     headers: new HttpHeaders({
       'Content-Type': 'application/json',
@@ -66,6 +94,8 @@ export class DataTransferService {
    */
   private markAsDownloading(transferId: string): void {
     this.downloadingTransfers.add(transferId);
+    this.activelyPolling.add(transferId);
+    this.saveDownloadingState();
   }
 
   /**
@@ -75,19 +105,34 @@ export class DataTransferService {
    */
   private markAsCompleted(transferId: string): void {
     this.downloadingTransfers.delete(transferId);
+    this.activelyPolling.delete(transferId);
+    this.saveDownloadingState();
   }
 
   /**
-   * Cleanup completed data transfers
+   * Ensure a transfer is tracked as downloading based on the backend flag.
+   * Does NOT add to activelyPolling — that is handled separately by resumePollingIfNeeded.
+   * @param transferId - The id of the transfer
+   */
+  ensureTrackedAsDownloading(transferId: string): void {
+    this.downloadingTransfers.add(transferId);
+    this.saveDownloadingState();
+  }
+
+  /**
+   * Cleanup completed data transfers and remove stale downloading entries.
+   * Clears a transfer from the tracking set when the backend reports it as
+   * fully downloaded (downloaded===true) or no longer downloading (downloadInProgress===false).
    * @param dataTransfers - The list of data transfers to check
    * @example dataTransferService.cleanupCompleted(dataTransfers);
    */
   cleanupCompleted(dataTransfers: DataTransfer[]): void {
     dataTransfers.forEach((transfer) => {
-      if (transfer.downloaded === true) {
+      if (transfer.downloaded === true || transfer.downloadInProgress === false) {
         this.downloadingTransfers.delete(transfer['@id']);
       }
     });
+    this.saveDownloadingState();
   }
 
   /**
@@ -377,7 +422,8 @@ export class DataTransferService {
         catchError((error) => {
           this.markAsCompleted(transferProcessId);
           return this.errorHandlerService.handleError(error);
-        })
+        }),
+        finalize(() => this.activelyPolling.delete(transferProcessId))
       );
   }
 
@@ -435,7 +481,8 @@ export class DataTransferService {
         catchError((error) => {
           this.markAsCompleted(transferProcessId);
           return this.errorHandlerService.handleError(error);
-        })
+        }),
+        finalize(() => this.activelyPolling.delete(transferProcessId))
       );
   }
 
@@ -545,6 +592,47 @@ export class DataTransferService {
     );
 
     return of(true);
+  }
+
+  /**
+   * Resume polling for a transfer that was in progress before a page refresh.
+   * Returns EMPTY if the transfer is not downloading or polling is already active.
+   * @param transferId - The id of the transfer
+   * @returns Observable<boolean> - emits true/false when polling completes, or EMPTY if no action needed
+   */
+  resumePollingIfNeeded(transferId: string): Observable<boolean> {
+    if (!this.downloadingTransfers.has(transferId) || this.activelyPolling.has(transferId)) {
+      return EMPTY;
+    }
+    this.activelyPolling.add(transferId);
+    return this.pollForDownloadCompletion(transferId).pipe(
+      tap((completed: boolean) => {
+        this.markAsCompleted(transferId);
+        if (completed) {
+          this.snackBarService.openSnackBar(
+            'Download completed successfully!',
+            'OK',
+            'center',
+            'bottom',
+            'snackbar-success'
+          );
+        } else {
+          this.snackBarService.openSnackBar(
+            'Download is taking longer than expected. Please check the transfer status manually.',
+            'OK',
+            'center',
+            'bottom',
+            'snackbar-warning'
+          );
+        }
+      }),
+      catchError((error) => {
+        this.errorHandlerService.handleError(error);
+        this.markAsCompleted(transferId);
+        return of(false);
+      }),
+      finalize(() => this.activelyPolling.delete(transferId))
+    );
   }
 
   /**

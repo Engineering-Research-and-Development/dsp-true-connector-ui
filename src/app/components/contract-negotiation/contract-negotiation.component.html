@@ -70,7 +70,7 @@
                   >
                     <mat-option [value]="null">All States</mat-option>
                     <mat-option
-                      *ngFor="let state of contractNegotiationStates"
+                      *ngFor="let state of filterableContractNegotiationStates"
                       [value]="state"
                     >
                       {{ getStateDisplayName(state) }}
