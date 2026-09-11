@@ -2,6 +2,7 @@ export const environment = {
   APP_VERSION: '0.6.2-dev',
   CUSTOM_LOGO_PRESENT: 'false',
   TC_ROOT_API_URL: 'http://localhost:8090/api/v1',
+  AUTH_API_URL: () => `${environment.TC_ROOT_API_URL}/auth`,
   CATALOG_API_URL: () => `${environment.TC_ROOT_API_URL}/catalogs`,
   DATASET_API_URL: () => `${environment.TC_ROOT_API_URL}/datasets`,
   DATASERVICE_API_URL: () => `${environment.TC_ROOT_API_URL}/dataservices`,
@@ -13,4 +14,6 @@ export const environment = {
   PROXY_API_URL: () => `${environment.TC_ROOT_API_URL}/proxy`,
   PROPERTIES_API_URL: () => `${environment.TC_ROOT_API_URL}/properties`,
   AUDIT_API_URL: () => `${environment.TC_ROOT_API_URL}/audit`,
+  TENANT_API_URL: () => `${environment.TC_ROOT_API_URL}/tenants`,
+  USER_API_URL: () => `${environment.TC_ROOT_API_URL}/users`,
 };

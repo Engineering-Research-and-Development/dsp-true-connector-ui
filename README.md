@@ -185,6 +185,38 @@ Access the instances:
 - `docker/ui_a_resources/` and `docker/ui_b_resources/`: Configuration files for each instance
 - `docker/connector_a_resources/` and `docker/connector_b_resources/`: Backend connector configurations
 
+### Troubleshooting
+
+#### endpointURL
+
+Following property - Catalog-> Data Service.endpointURL has important role. Its value will be used by other conenctors to construct base URL for sending Contract Negotiation requests, and start interaction with connector. This value should point to public available URL where connector can be reached. Make sure to update value, through UI or in initial_data.json file to match with setup you are running (depending on deployemnt).
+
+It must be in the format baseURL + tenantId, for example `https://engineering.com/some-tenant` . TenantId can be check/obtained from intial-data.json, from Tenant document section.
+ 
+
+#### 413 Request Entity Too Large on dataset/artifact upload (Docker only)
+
+**Symptom**: Adding or updating a dataset with an artifact larger than ~1MB fails with an HTTP `413 Request Entity Too Large` error when the app is run via Docker (`docker-compose up`), but the same action succeeds when running the UI locally through the IDE/terminal (`ng serve`).
+
+**Cause**: In the Dockerized setup, nginx (`docker/ui_a_resources/nginx.conf`, `docker/ui_b_resources/nginx.conf`, and the root `nginx.conf`) serves the built UI and reverse-proxies API calls to the connector backend (`proxy_pass` to `connector-a`/`connector-b`). nginx defaults `client_max_body_size` to **1MB**, so any request body over that limit is rejected by nginx itself before it ever reaches the backend connector. When running the UI locally via the IDE/`ng serve`, there is no nginx in front of the backend — requests go straight to the connector, which has no such 1MB cap, so large uploads work fine.
+
+**Solution**: Add `client_max_body_size 0;` (unlimited) to the `http { }` block in each nginx config used by the Docker setup:
+- `docker/ui_a_resources/nginx.conf`
+- `docker/ui_b_resources/nginx.conf`
+- `nginx.conf`
+
+Rebuild/restart the Docker containers after this change for it to take effect. If large uploads still fail, also check the backend connector's own request/multipart size limits, since nginx is only the first layer in the Dockerized path.
+
+#### Why the public/remote server doesn't need this fix
+
+The publicly deployed instance is **not** affected by nginx's 1MB default, because nginx's proxy location is never in the request path for API/artifact traffic there:
+
+- The UI container is configured with `TC_ROOT_API_URL=https://connector-a.duckdns.org/api/v1` , so the Angular app calls the connector's own public domain directly, **not** the `ui-a`/`ui-b` nginx proxy path (`/connector-a/api/v1/`). The `ui_a_resources/nginx.conf` / `ui_b_resources/nginx.conf` used there only serve the static Angular bundle — they're never used to proxy API calls.
+- `connector-a.duckdns.org` / `connector-b.duckdns.org` are routed by **Caddy** straight to the connector container's port (e.g. `reverse_proxy http://publicIPaddress:8080`). Caddy has **no default request body size limit** (unlike nginx's 1MB default) — a limit would have to be explicitly configured via a `request_body { max_size ... }` directive, which this `Caddyfile` doesn't set.
+- The connector's own Spring Boot config also removes any cap: `spring.servlet.multipart.max-file-size=-1` and `spring.servlet.multipart.max-request-size=-1`.
+
+So on the public server, the actual request chain is: **browser → Caddy (no size cap) → connector (multipart limits disabled)** — nginx's restrictive default is simply bypassed. This is different from the local Docker Compose setup in `docker/`, where the UI's nginx proxy is actually in the request path and does enforce its 1MB default, which is why `client_max_body_size 0;` was needed there.
+
 ## Documentation
 
 For detailed setup, configuration, and usage information, refer to:

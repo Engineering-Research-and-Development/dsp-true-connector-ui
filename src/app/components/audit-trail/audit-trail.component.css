@@ -169,14 +169,12 @@ button[mat-button] mat-icon {
   font-weight: 500;
 }
 
-/* Smaller date fields with same height as other fields */
 .filter-field.date-field {
-  flex: 0 0 calc((100% - 80px) / 6); /* Same width as regular fields (1/6 minus gaps) */
+  flex: 0 0 calc((100% - 80px) / 6);
   min-width: 200px;
-  height: 56px; /* Same height as other form fields */
+  height: 56px;
 }
 
-/* Ensure date input fields fill the form field properly */
 .filter-field.date-field .mat-mdc-form-field-wrapper {
   height: 56px;
 }
@@ -244,10 +242,10 @@ button[mat-button] mat-icon {
   padding: 0 16px;
 }
 
-/* Table styles */
+/* Table container */
 .table-container {
   width: 100%;
-  overflow: auto;
+  overflow-x: auto;
   background: white;
   border-radius: 12px;
   box-shadow: 0 6px 12px -6px rgba(0, 0, 0, 0.18);
@@ -258,64 +256,69 @@ button[mat-button] mat-icon {
   box-shadow: 0 10px 20px -8px rgba(0, 0, 0, 0.2);
 }
 
-/* Table styling */
 .audit-table {
   width: 100%;
   min-width: 1000px;
 }
 
-/* Center align all table cell content */
+/* Initial Column Sizes */
+.audit-table .mat-mdc-column-timestamp,
+.audit-table .mat-column-timestamp { flex: 0 0 180px; width: 180px; }
+
+.audit-table .mat-mdc-column-eventType,
+.audit-table .mat-column-eventType { flex: 0 0 240px; width: 240px; }
+
+.audit-table .mat-mdc-column-tenantId,
+.audit-table .mat-column-tenantId { flex: 0 0 120px; width: 120px; }
+
+.audit-table .mat-mdc-column-username,
+.audit-table .mat-column-username { flex: 0 0 150px; width: 150px; }
+
+.audit-table .mat-mdc-column-description,
+.audit-table .mat-column-description { flex: 0 0 250px; width: 250px; }
+
+.audit-table .mat-mdc-column-ipAddress,
+.audit-table .mat-column-ipAddress { flex: 0 0 140px; width: 140px; }
+
+.audit-table .mat-mdc-column-actions,
+.audit-table .mat-column-actions { flex: 0 0 100px; width: 100px; }
+
+/* Visible Column Borders */
+.audit-table .mat-mdc-header-cell,
+.audit-table .mat-header-cell {
+  border-right: 1px solid #d0c8e8 !important;
+}
+
+.audit-table .mat-mdc-cell,
+.audit-table .mat-cell {
+  border-right: 1px solid #f0ecf8 !important;
+}
+
+.audit-table .mat-mdc-header-cell:last-child,
+.audit-table .mat-mdc-cell:last-child {
+  border-right: none !important;
+}
+
+/* Hover & Active indicator on resize handle */
+.resize-handle:hover,
+body.resizing .resize-handle {
+  background-color: #6200ea !important;
+  opacity: 0.8;
+}
+
+body.resizing {
+  user-select: none;
+  cursor: col-resize !important;
+}
+
+/* Align cell text inside flex containers */
 .audit-table .mat-mdc-cell,
 .audit-table .mat-mdc-header-cell {
-  text-align: center !important;
-  vertical-align: middle !important;
-}
-
-/* Additional specificity for all cell content */
-.audit-table mat-cell,
-.audit-table mat-header-cell {
-  text-align: center !important;
-  vertical-align: middle !important;
-}
-
-/* Center align cell content including text nodes */
-.audit-table .mat-mdc-cell *,
-.audit-table .mat-mdc-header-cell * {
-  text-align: center !important;
-}
-
-/* Ensure dash characters are centered */
-.audit-table .mat-mdc-cell {
-  display: table-cell !important;
-  text-align: center !important;
-  vertical-align: middle !important;
-}
-
-/* Specifically center header text content */
-.audit-table .mat-mdc-header-cell,
-.audit-table .mat-mdc-header-cell .mdc-data-table__header-cell-wrapper,
-.audit-table .mat-mdc-header-cell .mdc-data-table__header-cell-label {
-  text-align: center !important;
-  justify-content: center !important;
-  align-items: center !important;
   display: flex !important;
-  flex-direction: column !important;
-}
-
-/* Center header text directly */
-.audit-table th.mat-mdc-header-cell {
+  align-items: center !important;
+  justify-content: center !important;
   text-align: center !important;
-}
-
-.audit-table th.mat-mdc-header-cell > * {
-  text-align: center !important;
-  margin: 0 auto !important;
-}
-
-/* Specific column widths for better layout */
-.audit-table .mat-mdc-column-eventType {
-  min-width: 350px;
-  max-width: 500px;
+  box-sizing: border-box !important;
 }
 
 .audit-row {
@@ -344,14 +347,6 @@ button[mat-button] mat-icon {
   text-transform: none;
 }
 
-.mat-mdc-header-cell::before {
-  background: none !important;
-}
-
-.mdc-data-table__header-cell {
-  background: none !important;
-}
-
 .mat-mdc-cell {
   border-bottom: 1px solid #f0f0f0;
   padding: 16px 8px;
@@ -365,7 +360,6 @@ button[mat-button] mat-icon {
 }
 
 .description-cell {
-  max-width: 200px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -475,18 +469,13 @@ button[mat-button] mat-icon {
   padding: 20px;
 }
 
-/* Action button styles - remove all visual feedback */
+/* Action button styles */
 .action-button {
   outline: none !important;
   box-shadow: none !important;
 }
 
-.action-button:focus {
-  outline: none !important;
-  box-shadow: none !important;
-  background-color: transparent !important;
-}
-
+.action-button:focus,
 .action-button:active {
   outline: none !important;
   box-shadow: none !important;
@@ -514,7 +503,7 @@ button:not(.action-button):focus {
   vertical-align: middle;
 }
 
-/* Custom event type chip - simple and reliable */
+/* Custom event type chip */
 .custom-event-type-chip {
   display: inline-block;
   padding: 6px 12px;
@@ -529,7 +518,6 @@ button:not(.action-button):focus {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
-/* Color variants with gradients */
 .custom-event-type-chip.chip-primary {
   background: linear-gradient(135deg, #6200ea 0%, #8a9eed 100%);
   color: white;

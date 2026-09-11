@@ -32,6 +32,7 @@ import {
   SortState,
 } from '../../shared/utils/pagination.utils';
 import { AuditEventDetailsDialogComponent } from './audit-event-details-dialog/audit-event-details-dialog.component';
+import { ResizableColumnDirective } from '../../shared/resizable-column/resizable-column.directive';
 
 // Custom date adapter to force DD/MM/YYYY format
 export class CustomDateAdapter extends NativeDateAdapter {
@@ -90,6 +91,7 @@ export const CUSTOM_DATE_FORMATS = {
     MatSelectModule,
     MatProgressSpinnerModule,
     MatDatepickerModule,
+    ResizableColumnDirective,
   ],
   providers: [
     { provide: DateAdapter, useClass: CustomDateAdapter },
@@ -107,9 +109,9 @@ export class AuditTrailComponent implements OnInit {
   displayedColumns: string[] = [
     'timestamp',
     'eventType',
+    'tenantId',
     'username',
     'description',
-    'source',
     'ipAddress',
     'actions',
   ];
@@ -131,8 +133,6 @@ export class AuditTrailComponent implements OnInit {
 
   // Filter properties
   selectedEventType: AuditEventType | null = null;
-  usernameFilter: string = '';
-  sourceFilter: string = '';
   ipAddressFilter: string = '';
   providerPidFilter: string = '';
   consumerPidFilter: string = '';
@@ -207,8 +207,6 @@ export class AuditTrailComponent implements OnInit {
   private hasFiltersApplied(): boolean {
     return (
       this.selectedEventType !== null ||
-      this.usernameFilter.trim() !== '' ||
-      this.sourceFilter.trim() !== '' ||
       this.ipAddressFilter.trim() !== '' ||
       this.providerPidFilter.trim() !== '' ||
       this.consumerPidFilter.trim() !== '' ||
@@ -268,8 +266,6 @@ export class AuditTrailComponent implements OnInit {
 
       const filters = {
         eventType: this.selectedEventType?.code,
-        username: this.usernameFilter || undefined,
-        source: this.sourceFilter || undefined,
         ipAddress: this.ipAddressFilter || undefined,
         providerPid: this.providerPidFilter || undefined,
         consumerPid: this.consumerPidFilter || undefined,
@@ -321,8 +317,6 @@ export class AuditTrailComponent implements OnInit {
     );
 
     this.selectedEventType = null;
-    this.usernameFilter = '';
-    this.sourceFilter = '';
     this.ipAddressFilter = '';
     this.providerPidFilter = '';
     this.consumerPidFilter = '';
