@@ -176,9 +176,9 @@ SSL_ENABLED=                      # Enable/disable SSL for connectors
 TRUSTSTORE_NAME=                  # Trust store filename
 TRUSTSTORE_PASSWORD=              # Trust store access password
 
-# Connector Callback Addresses
-CONNECTOR_A_CALLBACK_ADDRESS=     # Instance A callback URL
-CONNECTOR_B_CALLBACK_ADDRESS=     # Instance B callback URL
+# Connector base URLs
+CONNECTOR_A_BASE_URL=     # Instance A base URL
+CONNECTOR_B_BASE_URL=     # Instance B base URL
 
 # UI Communication Endpoints
 CONNECTOR_A_TC_ROOT_API_URL=      # Instance A API endpoint for UI
@@ -251,7 +251,7 @@ s3.externalPresignedEndpoint=          # MUST be empty for AWS S3
 - **Access denied:** check IAM permissions and bucket policy
 - **Presigned URLs:** for AWS keep `s3.externalPresignedEndpoint` empty; for MinIO set it to an externally reachable URL
 
-> The `CONNECTOR_A_CALLBACK_ADDRESS` and `CONNECTOR_B_CALLBACK_ADDRESS` should be root endpoint of BE which is publicly available 
+> The `CONNECTOR_A_BASE_URL` and `CONNECTOR_B_BASE_URL` should be root endpoint of BE which is publicly available 
 
 > If needed to customize the main logo on application, change existing `tc_logo.png` in `ui_a_resources/assets/img` and `ui_b_resources/assets/img` and keep same name. **After replacing the logo file, you must restart the containers for the changes to take effect, as the replacement happens in the `replace-env.sh` startup script.**
 

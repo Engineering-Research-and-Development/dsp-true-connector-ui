@@ -392,7 +392,7 @@ export class ServiceDetailsComponent implements OnInit {
       creator: null,
       conformsTo: null,
       endpointDescription: ['', Validators.required],
-      endpointURL: ['', Validators.required],
+      endpointURL: [''],
       createdBy: null,
       lastModifiedBy: null,
       version: null,
@@ -422,6 +422,10 @@ export class ServiceDetailsComponent implements OnInit {
         issued: service.issued,
         modified: service.modified,
       });
+
+      if (service['@id']) {
+        this.serviceForm.get('endpointURL')?.disable();
+      }
 
       if (
         service.description.length === 0 &&
