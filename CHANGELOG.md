@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-# [Unreleased]
+# [0.7.1] - 14-09-2026
 
 ### Added
 - New Statistics Dashboard (`/dashboard`), now the application's landing page, showing negotiation, transfer, event, and runtime statistics from the backend `/api/v1/dashboard` endpoints. Includes KPI cards, negotiation/transfer state charts with role/state breakdown tables, a transfer format breakdown with download-flag status cards, a historical events timeline, a runtime panel, and a time-range/bucket (`hour`/`day`) selector with manual refresh.
@@ -36,6 +36,7 @@ All notable changes to this project will be documented in this file.
 
 - `auth.interceptor.spec.ts` and `auth.service.spec.ts` rewritten to cover the new expiry/refresh/dedup logic (previously the interceptor spec still tested the old Basic-auth behavior and the service spec had only a placeholder test).
 - `login.component.spec.ts` now provides `HttpClient`/`Router`/`ActivatedRoute` test doubles required by `AuthService`/`LoginComponent`, fixing a pre-existing failure (the component construction previously depended on providers the spec never configured).
+
 # [0.7.0] - 11-09-2026 - Multi-Tenant Support
 
 ### Added
