@@ -59,20 +59,20 @@ describe('SuperAdminGuard', () => {
     });
   });
 
-  it('should redirect to /catalog-browser for ADMIN', (done) => {
+  it('should redirect to /dashboard for ADMIN', (done) => {
     userService.getCurrentUser.and.returnValue(of(mockUser(UserRole.ADMIN)));
 
     guard.canActivate({} as any, {} as any).subscribe((result) => {
-      expect(result).toEqual(router.createUrlTree(['/catalog-browser']));
+      expect(result).toEqual(router.createUrlTree(['/dashboard']));
       done();
     });
   });
 
-  it('should redirect to /catalog-browser when getCurrentUser fails', (done) => {
+  it('should redirect to /dashboard when getCurrentUser fails', (done) => {
     userService.getCurrentUser.and.returnValue(throwError(() => new Error('failed')));
 
     guard.canActivate({} as any, {} as any).subscribe((result) => {
-      expect(result).toEqual(router.createUrlTree(['/catalog-browser']));
+      expect(result).toEqual(router.createUrlTree(['/dashboard']));
       done();
     });
   });

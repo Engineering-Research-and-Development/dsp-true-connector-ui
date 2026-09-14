@@ -1,0 +1,274 @@
+/* Container and card styles (mirrors audit-trail.component.css conventions) */
+.service-card {
+  margin: 20px;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.headtitle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  min-height: 40px;
+}
+
+.back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.help-icon {
+  color: #8a9eed;
+  cursor: help;
+}
+
+/* Loading spinner styles */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  padding: 20px;
+}
+
+/* Time window controls (Advanced Filters panel, matching User Management) */
+.filter-div {
+  margin-bottom: 20px;
+}
+
+.filters-row {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.filter-expansion-panel {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.filter-content {
+  padding: 16px 8px 8px 8px;
+}
+
+.filter-fields-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+}
+
+.filter-field {
+  min-width: 180px;
+  flex: 1 1 180px;
+}
+
+.date-field {
+  min-width: 180px;
+}
+
+/* Filter Actions Aligned (User Management style) */
+.filter-actions-inline {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  height: 56px;
+  margin-left: auto;
+}
+
+.filter-actions-inline button {
+  white-space: nowrap;
+  height: 36px;
+}
+
+/* Apply button - Gradient pill */
+.filter-actions-inline button[mat-raised-button] {
+  background: linear-gradient(140deg, #8a9eed 0%, #b1c0ff 100%) !important;
+  color: #ffffff !important;
+  border-radius: 999px !important;
+  box-shadow: 0 10px 20px -12px rgba(138, 158, 237, 0.6) !important;
+  padding: 0 18px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  font-weight: 500 !important;
+  transition: box-shadow 0.2s ease, transform 0.2s ease !important;
+  border: none !important;
+}
+
+.filter-actions-inline button[mat-raised-button]:hover {
+  box-shadow: 0 16px 26px -12px rgba(138, 158, 237, 0.75) !important;
+  transform: translateY(-1px) !important;
+}
+
+.filter-actions-inline button[mat-raised-button] mat-icon {
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  margin: 0 !important;
+}
+
+/* Clear button - Purple text pill */
+.filter-actions-inline button[mat-button] {
+  color: #4a2db6 !important;
+  font-weight: 500 !important;
+  border-radius: 999px !important;
+  padding: 0 16px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+}
+
+.filter-actions-inline button[mat-button]:hover {
+  background-color: rgba(138, 158, 237, 0.15) !important;
+}
+
+.filter-actions-inline button[mat-button] mat-icon {
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  margin: 0 !important;
+}
+
+/* KPI cards */
+.kpi-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.kpi-card,
+.status-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  min-width: 160px;
+  flex: 1 1 160px;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.kpi-label {
+  font-size: 13px;
+  color: #646464;
+  margin-bottom: 8px;
+}
+
+.kpi-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: #383838;
+}
+
+/* Section layout (chart + table side by side) */
+.section-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-bottom: 32px;
+  align-items: flex-start;
+}
+
+.chart-container {
+  position: relative;
+  flex: 1 1 360px;
+  min-width: 280px;
+  max-width: 420px;
+  height: 280px;
+}
+
+.chart-container--small {
+  flex: 1 1 240px;
+  min-width: 220px;
+  max-width: 320px;
+  height: 240px;
+}
+
+/* Event History timeline chart: full-width row, taller than the pie/doughnut
+   containers so its legend (up to ~11 series) and plot area both have room
+   instead of the plot being squashed into a sliver. */
+.chart-row {
+  margin-bottom: 24px;
+}
+
+.chart-container--timeline {
+  position: relative;
+  width: 100%;
+  max-width: none;
+  height: 420px;
+}
+
+.empty-state {
+  padding: 24px;
+  margin-bottom: 24px;
+  border-radius: 8px;
+  background: #f5f5f7;
+  color: #646464;
+  font-style: italic;
+  text-align: center;
+}
+
+.stats-table {
+  width: 100%;
+}
+
+.stats-table-wrapper {
+  flex: 1 1 320px;
+  min-width: 280px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+/* Compact row density so tabular data doesn't leave large vertical gaps next
+   to the (comparatively small) charts. */
+.stats-table .mat-mdc-header-row,
+.stats-table .mat-mdc-row {
+  min-height: 36px;
+}
+
+.stats-table .mat-mdc-cell,
+.stats-table .mat-mdc-header-cell {
+  padding: 4px 12px;
+}
+
+.status-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  flex: 1 1 280px;
+}
+
+@media (max-width: 900px) {
+  .service-card {
+    margin: 10px;
+    padding: 16px;
+  }
+
+  .section-row {
+    flex-direction: column;
+  }
+
+  .filter-fields-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-field {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .filter-actions-inline {
+    width: 100%;
+    justify-content: flex-end;
+    margin-left: 0;
+  }
+}
