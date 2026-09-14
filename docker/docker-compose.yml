@@ -18,7 +18,7 @@ services:
       - 8080:8080
     depends_on:
       - mongodb-a
-      - minio
+      - rustfs
     environment:
       - "JDK_JAVA_OPTIONS=-Xmx1024m"
       - BASE_URL=${CONNECTOR_A_BASE_URL}
@@ -82,7 +82,7 @@ services:
       - 8090:8080
     depends_on:
       - mongodb-b
-      - minio
+      - rustfs
     environment:
       - "JDK_JAVA_OPTIONS=-Xmx1024m"
       - BASE_URL=${CONNECTOR_B_BASE_URL}
@@ -126,24 +126,24 @@ services:
       - mongodb-data_b:/data/db
       - mongodb-configdb_b:/data/configdb
 
-  minio:
-    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+  rustfs:
+    image: rustfs/rustfs:1.0.0-rc.6
     networks:
       - network-a
       - network-b
-    container_name: minio
+    container_name: rustfs
     ports:
       - "9000:9000"
       - "9001:9001"
     volumes:
-      - minio_data:/data
-      # Enable below line to use custom SSL certificates
-      # - ./tc_cert/minio_certs:/root/.minio/certs:ro
+      - rustfs_data:/data
     environment:
-      # Change immediately after setup!
-      - MINIO_ROOT_USER=minioadmin
-      - MINIO_ROOT_PASSWORD=minioadmin
-    command: server /data --console-address ":9001"
+      - RUSTFS_VOLUMES=/data
+      - RUSTFS_ADDRESS=0.0.0.0:9000
+      - RUSTFS_CONSOLE_ENABLE=true
+      - RUSTFS_CONSOLE_ADDRESS=0.0.0.0:9001
+      - RUSTFS_ACCESS_KEY=rustfsadmin
+      - RUSTFS_SECRET_KEY=rustfsadmin
 
 networks:
   network-a: { }
@@ -156,4 +156,4 @@ volumes:
   tc_b_log: { }
   mongodb-data_b: { }
   mongodb-configdb_b: { }
-  minio_data: { }
+  rustfs_data: { }

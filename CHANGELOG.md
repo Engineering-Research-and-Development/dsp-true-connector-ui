@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+# [0.7.1] - 14-09-2026
+
+### Changed
+
+- Replaced Minio with RustFS
+
 # [0.7.0] - 11-09-2026 - Multi-Tenant Support
 
 ### Added
