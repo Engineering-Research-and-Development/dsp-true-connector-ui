@@ -7,7 +7,7 @@ PKI hierarchy and certificate distribution for DSP True Connector:
 - **Intermediate CA** → signs
 - **Server Certificates & Keystores**:
   - `connector-a` & `connector-b` (PKCS12 `.p12` keystores)
-  - `rustfs` (PEM private key & fullchain certificate)
+  - `s3storage` (PEM private key & fullchain certificate)
   - `ui-a` & `ui-b` (PEM private keys, certificates, & fullchain certificates for Nginx)
   - `dsp-truststore.p12` (Distributed to CA and Connectors for TLS verification)
 
@@ -19,7 +19,7 @@ All generated artifacts are automatically distributed into dedicated service sub
 
 ### 1. Prerequisites
 - **Java keytool** (included with JDK/JRE)
-- **OpenSSL** (required for exporting PEM certificates and private keys for RustFS and UI services)
+- **OpenSSL** (required for exporting PEM certificates and private keys for S3 storage and UI services)
 
 ### 2. Run the Script
 
@@ -56,9 +56,9 @@ tc_cert/
 ├── connector-b/
 │   ├── connector-b.p12          # Server keystore for Provider application
 │   └── dsp-truststore.p12       # Truststore copy for Connector-B
-├── rustfs/
-│   ├── rustfs_key.pem           # RustFS private key (PEM format, permissions 644)
-│   └── rustfs_cert.pem          # RustFS certificate fullchain (server cert + Intermediate CA)
+├── s3storage/
+│   ├── s3storage_key.pem           # S3 storage private key (PEM format, permissions 644)
+│   └── s3storage_cert.pem          # S3 storage certificate fullchain (server cert + Intermediate CA)
 ├── ui-a/
 │   ├── ui-a-cert.key            # UI-A private key (PEM format for Nginx)
 │   ├── ui-a-cert.crt            # UI-A server certificate
@@ -78,8 +78,8 @@ tc_cert/
 | `ca/`, `connector-*/` | `dsp-truststore.p12` | Truststore containing Intermediate CA and Root CA | PKCS#12 |
 | `connector-a/` | `connector-a.p12` | Identity keystore for Connector-A (Consumer) | PKCS#12 |
 | `connector-b/` | `connector-b.p12` | Identity keystore for Connector-B (Provider) | PKCS#12 |
-| `rustfs/` | `rustfs_key.pem` | RustFS private key (unencrypted) | PEM (`RSA PRIVATE KEY`) |
-| `rustfs/` | `rustfs_cert.pem` | RustFS server certificate concatenated with Intermediate CA | PEM (`CERTIFICATE`) |
+| `s3storage/` | `s3storage_key.pem` | S3 storage private key (unencrypted) | PEM (`RSA PRIVATE KEY`) |
+| `s3storage/` | `s3storage_cert.pem` | S3 storage server certificate concatenated with Intermediate CA | PEM (`CERTIFICATE`) |
 | `ui-a/` | `ui-a-cert.key` | UI-A private key for Nginx reverse proxy | PEM (`RSA PRIVATE KEY`) |
 | `ui-a/` | `ui-a-cert.crt` | UI-A server certificate | PEM (`CERTIFICATE`) |
 | `ui-a/` | `ui-a-fullchain.crt`| Full chain (server cert + Intermediate CA) for Nginx | PEM (`CERTIFICATE`) |
@@ -110,7 +110,7 @@ INTERMEDIATE_DNAME="CN=DSP Intermediate CA, OU=Security, O=DSP True Connector, L
 # Subject Alternative Names (SAN)
 SAN_CONNECTOR_A="DNS:localhost,DNS:connector-a,IP:127.0.0.1"
 SAN_CONNECTOR_B="DNS:localhost,DNS:connector-b,IP:127.0.0.1"
-SAN_RUSTFS="DNS:localhost,DNS:rustfs,IP:127.0.0.1"
+SAN_S3STORAGE="DNS:localhost,DNS:s3storage,IP:127.0.0.1"
 SAN_UI_A="DNS:localhost,DNS:ui-a,IP:127.0.0.1"
 SAN_UI_B="DNS:localhost,DNS:ui-b,IP:127.0.0.1"
 
@@ -233,26 +233,26 @@ application.ocsp.validation.soft-fail=true
 
 ---
 
-### 2. RustFS Storage Integration
+### 2. S3 storage integration
 
-RustFS expects standard PEM certificate chains and private keys mounted into the container.
+S3 storage expects standard PEM certificate chains and private keys mounted into the container.
 
 **Docker Compose snippet:**
 ```yaml
 services:
-  rustfs:
-    image: rustfs/rustfs:latest
+  s3storage:
+    image: s3storage/s3storage:latest
     environment:
-      - RUSTFS_TLS_PATH=/opt/tls/
+      - S3STORAGE_TLS_PATH=/opt/tls/
     volumes:
-      - ./tc_cert/rustfs:/opt/tls:ro
+      - ./tc_cert/s3storage:/opt/tls:ro
     ports:
       - "9000:9000"
 ```
 
 Files used inside container (`/opt/tls/`):
-- `rustfs_key.pem`
-- `rustfs_cert.pem`
+- `s3storage_key.pem`
+- `s3storage_cert.pem`
 
 ---
 
@@ -299,11 +299,11 @@ keytool -list -v -keystore tc_cert/ca/dsp-truststore.p12 -storepass password -st
 
 ### Verify PEM Certificates and Chains
 ```bash
-# Verify RustFS certificate subject and SANs
-openssl x509 -in tc_cert/rustfs/rustfs_cert.pem -noout -text | grep -E "Subject:|DNS:|IP Address:"
+# Verify S3 storage certificate subject and SANs
+openssl x509 -in tc_cert/s3storage/s3storage_cert.pem -noout -text | grep -E "Subject:|DNS:|IP Address:"
 
-# Verify RustFS certificate chain against the Root CA
-openssl verify -CAfile tc_cert/ca/dsp-root-ca.p12 tc_cert/rustfs/rustfs_cert.pem
+# Verify S3 storage certificate chain against the Root CA
+openssl verify -CAfile tc_cert/ca/dsp-root-ca.p12 tc_cert/s3storage/s3storage_cert.pem
 
 # Verify UI fullchain
 openssl x509 -in tc_cert/ui-a/ui-a-fullchain.crt -noout -subject -issuer
@@ -312,7 +312,7 @@ openssl x509 -in tc_cert/ui-a/ui-a-fullchain.crt -noout -subject -issuer
 ### Test Live TLS Handshake
 ```bash
 # Connector-B health endpoint
-curl -v https://localhost:8090/actuator/health --cacert tc_cert/rustfs/rustfs_cert.pem
+curl -v https://localhost:8090/actuator/health --cacert tc_cert/s3storage/s3storage_cert.pem
 
 # OpenSSL s_client TLS check
 openssl s_client -connect localhost:8090 -CAfile tc_cert/ui-a/ui-a-fullchain.crt
@@ -325,8 +325,8 @@ openssl s_client -connect localhost:8090 -CAfile tc_cert/ui-a/ui-a-fullchain.crt
 | Issue | Root Cause | Solution |
 |---|---|---|
 | `PKIX path building failed` | Application truststore missing Intermediate CA or Root CA | Ensure the app uses `dsp-truststore.p12` which contains both CAs. |
-| `No subject alternative names matching` | Requested hostname is not present in cert SANs | Connect using `localhost`, `127.0.0.1`, or the exact service name (e.g., `connector-a`, `rustfs`). Add hostnames to `SAN_*` and re-run the script if custom hostnames are needed. |
-| `Permission denied` on RustFS keys | Container user cannot read `rustfs_key.pem` | The script sets `chmod 644` on RustFS keys. Ensure mounted volume maintains read permissions for the container process. |
+| `No subject alternative names matching` | Requested hostname is not present in cert SANs | Connect using `localhost`, `127.0.0.1`, or the exact service name (e.g., `connector-a`, `s3storage`). Add hostnames to `SAN_*` and re-run the script if custom hostnames are needed. |
+| `Permission denied` on S3 storage keys | Container user cannot read `s3storage_key.pem` | The script sets `chmod 644` on S3 storage keys. Ensure mounted volume maintains read permissions for the container process. |
 | `OpenSSL not found` during execution | OpenSSL binary is missing in system `PATH` | Install OpenSSL (`apt-get install openssl` or `brew install openssl`). Required for PEM key and chain exports. |
 
 ---

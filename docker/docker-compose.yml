@@ -18,7 +18,7 @@ services:
       - 8080:8080
     depends_on:
       - mongodb-a
-      - rustfs
+      - s3storage
     environment:
       - "JDK_JAVA_OPTIONS=-Xmx1024m"
       - BASE_URL=${CONNECTOR_A_BASE_URL}
@@ -82,7 +82,7 @@ services:
       - 8090:8080
     depends_on:
       - mongodb-b
-      - rustfs
+      - s3storage
     environment:
       - "JDK_JAVA_OPTIONS=-Xmx1024m"
       - BASE_URL=${CONNECTOR_B_BASE_URL}
@@ -126,18 +126,18 @@ services:
       - mongodb-data_b:/data/db
       - mongodb-configdb_b:/data/configdb
 
-  rustfs:
+  s3storage:
     image: rustfs/rustfs:1.0.0-rc.6
     networks:
       - network-a
       - network-b
-    container_name: rustfs
+    container_name: s3storage
     ports:
       - "9000:9000"
       - "9001:9001"
     volumes:
-      - rustfs_data:/data
-      - ./tc_cert/rustfs:/opt/tls:ro
+      - s3storage_data:/data
+      - ./tc_cert/s3storage:/opt/tls:ro
     environment:
       - RUSTFS_VOLUMES=/data
       - RUSTFS_ADDRESS=0.0.0.0:9000
@@ -158,4 +158,4 @@ volumes:
   tc_b_log: { }
   mongodb-data_b: { }
   mongodb-configdb_b: { }
-  rustfs_data: { }
+  s3storage_data: { }

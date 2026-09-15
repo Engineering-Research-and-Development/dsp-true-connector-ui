@@ -24,7 +24,7 @@ set "CERT_BASE_DIR=%CD%"
 set "DIR_CA=%CERT_BASE_DIR%\ca"
 set "DIR_CONNECTOR_A=%CERT_BASE_DIR%\connector-a"
 set "DIR_CONNECTOR_B=%CERT_BASE_DIR%\connector-b"
-set "DIR_RUSTFS=%CERT_BASE_DIR%\rustfs"
+set "DIR_S3STORAGE=%CERT_BASE_DIR%\s3storage"
 set "DIR_UI_A=%CERT_BASE_DIR%\ui-a"
 set "DIR_UI_B=%CERT_BASE_DIR%\ui-b"
 
@@ -50,7 +50,7 @@ REM Subject Alternative Names (SAN) - Edit these lists as needed for each servic
 REM Each server should only have the SANs it actually needs for security best practices
 set SAN_CONNECTOR_A=DNS:localhost,DNS:connector-a,IP:127.0.0.1
 set SAN_CONNECTOR_B=DNS:localhost,DNS:connector-b,IP:127.0.0.1
-set SAN_RUSTFS=DNS:localhost,DNS:rustfs,IP:127.0.0.1
+set SAN_S3STORAGE=DNS:localhost,DNS:s3storage,IP:127.0.0.1
 set SAN_UI_A=DNS:localhost,DNS:ui-a,IP:127.0.0.1
 set SAN_UI_B=DNS:localhost,DNS:ui-b,IP:127.0.0.1
 
@@ -77,7 +77,7 @@ echo This script will generate:
 echo   1. Root CA (self-signed)
 echo   2. Intermediate CA (signed by Root CA)
 echo   3. Server certificates for connector-a and connector-b
-echo   4. RustFS certificate (PEM format: rustfs_cert.pem ^& rustfs_key.pem)
+echo   4. S3 storage certificate (PEM format: s3storage_cert.pem ^& s3storage_key.pem)
 echo   5. UI-A and UI-B certificates (PEM format with fullchain)
 echo   6. Truststore with Intermediate CA certificate
 echo   7. Organize files into target subdirectories inside %CERT_BASE_DIR%
@@ -87,14 +87,14 @@ echo Target Directories:
 echo   - CA:          %DIR_CA%
 echo   - Connector-A: %DIR_CONNECTOR_A%
 echo   - Connector-B: %DIR_CONNECTOR_B%
-echo   - RustFS:      %DIR_RUSTFS%
+echo   - S3 storage:      %DIR_S3STORAGE%
 echo   - UI-A:        %DIR_UI_A%
 echo   - UI-B:        %DIR_UI_B%
 echo.
 echo Configuration:
 echo   - connector-a SANs: %SAN_CONNECTOR_A%
 echo   - connector-b SANs: %SAN_CONNECTOR_B%
-echo   - RustFS SANs:      %SAN_RUSTFS%
+echo   - S3 storage SANs:      %SAN_S3STORAGE%
 echo   - UI-A SANs:        %SAN_UI_A%
 echo   - UI-B SANs:        %SAN_UI_B%
 echo   - Key Algorithm:    %KEY_ALG% %KEY_SIZE% bits
@@ -113,11 +113,11 @@ if exist %ROOT_KEYSTORE% del /f /q %ROOT_KEYSTORE%
 if exist %INTERMEDIATE_KEYSTORE% del /f /q %INTERMEDIATE_KEYSTORE%
 if exist connector-a.p12 del /f /q connector-a.p12
 if exist connector-b.p12 del /f /q connector-b.p12
-if exist rustfs-temp.p12 del /f /q rustfs-temp.p12
+if exist s3storage-temp.p12 del /f /q s3storage-temp.p12
 if exist ui-a-temp.p12 del /f /q ui-a-temp.p12
 if exist ui-b-temp.p12 del /f /q ui-b-temp.p12
-if exist rustfs_key.pem del /f /q rustfs_key.pem
-if exist rustfs_cert.pem del /f /q rustfs_cert.pem
+if exist s3storage_key.pem del /f /q s3storage_key.pem
+if exist s3storage_cert.pem del /f /q s3storage_cert.pem
 if exist private.key del /f /q private.key
 if exist public.crt del /f /q public.crt
 if exist ui-a-cert.key del /f /q ui-a-cert.key
@@ -135,7 +135,7 @@ REM Ensure destination directories exist
 if not exist "%DIR_CA%" mkdir "%DIR_CA%"
 if not exist "%DIR_CONNECTOR_A%" mkdir "%DIR_CONNECTOR_A%"
 if not exist "%DIR_CONNECTOR_B%" mkdir "%DIR_CONNECTOR_B%"
-if not exist "%DIR_RUSTFS%" mkdir "%DIR_RUSTFS%"
+if not exist "%DIR_S3STORAGE%" mkdir "%DIR_S3STORAGE%"
 if not exist "%DIR_UI_A%" mkdir "%DIR_UI_A%"
 if not exist "%DIR_UI_B%" mkdir "%DIR_UI_B%"
 
@@ -317,85 +317,85 @@ echo All server certificates generated successfully!
 echo.
 
 REM ==================================================================
-REM STEP 4: Generate RustFS Certificate (rustfs_cert.pem & rustfs_key.pem)
+REM STEP 4: Generate S3 storage Certificate (s3storage_cert.pem & s3storage_key.pem)
 REM ==================================================================
 
 echo ==================================================================
-echo STEP 4: Generating RustFS Certificate
+echo STEP 4: Generating S3 storage Certificate
 echo ==================================================================
 echo.
 
-set RUSTFS_NAME=rustfs
-set RUSTFS_DN=CN=rustfs, OU=Storage, O=DSP True Connector, L=Belgrade, ST=Serbia, C=RS
-set RUSTFS_KEYSTORE=rustfs-temp.p12
-set RUSTFS_ALIAS=rustfs
+set S3STORAGE_NAME=s3storage
+set S3STORAGE_DN=CN=s3storage, OU=Storage, O=DSP True Connector, L=Belgrade, ST=Serbia, C=RS
+set S3STORAGE_KEYSTORE=s3storage-temp.p12
+set S3STORAGE_ALIAS=s3storage
 
-echo Generating key pair for RustFS...
+echo Generating key pair for S3 storage...
 keytool -genkeypair ^
-    -alias %RUSTFS_ALIAS% ^
+    -alias %S3STORAGE_ALIAS% ^
     -keyalg %KEY_ALG% ^
     -keysize %KEY_SIZE% ^
-    -dname "%RUSTFS_DN%" ^
+    -dname "%S3STORAGE_DN%" ^
     -validity %SERVER_VALIDITY% ^
-    -keystore %RUSTFS_KEYSTORE% ^
+    -keystore %S3STORAGE_KEYSTORE% ^
     -storetype PKCS12 ^
     -storepass %SERVER_PASSWORD% ^
     -keypass %SERVER_PASSWORD% ^
     -ext KeyUsage:critical=digitalSignature,keyEncipherment ^
     -ext ExtendedKeyUsage=serverAuth,clientAuth ^
-    -ext "SAN=%SAN_RUSTFS%"
+    -ext "SAN=%SAN_S3STORAGE%"
 
 if %ERRORLEVEL% NEQ 0 (
-    echo ERROR: Failed to generate key pair for RustFS
+    echo ERROR: Failed to generate key pair for S3 storage
     exit /b 1
 )
 echo Done.
 echo.
 
-echo Generating Certificate Signing Request for RustFS...
+echo Generating Certificate Signing Request for S3 storage...
 keytool -certreq ^
-    -alias %RUSTFS_ALIAS% ^
-    -keystore %RUSTFS_KEYSTORE% ^
+    -alias %S3STORAGE_ALIAS% ^
+    -keystore %S3STORAGE_KEYSTORE% ^
     -storetype PKCS12 ^
     -storepass %SERVER_PASSWORD% ^
-    -file rustfs.csr ^
+    -file s3storage.csr ^
     -ext KeyUsage:critical=digitalSignature,keyEncipherment ^
     -ext ExtendedKeyUsage=serverAuth,clientAuth ^
-    -ext "SAN=%SAN_RUSTFS%"
+    -ext "SAN=%SAN_S3STORAGE%"
 
 if %ERRORLEVEL% NEQ 0 (
-    echo ERROR: Failed to generate CSR for RustFS
+    echo ERROR: Failed to generate CSR for S3 storage
     exit /b 1
 )
 echo Done.
 echo.
 
-echo Signing RustFS certificate with Intermediate CA...
+echo Signing S3 storage certificate with Intermediate CA...
 keytool -gencert ^
     -alias %INTERMEDIATE_ALIAS% ^
     -keystore %INTERMEDIATE_KEYSTORE% ^
     -storetype PKCS12 ^
     -storepass %INTERMEDIATE_PASSWORD% ^
-    -infile rustfs.csr ^
-    -outfile rustfs-signed.crt ^
+    -infile s3storage.csr ^
+    -outfile s3storage-signed.crt ^
     -validity %SERVER_VALIDITY% ^
     -ext KeyUsage:critical=digitalSignature,keyEncipherment ^
     -ext ExtendedKeyUsage=serverAuth,clientAuth ^
-    -ext "SAN=%SAN_RUSTFS%" ^
+    -ext "SAN=%SAN_S3STORAGE%" ^
     -rfc
 
 if %ERRORLEVEL% NEQ 0 (
-    echo ERROR: Failed to sign certificate for RustFS
+    echo ERROR: Failed to sign certificate for S3 storage
     exit /b 1
 )
 echo Done.
 echo.
 
-echo Importing certificate chain for RustFS...
+echo Importing certificate chain for S3 storage...
 echo   - Importing Root CA...
 keytool -importcert ^
     -alias %ROOT_ALIAS% ^
-    -keystore %RUSTFS_KEYSTORE% ^
+    -keystore %S3STORAGE_KEYSTORE% ^
     -storetype PKCS12 ^
     -storepass %SERVER_PASSWORD% ^
     -file root-ca.crt ^
@@ -404,67 +404,67 @@ keytool -importcert ^
 echo   - Importing Intermediate CA...
 keytool -importcert ^
     -alias %INTERMEDIATE_ALIAS% ^
-    -keystore %RUSTFS_KEYSTORE% ^
+    -keystore %S3STORAGE_KEYSTORE% ^
     -storetype PKCS12 ^
     -storepass %SERVER_PASSWORD% ^
     -file intermediate-ca.crt ^
     -noprompt
 
-echo   - Importing signed RustFS certificate...
+echo   - Importing signed S3 storage certificate...
 keytool -importcert ^
-    -alias %RUSTFS_ALIAS% ^
-    -keystore %RUSTFS_KEYSTORE% ^
+    -alias %S3STORAGE_ALIAS% ^
+    -keystore %S3STORAGE_KEYSTORE% ^
     -storetype PKCS12 ^
     -storepass %SERVER_PASSWORD% ^
-    -file rustfs-signed.crt ^
+    -file s3storage-signed.crt ^
     -noprompt
 
 if %ERRORLEVEL% NEQ 0 (
-    echo ERROR: Failed to import certificate chain for RustFS
+    echo ERROR: Failed to import certificate chain for S3 storage
     exit /b 1
 )
 echo Done.
 echo.
 
-echo Exporting RustFS private key (rustfs_key.pem)...
+echo Exporting S3 storage private key (s3storage_key.pem)...
 where openssl >nul 2>&1
 if %ERRORLEVEL% EQU 0 (
-    openssl pkcs12 -in %RUSTFS_KEYSTORE% -nocerts -nodes -passin pass:%SERVER_PASSWORD% -out rustfs_key.pem
+    openssl pkcs12 -in %S3STORAGE_KEYSTORE% -nocerts -nodes -passin pass:%SERVER_PASSWORD% -out s3storage_key.pem
     echo Done.
 ) else (
     echo WARNING: OpenSSL not found. Cannot convert to PEM format automatically.
     echo Please convert manually using:
-    echo   openssl pkcs12 -in rustfs-temp.p12 -nocerts -nodes -passin pass:%SERVER_PASSWORD% -out rustfs_key.pem
-    echo # RustFS Private Key> rustfs_key.pem
-    echo # Convert from rustfs-temp.p12 using OpenSSL>> rustfs_key.pem
-    echo # Command: openssl pkcs12 -in rustfs-temp.p12 -nocerts -nodes -passin pass:%SERVER_PASSWORD% -out rustfs_key.pem>> rustfs_key.pem
+    echo   openssl pkcs12 -in s3storage-temp.p12 -nocerts -nodes -passin pass:%SERVER_PASSWORD% -out s3storage_key.pem
+    echo # S3 storage Private Key> s3storage_key.pem
+    echo # Convert from s3storage-temp.p12 using OpenSSL>> s3storage_key.pem
+    echo # Command: openssl pkcs12 -in s3storage-temp.p12 -nocerts -nodes -passin pass:%SERVER_PASSWORD% -out s3storage_key.pem>> s3storage_key.pem
 )
 echo.
 
-echo Exporting RustFS certificate (rustfs_cert.pem)...
+echo Exporting S3 storage certificate (s3storage_cert.pem)...
 where openssl >nul 2>&1
 if %ERRORLEVEL% EQU 0 (
-    openssl pkcs12 -in %RUSTFS_KEYSTORE% -clcerts -nokeys -passin pass:%SERVER_PASSWORD% -out rustfs-only.crt
-    type rustfs-only.crt intermediate-ca.crt > rustfs_cert.pem
-    if exist rustfs-only.crt del rustfs-only.crt
+    openssl pkcs12 -in %S3STORAGE_KEYSTORE% -clcerts -nokeys -passin pass:%SERVER_PASSWORD% -out s3storage-only.crt
+    type s3storage-only.crt intermediate-ca.crt > s3storage_cert.pem
+    if exist s3storage-only.crt del s3storage-only.crt
     echo Done.
 ) else (
     echo WARNING: OpenSSL not found. Using keytool export...
     keytool -exportcert ^
-        -alias %RUSTFS_ALIAS% ^
-        -keystore %RUSTFS_KEYSTORE% ^
+        -alias %S3STORAGE_ALIAS% ^
+        -keystore %S3STORAGE_KEYSTORE% ^
         -storetype PKCS12 ^
         -storepass %SERVER_PASSWORD% ^
-        -file rustfs_cert.pem ^
+        -file s3storage_cert.pem ^
         -rfc
     echo Done.
 )
 echo.
 
-echo RustFS certificate files generated:
-echo   - rustfs_key.pem (Private key in PEM format)
-echo   - rustfs_cert.pem (Certificate fullchain in PEM format)
-echo   - SAN: %SAN_RUSTFS%
+echo S3 storage certificate files generated:
+echo   - s3storage_key.pem (Private key in PEM format)
+echo   - s3storage_cert.pem (Certificate fullchain in PEM format)
+echo   - SAN: %SAN_S3STORAGE%
 echo.
 
 REM ==================================================================
@@ -802,20 +802,20 @@ echo Connector-B Keystore:
 keytool -list -v -keystore connector-b.p12 -storepass %SERVER_PASSWORD% -storetype PKCS12 | findstr "Alias Owner Issuer Valid DNS"
 echo.
 
-echo RustFS Certificate Files:
-echo   - rustfs_key.pem: Private key in PEM format
-echo   - rustfs_cert.pem: Certificate in PEM format
-if exist rustfs_key.pem (
-    echo   rustfs_key.pem exists: YES
-    findstr "BEGIN" rustfs_key.pem
+echo S3 storage Certificate Files:
+echo   - s3storage_key.pem: Private key in PEM format
+echo   - s3storage_cert.pem: Certificate in PEM format
+if exist s3storage_key.pem (
+    echo   s3storage_key.pem exists: YES
+    findstr "BEGIN" s3storage_key.pem
 ) else (
-    echo   rustfs_key.pem exists: NO
+    echo   s3storage_key.pem exists: NO
 )
-if exist rustfs_cert.pem (
-    echo   rustfs_cert.pem exists: YES
-    findstr "BEGIN CERTIFICATE" rustfs_cert.pem
+if exist s3storage_cert.pem (
+    echo   s3storage_cert.pem exists: YES
+    findstr "BEGIN CERTIFICATE" s3storage_cert.pem
 ) else (
-    echo   rustfs_cert.pem exists: NO
+    echo   s3storage_cert.pem exists: NO
 )
 echo.
 
@@ -835,13 +835,13 @@ echo.
 if exist *.csr del /f /q *.csr
 if exist root-ca.crt del /f /q root-ca.crt
 if exist intermediate-ca.crt del /f /q intermediate-ca.crt
-if exist rustfs-signed.crt del /f /q rustfs-signed.crt
+if exist s3storage-signed.crt del /f /q s3storage-signed.crt
 if exist ui-a-signed.crt del /f /q ui-a-signed.crt
 if exist ui-b-signed.crt del /f /q ui-b-signed.crt
 if exist connector-a.crt del /f /q connector-a.crt
 if exist connector-b.crt del /f /q connector-b.crt
 if exist *.cer del /f /q *.cer
-if exist rustfs-temp.p12 del /f /q rustfs-temp.p12
+if exist s3storage-temp.p12 del /f /q s3storage-temp.p12
 if exist ui-a-temp.p12 del /f /q ui-a-temp.p12
 if exist ui-b-temp.p12 del /f /q ui-b-temp.p12
 
@@ -875,10 +875,10 @@ move /y connector-a.p12 "%DIR_CONNECTOR_A%\" >nul
 echo Moving Connector-B certificate to %DIR_CONNECTOR_B%...
 move /y connector-b.p12 "%DIR_CONNECTOR_B%\" >nul
 
-REM Move RustFS certificates
-echo Moving RustFS certificates to %DIR_RUSTFS%...
-move /y rustfs_key.pem "%DIR_RUSTFS%\" >nul
-move /y rustfs_cert.pem "%DIR_RUSTFS%\" >nul
+REM Move S3 storage certificates
+echo Moving S3 storage certificates to %DIR_S3STORAGE%...
+move /y s3storage_key.pem "%DIR_S3STORAGE%\" >nul
+move /y s3storage_cert.pem "%DIR_S3STORAGE%\" >nul
 
 REM Move UI certificates
 echo Moving UI-A certificates to %DIR_UI_A%...
@@ -921,9 +921,9 @@ call :CheckTargetFile "%DIR_CONNECTOR_B%\connector-b.p12" "Server Keystore"
 call :CheckTargetFile "%DIR_CONNECTOR_B%\%TRUSTSTORE%" "Truststore"
 echo.
 
-echo RustFS directory (%DIR_RUSTFS%):
-call :CheckTargetFile "%DIR_RUSTFS%\rustfs_key.pem" "Private Key"
-call :CheckTargetFile "%DIR_RUSTFS%\rustfs_cert.pem" "Certificate Full Chain"
+echo S3 storage directory (%DIR_S3STORAGE%):
+call :CheckTargetFile "%DIR_S3STORAGE%\s3storage_key.pem" "Private Key"
+call :CheckTargetFile "%DIR_S3STORAGE%\s3storage_cert.pem" "Certificate Full Chain"
 echo.
 
 echo UI-A directory (%DIR_UI_A%):
@@ -969,9 +969,9 @@ echo       * %TRUSTSTORE%
 echo   - Connector-B (%DIR_CONNECTOR_B%\):
 echo       * connector-b.p12
 echo       * %TRUSTSTORE%
-echo   - RustFS (%DIR_RUSTFS%\):
-echo       * rustfs_key.pem
-echo       * rustfs_cert.pem
+echo   - S3 storage (%DIR_S3STORAGE%\):
+echo       * s3storage_key.pem
+echo       * s3storage_cert.pem
 echo   - UI-A (%DIR_UI_A%\):
 echo       * ui-a-cert.key
 echo       * ui-a-cert.crt
@@ -981,9 +981,9 @@ echo       * ui-b-cert.key
 echo       * ui-b-cert.crt
 echo       * ui-b-fullchain.crt
 echo.
-echo For RustFS Docker compose mounting:
-echo   Mount:       - ./tc_cert/rustfs:/opt/tls:ro
-echo   Environment: RUSTFS_TLS_PATH=/opt/tls/
+echo For S3 storage Docker compose mounting:
+echo   Mount:       - ./tc_cert/s3storage:/opt/tls:ro
+echo   Environment: S3STORAGE_TLS_PATH=/opt/tls/
 echo.
 echo ==================================================================
 
