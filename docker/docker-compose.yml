@@ -48,7 +48,7 @@ services:
       - connector-a
     volumes:
       - ./ui_a_resources/nginx.conf:/etc/nginx/nginx.conf
-      - ./tc_cert/ui-a-cert:/etc/nginx/ssl:ro
+      - ./tc_cert/ui-a:/etc/nginx/ssl:ro
       - ./ui_a_resources/assets/img:/custom-assets:ro
 
   mongodb-a:
@@ -112,7 +112,7 @@ services:
       - connector-b
     volumes:
       - ./ui_b_resources/nginx.conf:/etc/nginx/nginx.conf
-      - ./tc_cert/ui-b-cert:/etc/nginx/ssl:ro
+      - ./tc_cert/ui-b:/etc/nginx/ssl:ro
       - ./ui_b_resources/assets/img:/custom-assets:ro
       
   mongodb-b:
@@ -137,6 +137,7 @@ services:
       - "9001:9001"
     volumes:
       - rustfs_data:/data
+      - ./tc_cert/rustfs:/opt/tls:ro
     environment:
       - RUSTFS_VOLUMES=/data
       - RUSTFS_ADDRESS=0.0.0.0:9000
@@ -144,6 +145,7 @@ services:
       - RUSTFS_CONSOLE_ADDRESS=0.0.0.0:9001
       - RUSTFS_ACCESS_KEY=rustfsadmin
       - RUSTFS_SECRET_KEY=rustfsadmin
+      - RUSTFS_TLS_PATH=/opt/tls/
 
 networks:
   network-a: { }

@@ -5,13 +5,28 @@
 #   1. Root CA (self-signed)
 #   2. Intermediate CA (signed by Root CA)
 #   3. Server certificates (signed by Intermediate CA)
+#   4. Moves generated files to their respective target directories
+#   5. Verifies all files are properly in place
 ##################################################################
 
 set -e  # Exit on error
 
+# Ensure execution from the directory containing this script (e.g. /tc_cert)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "${SCRIPT_DIR}"
+
 ##################################################################
 # CONFIGURATION - Edit these values as needed
 ##################################################################
+
+# Target Directory Configuration (Relative to current script directory)
+CERT_BASE_DIR="${SCRIPT_DIR}"
+DIR_CA="${CERT_BASE_DIR}/ca"
+DIR_CONNECTOR_A="${CERT_BASE_DIR}/connector-a"
+DIR_CONNECTOR_B="${CERT_BASE_DIR}/connector-b"
+DIR_RUSTFS="${CERT_BASE_DIR}/rustfs"
+DIR_UI_A="${CERT_BASE_DIR}/ui-a"
+DIR_UI_B="${CERT_BASE_DIR}/ui-b"
 
 # Root CA Configuration
 ROOT_ALIAS="dsp-root-ca"
@@ -35,11 +50,9 @@ SERVER_PASSWORD="password"
 # Each server should only have the SANs it actually needs for security best practices
 SAN_CONNECTOR_A="DNS:localhost,DNS:connector-a,IP:127.0.0.1"
 SAN_CONNECTOR_B="DNS:localhost,DNS:connector-b,IP:127.0.0.1"
+SAN_RUSTFS="DNS:localhost,DNS:rustfs,IP:127.0.0.1"
 SAN_UI_A="DNS:localhost,DNS:ui-a,IP:127.0.0.1"
 SAN_UI_B="DNS:localhost,DNS:ui-b,IP:127.0.0.1"
-
-# Legacy: All SANs combined (for backward compatibility or development)
-# SAN_LIST="DNS:localhost,DNS:connector-a,DNS:connector-b,DNS:rustfs,DNS:mongodb-a,DNS:mongodb-b,DNS:ui-a,DNS:ui-b,IP:127.0.0.1"
 
 # Truststore Configuration
 TRUSTSTORE="dsp-truststore.p12"
@@ -58,16 +71,30 @@ echo "=================================================================="
 echo "DSP True Connector - Certificate Generation Script"
 echo "=================================================================="
 echo ""
+echo "Working directory: ${CERT_BASE_DIR}"
+echo ""
 echo "This script will generate:"
 echo "  1. Root CA (self-signed)"
 echo "  2. Intermediate CA (signed by Root CA)"
 echo "  3. Server certificates for connector-a and connector-b"
-echo "  4. UI-A and UI-B certificates (PEM format with fullchain)"
-echo "  5. Truststore with Intermediate CA certificate"
+echo "  4. RustFS certificate (PEM format: rustfs_cert.pem & rustfs_key.pem)"
+echo "  5. UI-A and UI-B certificates (PEM format with fullchain)"
+echo "  6. Truststore with Intermediate CA certificate"
+echo "  7. Organize files into target subdirectories inside ${CERT_BASE_DIR}"
+echo "  8. Verify all required files are present"
+echo ""
+echo "Target Directories:"
+echo "  - CA:          ${DIR_CA}"
+echo "  - Connector-A: ${DIR_CONNECTOR_A}"
+echo "  - Connector-B: ${DIR_CONNECTOR_B}"
+echo "  - RustFS:      ${DIR_RUSTFS}"
+echo "  - UI-A:        ${DIR_UI_A}"
+echo "  - UI-B:        ${DIR_UI_B}"
 echo ""
 echo "Configuration:"
 echo "  - connector-a SANs: ${SAN_CONNECTOR_A}"
 echo "  - connector-b SANs: ${SAN_CONNECTOR_B}"
+echo "  - RustFS SANs: ${SAN_RUSTFS}"
 echo "  - UI-A SANs: ${SAN_UI_A}"
 echo "  - UI-B SANs: ${SAN_UI_B}"
 echo "  - Key Algorithm: ${KEY_ALG} ${KEY_SIZE} bits"
@@ -80,14 +107,19 @@ echo ""
 
 read -p "Press Enter to continue..."
 
-# Clean up old files
+# Clean up old files in working directory
 echo "Cleaning up old certificate files..."
 rm -f "${ROOT_KEYSTORE}"
 rm -f "${INTERMEDIATE_KEYSTORE}"
 rm -f connector-a.p12
 rm -f connector-b.p12
+rm -f rustfs-temp.p12
 rm -f ui-a-temp.p12
 rm -f ui-b-temp.p12
+rm -f rustfs_key.pem
+rm -f rustfs_cert.pem
+rm -f private.key
+rm -f public.crt
 rm -f ui-a-cert.key
 rm -f ui-a-cert.crt
 rm -f ui-a-fullchain.crt
@@ -98,6 +130,10 @@ rm -f "${TRUSTSTORE}"
 rm -f *.csr
 rm -f *.crt
 rm -f *.cer
+
+# Ensure destination directories exist
+mkdir -p "${DIR_CA}" "${DIR_CONNECTOR_A}" "${DIR_CONNECTOR_B}" "${DIR_RUSTFS}" "${DIR_UI_A}" "${DIR_UI_B}"
+
 echo "Done."
 echo ""
 
@@ -275,7 +311,7 @@ generate_server_cert() {
     echo "Generating Certificate Signing Request for ${SERVER_NAME}..."
     keytool -certreq \
         -alias "${SERVER_ALIAS}" \
-        -keyastore "${SERVER_KEYSTORE}" \
+        -keystore "${SERVER_KEYSTORE}" \
         -storetype PKCS12 \
         -storepass "${SERVER_PASSWORD}" \
         -file "${SERVER_NAME}.csr" \
@@ -355,11 +391,150 @@ echo "All server certificates generated successfully!"
 echo ""
 
 ##################################################################
-# STEP 4: Generate UI-A Certificate (PEM format for nginx)
+# STEP 4: Generate RustFS Certificate (rustfs_cert.pem & rustfs_key.pem)
 ##################################################################
 
 echo "=================================================================="
-echo "STEP 4: Generating UI-A Certificate (PEM format for nginx)"
+echo "STEP 4: Generating RustFS Certificate"
+echo "=================================================================="
+echo ""
+
+RUSTFS_NAME="rustfs"
+RUSTFS_DN="CN=rustfs, OU=Storage, O=DSP True Connector, L=Belgrade, ST=Serbia, C=RS"
+RUSTFS_KEYSTORE="rustfs-temp.p12"
+RUSTFS_ALIAS="rustfs"
+
+echo "Generating key pair for RustFS..."
+keytool -genkeypair \
+    -alias "${RUSTFS_ALIAS}" \
+    -keyalg "${KEY_ALG}" \
+    -keysize "${KEY_SIZE}" \
+    -dname "${RUSTFS_DN}" \
+    -validity "${SERVER_VALIDITY}" \
+    -keystore "${RUSTFS_KEYSTORE}" \
+    -storetype PKCS12 \
+    -storepass "${SERVER_PASSWORD}" \
+    -keypass "${SERVER_PASSWORD}" \
+    -ext KeyUsage:critical=digitalSignature,keyEncipherment \
+    -ext ExtendedKeyUsage=serverAuth,clientAuth \
+    -ext "SAN=${SAN_RUSTFS}"
+
+echo "Done."
+echo ""
+
+echo "Generating Certificate Signing Request for RustFS..."
+keytool -certreq \
+    -alias "${RUSTFS_ALIAS}" \
+    -keystore "${RUSTFS_KEYSTORE}" \
+    -storetype PKCS12 \
+    -storepass "${SERVER_PASSWORD}" \
+    -file rustfs.csr \
+    -ext KeyUsage:critical=digitalSignature,keyEncipherment \
+    -ext ExtendedKeyUsage=serverAuth,clientAuth \
+    -ext "SAN=${SAN_RUSTFS}"
+
+echo "Done."
+echo ""
+
+echo "Signing RustFS certificate with Intermediate CA..."
+keytool -gencert \
+    -alias "${INTERMEDIATE_ALIAS}" \
+    -keystore "${INTERMEDIATE_KEYSTORE}" \
+    -storetype PKCS12 \
+    -storepass "${INTERMEDIATE_PASSWORD}" \
+    -infile rustfs.csr \
+    -outfile rustfs-signed.crt \
+    -validity "${SERVER_VALIDITY}" \
+    -ext KeyUsage:critical=digitalSignature,keyEncipherment \
+    -ext ExtendedKeyUsage=serverAuth,clientAuth \
+    -ext "SAN=${SAN_RUSTFS}" \
+    -rfc
+
+echo "Done."
+echo ""
+
+echo "Importing certificate chain for RustFS..."
+echo "  - Importing Root CA..."
+keytool -importcert \
+    -alias "${ROOT_ALIAS}" \
+    -keystore "${RUSTFS_KEYSTORE}" \
+    -storetype PKCS12 \
+    -storepass "${SERVER_PASSWORD}" \
+    -file root-ca.crt \
+    -noprompt
+
+echo "  - Importing Intermediate CA..."
+keytool -importcert \
+    -alias "${INTERMEDIATE_ALIAS}" \
+    -keystore "${RUSTFS_KEYSTORE}" \
+    -storetype PKCS12 \
+    -storepass "${SERVER_PASSWORD}" \
+    -file intermediate-ca.crt \
+    -noprompt
+
+echo "  - Importing signed RustFS certificate..."
+keytool -importcert \
+    -alias "${RUSTFS_ALIAS}" \
+    -keystore "${RUSTFS_KEYSTORE}" \
+    -storetype PKCS12 \
+    -storepass "${SERVER_PASSWORD}" \
+    -file rustfs-signed.crt \
+    -noprompt
+
+echo "Done."
+echo ""
+
+echo "Exporting RustFS private key (rustfs_key.pem)..."
+if command -v openssl &> /dev/null; then
+    openssl pkcs12 -in "${RUSTFS_KEYSTORE}" -nocerts -nodes -passin pass:"${SERVER_PASSWORD}" -out rustfs_key.pem
+    echo "Done."
+else
+    echo "WARNING: OpenSSL not found. Cannot convert to PEM format automatically."
+    echo "Please convert manually using:"
+    echo "  openssl pkcs12 -in rustfs-temp.p12 -nocerts -nodes -passin pass:${SERVER_PASSWORD} -out rustfs_key.pem"
+    cat > rustfs_key.pem << EOF
+# RustFS Private Key
+# Convert from rustfs-temp.p12 using OpenSSL
+# Command: openssl pkcs12 -in rustfs-temp.p12 -nocerts -nodes -passin pass:${SERVER_PASSWORD} -out rustfs_key.pem
+EOF
+fi
+echo ""
+
+echo "Exporting RustFS certificate (rustfs_cert.pem)..."
+if command -v openssl &> /dev/null; then
+    # Create certificate chain: server cert + intermediate CA
+    openssl pkcs12 -in "${RUSTFS_KEYSTORE}" -clcerts -nokeys -passin pass:"${SERVER_PASSWORD}" -out rustfs-only.crt
+    cat rustfs-only.crt intermediate-ca.crt > rustfs_cert.pem
+    rm -f rustfs-only.crt
+    echo "Done."
+else
+    echo "WARNING: OpenSSL not found. Using keytool export..."
+    keytool -exportcert \
+        -alias "${RUSTFS_ALIAS}" \
+        -keystore "${RUSTFS_KEYSTORE}" \
+        -storetype PKCS12 \
+        -storepass "${SERVER_PASSWORD}" \
+        -file rustfs_cert.pem \
+        -rfc
+    echo "Done."
+fi
+echo ""
+
+# Ensure proper permissions for the RustFS container user
+chmod 644 rustfs_cert.pem rustfs_key.pem || true
+
+echo "RustFS certificate files generated:"
+echo "  - rustfs_key.pem (Private key in PEM format)"
+echo "  - rustfs_cert.pem (Certificate fullchain in PEM format)"
+echo "  - SAN: ${SAN_RUSTFS}"
+echo ""
+
+##################################################################
+# STEP 4b: Generate UI-A Certificate (PEM format for nginx)
+##################################################################
+
+echo "=================================================================="
+echo "STEP 4b: Generating UI-A Certificate (PEM format for nginx)"
 echo "=================================================================="
 echo ""
 
@@ -473,15 +648,14 @@ echo "  - ui-a-cert.key (Private key in PEM format)"
 echo "  - ui-a-cert.crt (Certificate in PEM format, signed by Intermediate CA)"
 echo "  - ui-a-fullchain.crt (Full certificate chain: server cert + intermediate CA)"
 echo "  - SAN: ${SAN_UI_A}"
-echo "  - ui-a-temp.p12 (Temporary PKCS12 keystore, can be deleted)"
 echo ""
 
 ##################################################################
-# STEP 5: Generate UI-B Certificate (PEM format for nginx)
+# STEP 4c: Generate UI-B Certificate (PEM format for nginx)
 ##################################################################
 
 echo "=================================================================="
-echo "STEP 5: Generating UI-B Certificate (PEM format for nginx)"
+echo "STEP 4c: Generating UI-B Certificate (PEM format for nginx)"
 echo "=================================================================="
 echo ""
 
@@ -595,15 +769,14 @@ echo "  - ui-b-cert.key (Private key in PEM format)"
 echo "  - ui-b-cert.crt (Certificate in PEM format, signed by Intermediate CA)"
 echo "  - ui-b-fullchain.crt (Full certificate chain: server cert + intermediate CA)"
 echo "  - SAN: ${SAN_UI_B}"
-echo "  - ui-b-temp.p12 (Temporary PKCS12 keystore, can be deleted)"
 echo ""
 
 ##################################################################
-# STEP 6: Create Truststore with Intermediate CA
+# STEP 5: Create Truststore with Intermediate CA
 ##################################################################
 
 echo "=================================================================="
-echo "STEP 6: Creating Truststore"
+echo "STEP 5: Creating Truststore"
 echo "=================================================================="
 echo ""
 
@@ -632,11 +805,11 @@ echo "Done."
 echo ""
 
 ##################################################################
-# STEP 7: Verification
+# STEP 6: Verification of Keystores & Content
 ##################################################################
 
 echo "=================================================================="
-echo "STEP 7: Verifying Generated Certificates"
+echo "STEP 6: Verifying Generated Certificates"
 echo "=================================================================="
 echo ""
 
@@ -656,31 +829,165 @@ echo "Connector-B Keystore:"
 keytool -list -v -keystore connector-b.p12 -storepass "${SERVER_PASSWORD}" -storetype PKCS12 | grep -E "Alias|Owner|Issuer|Valid|DNS"
 echo ""
 
+echo "RustFS Certificate Files:"
+echo "  - rustfs_key.pem: Private key in PEM format"
+echo "  - rustfs_cert.pem: Certificate in PEM format"
+if [ -f rustfs_key.pem ]; then
+    echo "  rustfs_key.pem exists: YES"
+    grep "BEGIN" rustfs_key.pem || true
+else
+    echo "  rustfs_key.pem exists: NO"
+fi
+if [ -f rustfs_cert.pem ]; then
+    echo "  rustfs_cert.pem exists: YES"
+    grep "BEGIN CERTIFICATE" rustfs_cert.pem || true
+else
+    echo "  rustfs_cert.pem exists: NO"
+fi
+echo ""
+
 echo "Truststore:"
 keytool -list -v -keystore "${TRUSTSTORE}" -storepass "${TRUSTSTORE_PASSWORD}" -storetype PKCS12 | grep -E "Alias|Owner|Issuer|Valid"
 echo ""
 
 ##################################################################
-# CLEANUP
+# CLEANUP OF TEMPORARY BUILD FILES
 ##################################################################
 
 echo "=================================================================="
-echo "Cleaning up temporary files..."
+echo "Cleaning up temporary build files..."
 echo "=================================================================="
 echo ""
 
 rm -f *.csr
 rm -f root-ca.crt
 rm -f intermediate-ca.crt
+rm -f rustfs-signed.crt
 rm -f ui-a-signed.crt
 rm -f ui-b-signed.crt
-# Keep ui-a-cert.crt and ui-a-cert.key for UI-A
-# Keep ui-b-cert.crt and ui-b-cert.key for UI-B
 rm -f connector-a.crt
 rm -f connector-b.crt
 rm -f *.cer
+rm -f rustfs-temp.p12
+rm -f ui-a-temp.p12
+rm -f ui-b-temp.p12
 
 echo "Done."
+echo ""
+
+##################################################################
+# STEP 7: Move Certificates to Respective Directories
+##################################################################
+
+echo "=================================================================="
+echo "STEP 7: Moving Certificates to Respective Directories"
+echo "=================================================================="
+echo ""
+
+# Move CA certificates and master truststore
+echo "Moving CA files to ${DIR_CA}..."
+mv -f "${ROOT_KEYSTORE}" "${DIR_CA}/"
+mv -f "${INTERMEDIATE_KEYSTORE}" "${DIR_CA}/"
+
+# Distribute truststore to connectors and place master copy in CA
+echo "Distributing truststore..."
+cp -f "${TRUSTSTORE}" "${DIR_CONNECTOR_A}/"
+cp -f "${TRUSTSTORE}" "${DIR_CONNECTOR_B}/"
+mv -f "${TRUSTSTORE}" "${DIR_CA}/"
+
+# Move connector keystores
+echo "Moving Connector-A certificate to ${DIR_CONNECTOR_A}..."
+mv -f connector-a.p12 "${DIR_CONNECTOR_A}/"
+
+echo "Moving Connector-B certificate to ${DIR_CONNECTOR_B}..."
+mv -f connector-b.p12 "${DIR_CONNECTOR_B}/"
+
+# Move RustFS certificates
+echo "Moving RustFS certificates to ${DIR_RUSTFS}..."
+mv -f rustfs_key.pem "${DIR_RUSTFS}/"
+mv -f rustfs_cert.pem "${DIR_RUSTFS}/"
+chmod 644 "${DIR_RUSTFS}/rustfs_key.pem" "${DIR_RUSTFS}/rustfs_cert.pem" || true
+
+# Move UI certificates
+echo "Moving UI-A certificates to ${DIR_UI_A}..."
+mv -f ui-a-cert.key "${DIR_UI_A}/"
+mv -f ui-a-cert.crt "${DIR_UI_A}/"
+mv -f ui-a-fullchain.crt "${DIR_UI_A}/"
+
+echo "Moving UI-B certificates to ${DIR_UI_B}..."
+mv -f ui-b-cert.key "${DIR_UI_B}/"
+mv -f ui-b-cert.crt "${DIR_UI_B}/"
+mv -f ui-b-fullchain.crt "${DIR_UI_B}/"
+
+echo "All certificates and keys moved successfully."
+echo ""
+
+##################################################################
+# STEP 8: Check and Verify File Placement
+##################################################################
+
+echo "=================================================================="
+echo "STEP 8: Checking If All Files Are In Place"
+echo "=================================================================="
+echo ""
+
+ALL_PRESENT=true
+
+check_target_file() {
+    local FILE_PATH="$1"
+    local FILE_DESC="$2"
+
+    if [ -f "${FILE_PATH}" ]; then
+        echo "  [OK] ${FILE_PATH} (${FILE_DESC})"
+    else
+        echo "  [MISSING] ${FILE_PATH} (${FILE_DESC})"
+        ALL_PRESENT=false
+    fi
+}
+
+echo "CA directory (${DIR_CA}):"
+check_target_file "${DIR_CA}/${ROOT_KEYSTORE}" "Root CA Keystore"
+check_target_file "${DIR_CA}/${INTERMEDIATE_KEYSTORE}" "Intermediate CA Keystore"
+check_target_file "${DIR_CA}/${TRUSTSTORE}" "Truststore"
+echo ""
+
+echo "Connector-A directory (${DIR_CONNECTOR_A}):"
+check_target_file "${DIR_CONNECTOR_A}/connector-a.p12" "Server Keystore"
+check_target_file "${DIR_CONNECTOR_A}/${TRUSTSTORE}" "Truststore"
+echo ""
+
+echo "Connector-B directory (${DIR_CONNECTOR_B}):"
+check_target_file "${DIR_CONNECTOR_B}/connector-b.p12" "Server Keystore"
+check_target_file "${DIR_CONNECTOR_B}/${TRUSTSTORE}" "Truststore"
+echo ""
+
+echo "RustFS directory (${DIR_RUSTFS}):"
+check_target_file "${DIR_RUSTFS}/rustfs_key.pem" "Private Key"
+check_target_file "${DIR_RUSTFS}/rustfs_cert.pem" "Certificate Full Chain"
+echo ""
+
+echo "UI-A directory (${DIR_UI_A}):"
+check_target_file "${DIR_UI_A}/ui-a-cert.key" "Private Key"
+check_target_file "${DIR_UI_A}/ui-a-cert.crt" "Server Certificate"
+check_target_file "${DIR_UI_A}/ui-a-fullchain.crt" "Full Chain Certificate"
+echo ""
+
+echo "UI-B directory (${DIR_UI_B}):"
+check_target_file "${DIR_UI_B}/ui-b-cert.key" "Private Key"
+check_target_file "${DIR_UI_B}/ui-b-cert.crt" "Server Certificate"
+check_target_file "${DIR_UI_B}/ui-b-fullchain.crt" "Full Chain Certificate"
+echo ""
+
+if [ "${ALL_PRESENT}" = true ]; then
+    echo "=================================================================="
+    echo "ALL CERTIFICATE FILES ARE IN PLACE AND VERIFIED SUCCESSFULLY!"
+    echo "=================================================================="
+else
+    echo "=================================================================="
+    echo "ERROR: One or more certificate files are missing! Check output above."
+    echo "=================================================================="
+    exit 1
+fi
 echo ""
 
 ##################################################################
@@ -688,48 +995,34 @@ echo ""
 ##################################################################
 
 echo "=================================================================="
-echo "CERTIFICATE GENERATION COMPLETE!"
+echo "CERTIFICATE GENERATION & DISTRIBUTION COMPLETE"
 echo "=================================================================="
 echo ""
-echo "Generated files:"
-echo "  1. ${ROOT_KEYSTORE} - Root CA (keep secure, used for signing Intermediate CA)"
-echo "  2. ${INTERMEDIATE_KEYSTORE} - Intermediate CA (keep secure, used for signing server certs)"
-echo "  3. connector-a.p12 - Server certificate for connector-a"
-echo "  4. connector-b.p12 - Server certificate for connector-b"
-echo "  5. ui-a-cert.key - UI-A private key in PEM format (for nginx)"
-echo "  6. ui-a-cert.crt - UI-A certificate in PEM format (for nginx, signed by Intermediate CA)"
-echo "  7. ui-a-fullchain.crt - UI-A fullchain certificate (server cert + intermediate CA)"
-echo "  8. ui-a-temp.p12 - UI-A certificate in PKCS12 format (optional, can be deleted)"
-echo "  9. ui-b-cert.key - UI-B private key in PEM format (for nginx)"
-echo "  10. ui-b-cert.crt - UI-B certificate in PEM format (for nginx, signed by Intermediate CA)"
-echo "  11. ui-b-fullchain.crt - UI-B fullchain certificate (server cert + intermediate CA)"
-echo "  12. ui-b-temp.p12 - UI-B certificate in PKCS12 format (optional, can be deleted)"
-echo "  13. ${TRUSTSTORE} - Truststore with Intermediate CA (use for TLS validation)"
+echo "Organized directory hierarchy inside ${CERT_BASE_DIR}:"
+echo "  - CA (${DIR_CA}/):"
+echo "      * ${ROOT_KEYSTORE}"
+echo "      * ${INTERMEDIATE_KEYSTORE}"
+echo "      * ${TRUSTSTORE}"
+echo "  - Connector-A (${DIR_CONNECTOR_A}/):"
+echo "      * connector-a.p12"
+echo "      * ${TRUSTSTORE}"
+echo "  - Connector-B (${DIR_CONNECTOR_B}/):"
+echo "      * connector-b.p12"
+echo "      * ${TRUSTSTORE}"
+echo "  - RustFS (${DIR_RUSTFS}/):"
+echo "      * rustfs_key.pem"
+echo "      * rustfs_cert.pem"
+echo "  - UI-A (${DIR_UI_A}/):"
+echo "      * ui-a-cert.key"
+echo "      * ui-a-cert.crt"
+echo "      * ui-a-fullchain.crt"
+echo "  - UI-B (${DIR_UI_B}/):"
+echo "      * ui-b-cert.key"
+echo "      * ui-b-cert.crt"
+echo "      * ui-b-fullchain.crt"
 echo ""
-echo "Certificate Chain:"
-echo "  Root CA --signs--> Intermediate CA --signs--> Server Certificates (including UI)"
-echo ""
-echo "For TLS handshake:"
-echo "  - Servers present: connector-a.p12, connector-b.p12, or UI PEM files"
-echo "  - Clients trust: ${TRUSTSTORE} (contains Intermediate CA)"
-echo ""
-echo "For nginx (UI-A and UI-B) Docker setup:"
-echo "  Copy to nginx ssl directory or mount as Docker volume:"
-echo "  UI-A:"
-echo "    - ./ui-a-fullchain.crt:/etc/nginx/ssl/ui-a-fullchain.crt:ro"
-echo "    - ./ui-a-cert.key:/etc/nginx/ssl/ui-a-cert.key:ro"
-echo "  UI-B:"
-echo "    - ./ui-b-fullchain.crt:/etc/nginx/ssl/ui-b-fullchain.crt:ro"
-echo "    - ./ui-b-cert.key:/etc/nginx/ssl/ui-b-cert.key:ro"
-echo "  Configure in nginx.conf:"
-echo "    ssl_certificate /etc/nginx/ssl/ui-a-fullchain.crt;"
-echo "    ssl_certificate_key /etc/nginx/ssl/ui-a-cert.key;"
-echo "  Note: The fullchain certificate includes both the server cert and intermediate CA"
-echo ""
-echo "Update your application.properties:"
-echo "  spring.ssl.bundle.jks.connector.keystore.location=classpath:connector-a.p12 (or connector-b.p12)"
-echo "  spring.ssl.bundle.jks.connector.keystore.password=${SERVER_PASSWORD}"
-echo "  spring.ssl.bundle.jks.connector.truststore.location=classpath:${TRUSTSTORE}"
-echo "  spring.ssl.bundle.jks.connector.truststore.password=${TRUSTSTORE_PASSWORD}"
+echo "For RustFS Docker compose mounting:"
+echo "  Mount:       - ./tc_cert/rustfs:/opt/tls:ro"
+echo "  Environment: RUSTFS_TLS_PATH=/opt/tls/"
 echo ""
 echo "=================================================================="
