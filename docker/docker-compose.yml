@@ -145,7 +145,8 @@ services:
       - RUSTFS_CONSOLE_ADDRESS=0.0.0.0:9001
       - RUSTFS_ACCESS_KEY=rustfsadmin
       - RUSTFS_SECRET_KEY=rustfsadmin
-      - RUSTFS_TLS_PATH=/opt/tls/
+      # Remove comment below to enable TLS for S3 storage
+      # - RUSTFS_TLS_PATH=/opt/tls/
 
 networks:
   network-a: { }

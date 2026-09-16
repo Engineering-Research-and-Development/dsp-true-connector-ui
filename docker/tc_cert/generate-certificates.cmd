@@ -325,7 +325,6 @@ echo STEP 4: Generating S3 storage Certificate
 echo ==================================================================
 echo.
 
-set S3STORAGE_NAME=s3storage
 set S3STORAGE_DN=CN=s3storage, OU=Storage, O=DSP True Connector, L=Belgrade, ST=Serbia, C=RS
 set S3STORAGE_KEYSTORE=s3storage-temp.p12
 set S3STORAGE_ALIAS=s3storage
