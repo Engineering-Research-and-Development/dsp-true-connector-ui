@@ -5,13 +5,28 @@ REM Creates a complete PKI hierarchy:
 REM   1. Root CA (self-signed)
 REM   2. Intermediate CA (signed by Root CA)
 REM   3. Server certificates (signed by Intermediate CA)
+REM   4. Moves generated files to their respective target directories
+REM   5. Verifies all files are properly in place
 REM ==================================================================
 
 setlocal enabledelayedexpansion
 
+REM Ensure execution from the directory containing this script (e.g. \tc_cert)
+set "SCRIPT_DIR=%~dp0"
+cd /d "%SCRIPT_DIR%"
+
 REM ==================================================================
 REM CONFIGURATION - Edit these values as needed
 REM ==================================================================
+
+REM Target Directory Configuration (Relative to current script directory)
+set "CERT_BASE_DIR=%CD%"
+set "DIR_CA=%CERT_BASE_DIR%\ca"
+set "DIR_CONNECTOR_A=%CERT_BASE_DIR%\connector-a"
+set "DIR_CONNECTOR_B=%CERT_BASE_DIR%\connector-b"
+set "DIR_S3STORAGE=%CERT_BASE_DIR%\s3storage"
+set "DIR_UI_A=%CERT_BASE_DIR%\ui-a"
+set "DIR_UI_B=%CERT_BASE_DIR%\ui-b"
 
 REM Root CA Configuration
 set ROOT_ALIAS=dsp-root-ca
@@ -35,12 +50,9 @@ REM Subject Alternative Names (SAN) - Edit these lists as needed for each servic
 REM Each server should only have the SANs it actually needs for security best practices
 set SAN_CONNECTOR_A=DNS:localhost,DNS:connector-a,IP:127.0.0.1
 set SAN_CONNECTOR_B=DNS:localhost,DNS:connector-b,IP:127.0.0.1
-set SAN_MINIO=DNS:localhost,DNS:minio,IP:127.0.0.1
+set SAN_S3STORAGE=DNS:localhost,DNS:s3storage,IP:127.0.0.1
 set SAN_UI_A=DNS:localhost,DNS:ui-a,IP:127.0.0.1
 set SAN_UI_B=DNS:localhost,DNS:ui-b,IP:127.0.0.1
-
-REM Legacy: All SANs combined (for backward compatibility or development)
-REM set SAN_LIST=DNS:localhost,DNS:connector-a,DNS:connector-b,DNS:minio,DNS:mongodb-a,DNS:mongodb-b,DNS:ui-a,DNS:ui-b,IP:127.0.0.1
 
 REM Truststore Configuration
 set TRUSTSTORE=dsp-truststore.p12
@@ -59,47 +71,74 @@ echo ==================================================================
 echo DSP True Connector - Certificate Generation Script
 echo ==================================================================
 echo.
+echo Working directory: %CERT_BASE_DIR%
+echo.
 echo This script will generate:
 echo   1. Root CA (self-signed)
 echo   2. Intermediate CA (signed by Root CA)
 echo   3. Server certificates for connector-a and connector-b
-echo   4. Truststore with Intermediate CA certificate
+echo   4. S3 storage certificate (PEM format: s3storage_cert.pem ^& s3storage_key.pem)
+echo   5. UI-A and UI-B certificates (PEM format with fullchain)
+echo   6. Truststore with Intermediate CA certificate
+echo   7. Organize files into target subdirectories inside %CERT_BASE_DIR%
+echo   8. Verify all required files are present
+echo.
+echo Target Directories:
+echo   - CA:          %DIR_CA%
+echo   - Connector-A: %DIR_CONNECTOR_A%
+echo   - Connector-B: %DIR_CONNECTOR_B%
+echo   - S3 storage:      %DIR_S3STORAGE%
+echo   - UI-A:        %DIR_UI_A%
+echo   - UI-B:        %DIR_UI_B%
 echo.
 echo Configuration:
 echo   - connector-a SANs: %SAN_CONNECTOR_A%
 echo   - connector-b SANs: %SAN_CONNECTOR_B%
-echo   - MinIO SANs: %SAN_MINIO%
-echo   - ui-a SANs: %SAN_UI_A%
-echo   - ui-b SANs: %SAN_UI_B%
-echo   - Key Algorithm: %KEY_ALG% %KEY_SIZE% bits
+echo   - S3 storage SANs:      %SAN_S3STORAGE%
+echo   - UI-A SANs:        %SAN_UI_A%
+echo   - UI-B SANs:        %SAN_UI_B%
+echo   - Key Algorithm:    %KEY_ALG% %KEY_SIZE% bits
 echo   - Root CA Validity: %ROOT_VALIDITY% days
 echo   - Intermediate CA Validity: %INTERMEDIATE_VALIDITY% days
-echo   - Server Cert Validity: %SERVER_VALIDITY% days
+echo   - Server Cert Validity:     %SERVER_VALIDITY% days
 echo.
 echo ==================================================================
 echo.
 
 pause
 
-REM Clean up old files
+REM Clean up old files in working directory
 echo Cleaning up old certificate files...
-if exist %ROOT_KEYSTORE% del %ROOT_KEYSTORE%
-if exist %INTERMEDIATE_KEYSTORE% del %INTERMEDIATE_KEYSTORE%
-if exist connector-a.p12 del connector-a.p12
-if exist connector-b.p12 del connector-b.p12
-if exist minio-temp.p12 del minio-temp.p12
-if exist ui-a-temp.p12 del ui-a-temp.p12
-if exist ui-b-temp.p12 del ui-b-temp.p12
-if exist private.key del private.key
-if exist public.crt del public.crt
-if exist ui-a-cert.key del ui-a-cert.key
-if exist ui-a-cert.crt del ui-a-cert.crt
-if exist ui-b-cert.key del ui-b-cert.key
-if exist ui-b-cert.crt del ui-b-cert.crt
-if exist %TRUSTSTORE% del %TRUSTSTORE%
-if exist *.csr del *.csr
-if exist *.crt del *.crt
-if exist *.cer del *.cer
+if exist %ROOT_KEYSTORE% del /f /q %ROOT_KEYSTORE%
+if exist %INTERMEDIATE_KEYSTORE% del /f /q %INTERMEDIATE_KEYSTORE%
+if exist connector-a.p12 del /f /q connector-a.p12
+if exist connector-b.p12 del /f /q connector-b.p12
+if exist s3storage-temp.p12 del /f /q s3storage-temp.p12
+if exist ui-a-temp.p12 del /f /q ui-a-temp.p12
+if exist ui-b-temp.p12 del /f /q ui-b-temp.p12
+if exist s3storage_key.pem del /f /q s3storage_key.pem
+if exist s3storage_cert.pem del /f /q s3storage_cert.pem
+if exist private.key del /f /q private.key
+if exist public.crt del /f /q public.crt
+if exist ui-a-cert.key del /f /q ui-a-cert.key
+if exist ui-a-cert.crt del /f /q ui-a-cert.crt
+if exist ui-a-fullchain.crt del /f /q ui-a-fullchain.crt
+if exist ui-b-cert.key del /f /q ui-b-cert.key
+if exist ui-b-cert.crt del /f /q ui-b-cert.crt
+if exist ui-b-fullchain.crt del /f /q ui-b-fullchain.crt
+if exist %TRUSTSTORE% del /f /q %TRUSTSTORE%
+if exist *.csr del /f /q *.csr
+if exist *.crt del /f /q *.crt
+if exist *.cer del /f /q *.cer
+
+REM Ensure destination directories exist
+if not exist "%DIR_CA%" mkdir "%DIR_CA%"
+if not exist "%DIR_CONNECTOR_A%" mkdir "%DIR_CONNECTOR_A%"
+if not exist "%DIR_CONNECTOR_B%" mkdir "%DIR_CONNECTOR_B%"
+if not exist "%DIR_S3STORAGE%" mkdir "%DIR_S3STORAGE%"
+if not exist "%DIR_UI_A%" mkdir "%DIR_UI_A%"
+if not exist "%DIR_UI_B%" mkdir "%DIR_UI_B%"
+
 echo Done.
 echo.
 
@@ -269,7 +308,7 @@ echo STEP 3: Generating Server Certificates
 echo ==================================================================
 echo.
 
-REM Function to generate server certificate
+REM Generate server certificates
 call :GenerateServerCert connector-a "CN=connector-a, OU=Connectors, O=DSP True Connector, L=Belgrade, ST=Serbia, C=RS" "%SAN_CONNECTOR_A%"
 call :GenerateServerCert connector-b "CN=connector-b, OU=Connectors, O=DSP True Connector, L=Belgrade, ST=Serbia, C=RS" "%SAN_CONNECTOR_B%"
 
@@ -278,85 +317,84 @@ echo All server certificates generated successfully!
 echo.
 
 REM ==================================================================
-REM STEP 4: Generate MinIO Certificate (PEM format)
+REM STEP 4: Generate S3 storage Certificate (s3storage_cert.pem & s3storage_key.pem)
 REM ==================================================================
 
 echo ==================================================================
-echo STEP 4: Generating MinIO Certificate (PEM format)
+echo STEP 4: Generating S3 storage Certificate
 echo ==================================================================
 echo.
 
-set MINIO_NAME=minio
-set MINIO_DN=CN=minio, OU=Storage, O=DSP True Connector, L=Belgrade, ST=Serbia, C=RS
-set MINIO_KEYSTORE=minio-temp.p12
-set MINIO_ALIAS=minio
+set S3STORAGE_DN=CN=s3storage, OU=Storage, O=DSP True Connector, L=Belgrade, ST=Serbia, C=RS
+set S3STORAGE_KEYSTORE=s3storage-temp.p12
+set S3STORAGE_ALIAS=s3storage
 
-echo Generating key pair for MinIO...
+echo Generating key pair for S3 storage...
 keytool -genkeypair ^
-    -alias %MINIO_ALIAS% ^
+    -alias %S3STORAGE_ALIAS% ^
     -keyalg %KEY_ALG% ^
     -keysize %KEY_SIZE% ^
-    -dname "%MINIO_DN%" ^
+    -dname "%S3STORAGE_DN%" ^
     -validity %SERVER_VALIDITY% ^
-    -keystore %MINIO_KEYSTORE% ^
+    -keystore %S3STORAGE_KEYSTORE% ^
     -storetype PKCS12 ^
     -storepass %SERVER_PASSWORD% ^
     -keypass %SERVER_PASSWORD% ^
     -ext KeyUsage:critical=digitalSignature,keyEncipherment ^
     -ext ExtendedKeyUsage=serverAuth,clientAuth ^
-    -ext "SAN=%SAN_MINIO%"
+    -ext "SAN=%SAN_S3STORAGE%"
 
 if %ERRORLEVEL% NEQ 0 (
-    echo ERROR: Failed to generate key pair for MinIO
+    echo ERROR: Failed to generate key pair for S3 storage
     exit /b 1
 )
 echo Done.
 echo.
 
-echo Generating Certificate Signing Request for MinIO...
+echo Generating Certificate Signing Request for S3 storage...
 keytool -certreq ^
-    -alias %MINIO_ALIAS% ^
-    -keystore %MINIO_KEYSTORE% ^
+    -alias %S3STORAGE_ALIAS% ^
+    -keystore %S3STORAGE_KEYSTORE% ^
     -storetype PKCS12 ^
     -storepass %SERVER_PASSWORD% ^
-    -file minio.csr ^
+    -file s3storage.csr ^
     -ext KeyUsage:critical=digitalSignature,keyEncipherment ^
     -ext ExtendedKeyUsage=serverAuth,clientAuth ^
-    -ext "SAN=%SAN_MINIO%"
+    -ext "SAN=%SAN_S3STORAGE%"
 
 if %ERRORLEVEL% NEQ 0 (
-    echo ERROR: Failed to generate CSR for MinIO
+    echo ERROR: Failed to generate CSR for S3 storage
     exit /b 1
 )
 echo Done.
 echo.
 
-echo Signing MinIO certificate with Intermediate CA...
+echo Signing S3 storage certificate with Intermediate CA...
 keytool -gencert ^
     -alias %INTERMEDIATE_ALIAS% ^
     -keystore %INTERMEDIATE_KEYSTORE% ^
     -storetype PKCS12 ^
     -storepass %INTERMEDIATE_PASSWORD% ^
-    -infile minio.csr ^
-    -outfile minio-signed.crt ^
+    -infile s3storage.csr ^
+    -outfile s3storage-signed.crt ^
     -validity %SERVER_VALIDITY% ^
     -ext KeyUsage:critical=digitalSignature,keyEncipherment ^
     -ext ExtendedKeyUsage=serverAuth,clientAuth ^
-    -ext "SAN=%SAN_MINIO%" ^
+    -ext "SAN=%SAN_S3STORAGE%" ^
     -rfc
 
 if %ERRORLEVEL% NEQ 0 (
-    echo ERROR: Failed to sign certificate for MinIO
+    echo ERROR: Failed to sign certificate for S3 storage
     exit /b 1
 )
 echo Done.
 echo.
 
-echo Importing certificate chain for MinIO...
+echo Importing certificate chain for S3 storage...
 echo   - Importing Root CA...
 keytool -importcert ^
     -alias %ROOT_ALIAS% ^
-    -keystore %MINIO_KEYSTORE% ^
+    -keystore %S3STORAGE_KEYSTORE% ^
     -storetype PKCS12 ^
     -storepass %SERVER_PASSWORD% ^
     -file root-ca.crt ^
@@ -365,75 +403,67 @@ keytool -importcert ^
 echo   - Importing Intermediate CA...
 keytool -importcert ^
     -alias %INTERMEDIATE_ALIAS% ^
-    -keystore %MINIO_KEYSTORE% ^
+    -keystore %S3STORAGE_KEYSTORE% ^
     -storetype PKCS12 ^
     -storepass %SERVER_PASSWORD% ^
     -file intermediate-ca.crt ^
     -noprompt
 
-echo   - Importing signed MinIO certificate...
+echo   - Importing signed S3 storage certificate...
 keytool -importcert ^
-    -alias %MINIO_ALIAS% ^
-    -keystore %MINIO_KEYSTORE% ^
+    -alias %S3STORAGE_ALIAS% ^
+    -keystore %S3STORAGE_KEYSTORE% ^
     -storetype PKCS12 ^
     -storepass %SERVER_PASSWORD% ^
-    -file minio-signed.crt ^
+    -file s3storage-signed.crt ^
     -noprompt
 
 if %ERRORLEVEL% NEQ 0 (
-    echo ERROR: Failed to import certificate chain for MinIO
+    echo ERROR: Failed to import certificate chain for S3 storage
     exit /b 1
 )
 echo Done.
 echo.
 
-echo Exporting MinIO private key to PEM format (private.key)...
-REM Export to PKCS12 then convert to PEM using OpenSSL
-REM Note: If OpenSSL is not available, the .p12 file can be manually converted
-openssl pkcs12 -in %MINIO_KEYSTORE% -nocerts -nodes -passin pass:%SERVER_PASSWORD% -out private.key 2>nul
-
-if %ERRORLEVEL% NEQ 0 (
-    echo WARNING: OpenSSL not found. Using alternative method...
-    echo You will need to manually convert minio-temp.p12 to private.key
-    echo Command: openssl pkcs12 -in minio-temp.p12 -nocerts -nodes -passin pass:%SERVER_PASSWORD% -out private.key
-    echo.
-    echo Creating placeholder private.key file...
-    echo # MinIO Private Key > private.key
-    echo # Convert from minio-temp.p12 using OpenSSL >> private.key
-    echo # Command: openssl pkcs12 -in minio-temp.p12 -nocerts -nodes -passin pass:%SERVER_PASSWORD% -out private.key >> private.key
-) else (
+echo Exporting S3 storage private key (s3storage_key.pem)...
+where openssl >nul 2>&1
+if %ERRORLEVEL% EQU 0 (
+    openssl pkcs12 -in %S3STORAGE_KEYSTORE% -nocerts -nodes -passin pass:%SERVER_PASSWORD% -out s3storage_key.pem
     echo Done.
+) else (
+    echo WARNING: OpenSSL not found. Cannot convert to PEM format automatically.
+    echo Please convert manually using:
+    echo   openssl pkcs12 -in s3storage-temp.p12 -nocerts -nodes -passin pass:%SERVER_PASSWORD% -out s3storage_key.pem
+    echo # S3 storage Private Key> s3storage_key.pem
+    echo # Convert from s3storage-temp.p12 using OpenSSL>> s3storage_key.pem
+    echo # Command: openssl pkcs12 -in s3storage-temp.p12 -nocerts -nodes -passin pass:%SERVER_PASSWORD% -out s3storage_key.pem>> s3storage_key.pem
 )
 echo.
 
-echo Exporting MinIO certificate to PEM format (public.crt)...
-REM Export certificate chain (includes intermediate CA)
-openssl pkcs12 -in %MINIO_KEYSTORE% -clcerts -nokeys -passin pass:%SERVER_PASSWORD% -out public.crt 2>nul
-
-if %ERRORLEVEL% NEQ 0 (
+echo Exporting S3 storage certificate (s3storage_cert.pem)...
+where openssl >nul 2>&1
+if %ERRORLEVEL% EQU 0 (
+    openssl pkcs12 -in %S3STORAGE_KEYSTORE% -clcerts -nokeys -passin pass:%SERVER_PASSWORD% -out s3storage-only.crt
+    type s3storage-only.crt intermediate-ca.crt > s3storage_cert.pem
+    if exist s3storage-only.crt del s3storage-only.crt
+    echo Done.
+) else (
     echo WARNING: OpenSSL not found. Using keytool export...
     keytool -exportcert ^
-        -alias %MINIO_ALIAS% ^
-        -keystore %MINIO_KEYSTORE% ^
+        -alias %S3STORAGE_ALIAS% ^
+        -keystore %S3STORAGE_KEYSTORE% ^
         -storetype PKCS12 ^
         -storepass %SERVER_PASSWORD% ^
-        -file public.crt ^
+        -file s3storage_cert.pem ^
         -rfc
-
-    if %ERRORLEVEL% NEQ 0 (
-        echo ERROR: Failed to export MinIO certificate
-        exit /b 1
-    )
-) else (
     echo Done.
 )
 echo.
 
-echo MinIO certificate files generated:
-echo   - private.key (Private key in PEM format)
-echo   - public.crt (Certificate in PEM format, signed by Intermediate CA)
-echo   - SAN: %SAN_MINIO%
-echo   - minio-temp.p12 (Temporary PKCS12 keystore, can be deleted)
+echo S3 storage certificate files generated:
+echo   - s3storage_key.pem (Private key in PEM format)
+echo   - s3storage_cert.pem (Certificate fullchain in PEM format)
+echo   - SAN: %SAN_S3STORAGE%
 echo.
 
 REM ==================================================================
@@ -547,59 +577,29 @@ echo Done.
 echo.
 
 echo Exporting UI-A private key to PEM format (ui-a-cert.key)...
-openssl pkcs12 -in %UI_A_KEYSTORE% -nocerts -nodes -passin pass:%SERVER_PASSWORD% -out ui-a-cert.key 2>nul
-
-if %ERRORLEVEL% NEQ 0 (
-    echo WARNING: OpenSSL not found. Using alternative method...
-    echo You will need to manually convert ui-a-temp.p12 to ui-a-cert.key
-    echo Command: openssl pkcs12 -in ui-a-temp.p12 -nocerts -nodes -passin pass:%SERVER_PASSWORD% -out ui-a-cert.key
+where openssl >nul 2>&1
+if %ERRORLEVEL% EQU 0 (
+    openssl pkcs12 -in %UI_A_KEYSTORE% -nocerts -nodes -passin pass:%SERVER_PASSWORD% -out ui-a-cert.key
+    echo Done.
     echo.
-    echo Creating placeholder ui-a-cert.key file...
-    echo # UI-A Private Key > ui-a-cert.key
-    echo # Convert from ui-a-temp.p12 using OpenSSL >> ui-a-cert.key
-    echo # Command: openssl pkcs12 -in ui-a-temp.p12 -nocerts -nodes -passin pass:%SERVER_PASSWORD% -out ui-a-cert.key >> ui-a-cert.key
-) else (
+    echo Exporting UI-A certificate to PEM format (ui-a-cert.crt)...
+    openssl pkcs12 -in %UI_A_KEYSTORE% -clcerts -nokeys -passin pass:%SERVER_PASSWORD% -out ui-a-cert.crt
     echo Done.
-)
-echo.
-
-echo Exporting UI-A certificate to PEM format (ui-a-cert.crt)...
-openssl pkcs12 -in %UI_A_KEYSTORE% -clcerts -nokeys -passin pass:%SERVER_PASSWORD% -out ui-a-cert.crt 2>nul
-
-if %ERRORLEVEL% NEQ 0 (
-    echo WARNING: OpenSSL not found. Using keytool export...
-    keytool -exportcert ^
-        -alias %UI_A_ALIAS% ^
-        -keystore %UI_A_KEYSTORE% ^
-        -storetype PKCS12 ^
-        -storepass %SERVER_PASSWORD% ^
-        -file ui-a-cert.crt ^
-        -rfc
-
-    if %ERRORLEVEL% NEQ 0 (
-        echo ERROR: Failed to export UI-A certificate
-        exit /b 1
-    )
-) else (
-    echo Done.
-)
-echo.
-
-REM Create fullchain certificate for UI-A (server cert + intermediate CA)
-if exist ui-a-cert.crt if exist intermediate-ca.crt (
+    echo.
+    echo Creating fullchain certificate for UI-A (server cert + intermediate CA)...
     type ui-a-cert.crt intermediate-ca.crt > ui-a-fullchain.crt
-    echo Created ui-a-fullchain.crt (server cert + intermediate CA)
+    echo Done.
 ) else (
-    echo WARNING: Could not create ui-a-fullchain.crt (missing ui-a-cert.crt or intermediate-ca.crt)
+    echo WARNING: OpenSSL not found. Cannot convert to PEM format automatically.
+    echo Please install OpenSSL and run this script again.
 )
 echo.
 
 echo UI-A certificate files generated:
 echo   - ui-a-cert.key (Private key in PEM format)
 echo   - ui-a-cert.crt (Certificate in PEM format, signed by Intermediate CA)
-echo   - ui-a-fullchain.crt (Fullchain certificate in PEM format)
+echo   - ui-a-fullchain.crt (Full certificate chain: server cert + intermediate CA)
 echo   - SAN: %SAN_UI_A%
-echo   - ui-a-temp.p12 (Temporary PKCS12 keystore, can be deleted)
 echo.
 
 REM ==================================================================
@@ -713,59 +713,29 @@ echo Done.
 echo.
 
 echo Exporting UI-B private key to PEM format (ui-b-cert.key)...
-openssl pkcs12 -in %UI_B_KEYSTORE% -nocerts -nodes -passin pass:%SERVER_PASSWORD% -out ui-b-cert.key 2>nul
-
-if %ERRORLEVEL% NEQ 0 (
-    echo WARNING: OpenSSL not found. Using alternative method...
-    echo You will need to manually convert ui-b-temp.p12 to ui-b-cert.key
-    echo Command: openssl pkcs12 -in ui-b-temp.p12 -nocerts -nodes -passin pass:%SERVER_PASSWORD% -out ui-b-cert.key
+where openssl >nul 2>&1
+if %ERRORLEVEL% EQU 0 (
+    openssl pkcs12 -in %UI_B_KEYSTORE% -nocerts -nodes -passin pass:%SERVER_PASSWORD% -out ui-b-cert.key
+    echo Done.
     echo.
-    echo Creating placeholder ui-b-cert.key file...
-    echo # UI-B Private Key > ui-b-cert.key
-    echo # Convert from ui-b-temp.p12 using OpenSSL >> ui-b-cert.key
-    echo # Command: openssl pkcs12 -in ui-b-temp.p12 -nocerts -nodes -passin pass:%SERVER_PASSWORD% -out ui-b-cert.key >> ui-b-cert.key
-) else (
+    echo Exporting UI-B certificate to PEM format (ui-b-cert.crt)...
+    openssl pkcs12 -in %UI_B_KEYSTORE% -clcerts -nokeys -passin pass:%SERVER_PASSWORD% -out ui-b-cert.crt
     echo Done.
-)
-echo.
-
-echo Exporting UI-B certificate to PEM format (ui-b-cert.crt)...
-openssl pkcs12 -in %UI_B_KEYSTORE% -clcerts -nokeys -passin pass:%SERVER_PASSWORD% -out ui-b-cert.crt 2>nul
-
-if %ERRORLEVEL% NEQ 0 (
-    echo WARNING: OpenSSL not found. Using keytool export...
-    keytool -exportcert ^
-        -alias %UI_B_ALIAS% ^
-        -keystore %UI_B_KEYSTORE% ^
-        -storetype PKCS12 ^
-        -storepass %SERVER_PASSWORD% ^
-        -file ui-b-cert.crt ^
-        -rfc
-
-    if %ERRORLEVEL% NEQ 0 (
-        echo ERROR: Failed to export UI-B certificate
-        exit /b 1
-    )
-) else (
-    echo Done.
-)
-echo.
-
-REM Create fullchain certificate for UI-B (server cert + intermediate CA)
-if exist ui-b-cert.crt if exist intermediate-ca.crt (
+    echo.
+    echo Creating fullchain certificate for UI-B (server cert + intermediate CA)...
     type ui-b-cert.crt intermediate-ca.crt > ui-b-fullchain.crt
-    echo Created ui-b-fullchain.crt (server cert + intermediate CA)
+    echo Done.
 ) else (
-    echo WARNING: Could not create ui-b-fullchain.crt (missing ui-b-cert.crt or intermediate-ca.crt)
+    echo WARNING: OpenSSL not found. Cannot convert to PEM format automatically.
+    echo Please install OpenSSL and run this script again.
 )
 echo.
 
 echo UI-B certificate files generated:
 echo   - ui-b-cert.key (Private key in PEM format)
 echo   - ui-b-cert.crt (Certificate in PEM format, signed by Intermediate CA)
-echo   - ui-b-fullchain.crt (Fullchain certificate in PEM format)
+echo   - ui-b-fullchain.crt (Full certificate chain: server cert + intermediate CA)
 echo   - SAN: %SAN_UI_B%
-echo   - ui-b-temp.p12 (Temporary PKCS12 keystore, can be deleted)
 echo.
 
 REM ==================================================================
@@ -807,7 +777,7 @@ echo Done.
 echo.
 
 REM ==================================================================
-REM STEP 6: Verification
+REM STEP 6: Verification of Keystores & Content
 REM ==================================================================
 
 echo ==================================================================
@@ -816,66 +786,167 @@ echo ==================================================================
 echo.
 
 echo Root CA Keystore:
-keytool -list -v -keystore %ROOT_KEYSTORE% -storepass %ROOT_PASSWORD% -storetype PKCS12 | findstr "Alias\|Owner\|Issuer\|Valid"
+keytool -list -v -keystore %ROOT_KEYSTORE% -storepass %ROOT_PASSWORD% -storetype PKCS12 | findstr "Alias Owner Issuer Valid"
 echo.
 
 echo Intermediate CA Keystore:
-keytool -list -v -keystore %INTERMEDIATE_KEYSTORE% -storepass %INTERMEDIATE_PASSWORD% -storetype PKCS12 | findstr "Alias\|Owner\|Issuer\|Valid"
+keytool -list -v -keystore %INTERMEDIATE_KEYSTORE% -storepass %INTERMEDIATE_PASSWORD% -storetype PKCS12 | findstr "Alias Owner Issuer Valid"
 echo.
 
 echo Connector-A Keystore:
-keytool -list -v -keystore connector-a.p12 -storepass %SERVER_PASSWORD% -storetype PKCS12 | findstr "Alias\|Owner\|Issuer\|Valid\|DNS"
+keytool -list -v -keystore connector-a.p12 -storepass %SERVER_PASSWORD% -storetype PKCS12 | findstr "Alias Owner Issuer Valid DNS"
 echo.
 
 echo Connector-B Keystore:
-keytool -list -v -keystore connector-b.p12 -storepass %SERVER_PASSWORD% -storetype PKCS12 | findstr "Alias\|Owner\|Issuer\|Valid\|DNS"
+keytool -list -v -keystore connector-b.p12 -storepass %SERVER_PASSWORD% -storetype PKCS12 | findstr "Alias Owner Issuer Valid DNS"
 echo.
 
-echo MinIO Certificate Files:
-echo   - private.key: Private key in PEM format
-echo   - public.crt: Certificate in PEM format
-if exist private.key (
-    echo   private.key exists: YES
-    findstr /C:"BEGIN" private.key
+echo S3 storage Certificate Files:
+echo   - s3storage_key.pem: Private key in PEM format
+echo   - s3storage_cert.pem: Certificate in PEM format
+if exist s3storage_key.pem (
+    echo   s3storage_key.pem exists: YES
+    findstr "BEGIN" s3storage_key.pem
 ) else (
-    echo   private.key exists: NO
+    echo   s3storage_key.pem exists: NO
 )
-if exist public.crt (
-    echo   public.crt exists: YES
-    findstr /C:"BEGIN CERTIFICATE" public.crt
+if exist s3storage_cert.pem (
+    echo   s3storage_cert.pem exists: YES
+    findstr "BEGIN CERTIFICATE" s3storage_cert.pem
 ) else (
-    echo   public.crt exists: NO
+    echo   s3storage_cert.pem exists: NO
 )
 echo.
 
 echo Truststore:
-keytool -list -v -keystore %TRUSTSTORE% -storepass %TRUSTSTORE_PASSWORD% -storetype PKCS12 | findstr "Alias\|Owner\|Issuer\|Valid"
+keytool -list -v -keystore %TRUSTSTORE% -storepass %TRUSTSTORE_PASSWORD% -storetype PKCS12 | findstr "Alias Owner Issuer Valid"
 echo.
 
 REM ==================================================================
-REM CLEANUP
+REM CLEANUP OF TEMPORARY BUILD FILES
 REM ==================================================================
 
 echo ==================================================================
-echo Cleaning up temporary files...
+echo Cleaning up temporary build files...
 echo ==================================================================
 echo.
 
-del *.csr
-del root-ca.crt
-del intermediate-ca.crt
-del minio-signed.crt
-del ui-a-signed.crt
-del ui-b-signed.crt
-REM Keep public.crt for MinIO
-REM Keep private.key for MinIO
-REM Keep ui-a-cert.crt and ui-a-cert.key for UI-A
-REM Keep ui-b-cert.crt and ui-b-cert.key for UI-B
-if exist connector-a.crt del connector-a.crt
-if exist connector-b.crt del connector-b.crt
-del *.cer
+if exist *.csr del /f /q *.csr
+if exist root-ca.crt del /f /q root-ca.crt
+if exist intermediate-ca.crt del /f /q intermediate-ca.crt
+if exist s3storage-signed.crt del /f /q s3storage-signed.crt
+if exist ui-a-signed.crt del /f /q ui-a-signed.crt
+if exist ui-b-signed.crt del /f /q ui-b-signed.crt
+if exist connector-a.crt del /f /q connector-a.crt
+if exist connector-b.crt del /f /q connector-b.crt
+if exist *.cer del /f /q *.cer
+if exist s3storage-temp.p12 del /f /q s3storage-temp.p12
+if exist ui-a-temp.p12 del /f /q ui-a-temp.p12
+if exist ui-b-temp.p12 del /f /q ui-b-temp.p12
 
 echo Done.
+echo.
+
+REM ==================================================================
+REM STEP 7: Move Certificates to Respective Directories
+REM ==================================================================
+
+echo ==================================================================
+echo STEP 7: Moving Certificates to Respective Directories
+echo ==================================================================
+echo.
+
+REM Move CA certificates and master truststore
+echo Moving CA files to %DIR_CA%...
+move /y "%ROOT_KEYSTORE%" "%DIR_CA%\" >nul
+move /y "%INTERMEDIATE_KEYSTORE%" "%DIR_CA%\" >nul
+
+REM Distribute truststore to connectors and place master copy in CA
+echo Distributing truststore...
+copy /y "%TRUSTSTORE%" "%DIR_CONNECTOR_A%\" >nul
+copy /y "%TRUSTSTORE%" "%DIR_CONNECTOR_B%\" >nul
+move /y "%TRUSTSTORE%" "%DIR_CA%\" >nul
+
+REM Move connector keystores
+echo Moving Connector-A certificate to %DIR_CONNECTOR_A%...
+move /y connector-a.p12 "%DIR_CONNECTOR_A%\" >nul
+
+echo Moving Connector-B certificate to %DIR_CONNECTOR_B%...
+move /y connector-b.p12 "%DIR_CONNECTOR_B%\" >nul
+
+REM Move S3 storage certificates
+echo Moving S3 storage certificates to %DIR_S3STORAGE%...
+move /y s3storage_key.pem "%DIR_S3STORAGE%\" >nul
+move /y s3storage_cert.pem "%DIR_S3STORAGE%\" >nul
+
+REM Move UI certificates
+echo Moving UI-A certificates to %DIR_UI_A%...
+move /y ui-a-cert.key "%DIR_UI_A%\" >nul
+move /y ui-a-cert.crt "%DIR_UI_A%\" >nul
+move /y ui-a-fullchain.crt "%DIR_UI_A%\" >nul
+
+echo Moving UI-B certificates to %DIR_UI_B%...
+move /y ui-b-cert.key "%DIR_UI_B%\" >nul
+move /y ui-b-cert.crt "%DIR_UI_B%\" >nul
+move /y ui-b-fullchain.crt "%DIR_UI_B%\" >nul
+
+echo All certificates and keys moved successfully.
+echo.
+
+REM ==================================================================
+REM STEP 8: Check and Verify File Placement
+REM ==================================================================
+
+echo ==================================================================
+echo STEP 8: Checking If All Files Are In Place
+echo ==================================================================
+echo.
+
+set ALL_PRESENT=true
+
+echo CA directory (%DIR_CA%):
+call :CheckTargetFile "%DIR_CA%\%ROOT_KEYSTORE%" "Root CA Keystore"
+call :CheckTargetFile "%DIR_CA%\%INTERMEDIATE_KEYSTORE%" "Intermediate CA Keystore"
+call :CheckTargetFile "%DIR_CA%\%TRUSTSTORE%" "Truststore"
+echo.
+
+echo Connector-A directory (%DIR_CONNECTOR_A%):
+call :CheckTargetFile "%DIR_CONNECTOR_A%\connector-a.p12" "Server Keystore"
+call :CheckTargetFile "%DIR_CONNECTOR_A%\%TRUSTSTORE%" "Truststore"
+echo.
+
+echo Connector-B directory (%DIR_CONNECTOR_B%):
+call :CheckTargetFile "%DIR_CONNECTOR_B%\connector-b.p12" "Server Keystore"
+call :CheckTargetFile "%DIR_CONNECTOR_B%\%TRUSTSTORE%" "Truststore"
+echo.
+
+echo S3 storage directory (%DIR_S3STORAGE%):
+call :CheckTargetFile "%DIR_S3STORAGE%\s3storage_key.pem" "Private Key"
+call :CheckTargetFile "%DIR_S3STORAGE%\s3storage_cert.pem" "Certificate Full Chain"
+echo.
+
+echo UI-A directory (%DIR_UI_A%):
+call :CheckTargetFile "%DIR_UI_A%\ui-a-cert.key" "Private Key"
+call :CheckTargetFile "%DIR_UI_A%\ui-a-cert.crt" "Server Certificate"
+call :CheckTargetFile "%DIR_UI_A%\ui-a-fullchain.crt" "Full Chain Certificate"
+echo.
+
+echo UI-B directory (%DIR_UI_B%):
+call :CheckTargetFile "%DIR_UI_B%\ui-b-cert.key" "Private Key"
+call :CheckTargetFile "%DIR_UI_B%\ui-b-cert.crt" "Server Certificate"
+call :CheckTargetFile "%DIR_UI_B%\ui-b-fullchain.crt" "Full Chain Certificate"
+echo.
+
+if "%ALL_PRESENT%"=="true" (
+    echo ==================================================================
+    echo ALL CERTIFICATE FILES ARE IN PLACE AND VERIFIED SUCCESSFULLY!
+    echo ==================================================================
+) else (
+    echo ==================================================================
+    echo ERROR: One or more certificate files are missing! Check output above.
+    echo ==================================================================
+    exit /b 1
+)
 echo.
 
 REM ==================================================================
@@ -883,59 +954,35 @@ REM SUMMARY
 REM ==================================================================
 
 echo ==================================================================
-echo CERTIFICATE GENERATION COMPLETE!
+echo CERTIFICATE GENERATION ^& DISTRIBUTION COMPLETE
 echo ==================================================================
 echo.
-echo Generated files:
-echo   1. %ROOT_KEYSTORE% - Root CA (keep secure, used for signing Intermediate CA)
-echo   2. %INTERMEDIATE_KEYSTORE% - Intermediate CA (keep secure, used for signing server certs)
-echo   3. connector-a.p12 - Server certificate for connector-a
-echo   4. connector-b.p12 - Server certificate for connector-b
-echo   5. private.key - MinIO private key in PEM format (for MinIO certs/private.key)
-echo   6. public.crt - MinIO certificate in PEM format (for MinIO certs/public.crt)
-echo   7. minio-temp.p12 - MinIO certificate in PKCS12 format (optional, can be deleted)
-echo   8. ui-a-cert.key - UI-A private key in PEM format (for nginx)
-echo   9. ui-a-cert.crt - UI-A certificate in PEM format (for nginx, signed by Intermediate CA)
-echo   10. ui-a-fullchain.crt - UI-A fullchain certificate in PEM format (server cert + intermediate CA)
-echo   11. ui-a-temp.p12 - UI-A certificate in PKCS12 format (optional, can be deleted)
-echo   12. ui-b-cert.key - UI-B private key in PEM format (for nginx)
-echo   13. ui-b-cert.crt - UI-B certificate in PEM format (for nginx, signed by Intermediate CA)
-echo   14. ui-b-fullchain.crt - UI-B fullchain certificate in PEM format (server cert + intermediate CA)
-echo   15. ui-b-temp.p12 - UI-B certificate in PKCS12 format (optional, can be deleted)
-echo   16. %TRUSTSTORE% - Truststore with Intermediate CA (use for TLS validation)
+echo Organized directory hierarchy inside %CERT_BASE_DIR%:
+echo   - CA (%DIR_CA%\):
+echo       * %ROOT_KEYSTORE%
+echo       * %INTERMEDIATE_KEYSTORE%
+echo       * %TRUSTSTORE%
+echo   - Connector-A (%DIR_CONNECTOR_A%\):
+echo       * connector-a.p12
+echo       * %TRUSTSTORE%
+echo   - Connector-B (%DIR_CONNECTOR_B%\):
+echo       * connector-b.p12
+echo       * %TRUSTSTORE%
+echo   - S3 storage (%DIR_S3STORAGE%\):
+echo       * s3storage_key.pem
+echo       * s3storage_cert.pem
+echo   - UI-A (%DIR_UI_A%\):
+echo       * ui-a-cert.key
+echo       * ui-a-cert.crt
+echo       * ui-a-fullchain.crt
+echo   - UI-B (%DIR_UI_B%\):
+echo       * ui-b-cert.key
+echo       * ui-b-cert.crt
+echo       * ui-b-fullchain.crt
 echo.
-echo Certificate Chain:
-echo   Root CA --signs--^> Intermediate CA --signs--^> Server Certificates (including MinIO)
-echo.
-echo For TLS handshake:
-echo   - Servers present: connector-a.p12, connector-b.p12, or MinIO PEM files
-echo   - Clients trust: %TRUSTSTORE% (contains Intermediate CA)
-echo.
-echo For MinIO Docker setup:
-echo   Copy to MinIO certs directory:
-echo     - private.key --^> /root/.minio/certs/private.key
-echo     - public.crt --^> /root/.minio/certs/public.crt
-echo   Or mount as Docker volume:
-echo     - ./private.key:/root/.minio/certs/private.key
-echo     - ./public.crt:/root/.minio/certs/public.crt
-echo.
-echo For nginx (UI-A and UI-B) Docker setup:
-echo   Copy to nginx ssl directory or mount as Docker volume:
-echo   UI-A:
-echo     - ./ui-a-cert.crt:/etc/nginx/ssl/ui-a-cert.crt
-echo     - ./ui-a-cert.key:/etc/nginx/ssl/ui-a-cert.key
-echo   UI-B:
-echo     - ./ui-b-cert.crt:/etc/nginx/ssl/ui-b-cert.crt
-echo     - ./ui-b-cert.key:/etc/nginx/ssl/ui-b-cert.key
-echo   Configure in nginx.conf:
-echo     ssl_certificate /etc/nginx/ssl/ui-a-cert.crt;
-echo     ssl_certificate_key /etc/nginx/ssl/ui-a-cert.key;
-echo.
-echo Update your application.properties:
-echo   spring.ssl.bundle.jks.connector.keystore.location=classpath:connector-a.p12 (or connector-b.p12)
-echo   spring.ssl.bundle.jks.connector.keystore.password=%SERVER_PASSWORD%
-echo   spring.ssl.bundle.jks.connector.truststore.location=classpath:%TRUSTSTORE%
-echo   spring.ssl.bundle.jks.connector.truststore.password=%TRUSTSTORE_PASSWORD%
+echo For S3 storage Docker compose mounting:
+echo   Mount:       - ./tc_cert/s3storage:/opt/tls:ro
+echo   Environment: S3STORAGE_TLS_PATH=/opt/tls/
 echo.
 echo ==================================================================
 
@@ -1072,3 +1119,15 @@ echo.
 endlocal
 goto :eof
 
+REM ==================================================================
+REM SUBROUTINE: Check Target File
+REM Parameters: %1=file path, %2=description
+REM ==================================================================
+:CheckTargetFile
+if exist %1 (
+    echo   [OK] %~1 ^(%~2^)
+) else (
+    echo   [MISSING] %~1 ^(%~2^)
+    set ALL_PRESENT=false
+)
+goto :eof

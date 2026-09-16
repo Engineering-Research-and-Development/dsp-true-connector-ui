@@ -79,7 +79,7 @@ Each instance operates as a self-contained unit comprising:
 - **DSP True Connector Service**: Core protocol implementation
 - **Web UI Interface**: User-friendly management dashboard
 - **MongoDB Database**: Persistent data storage
-- **Minio S3 storage**: Persistent S3 storage for objects (artifacts)
+- **S3 storage**: Persistent S3 storage for objects (artifacts)
 - **Network Isolation**: Secure communication channels
 
 #### Network Configuration
@@ -142,9 +142,9 @@ The system utilizes isolated network segments for enhanced security:
 
 #### Shared service
 
-**Minio S3 storage**
+**S3 storage**
 
-- **Image**: `minio/minio:RELEASE.2025-04-22T22-12-26Z`
+- **Image**: `rustfs/rustfs:1.0.0-rc.6`
 - **Port Mapping**: `9000:9000`
 - **Storage**: Persistent S3 storage for artifacts
 
@@ -188,18 +188,18 @@ CONNECTOR_B_TC_ROOT_API_URL=      # Instance B API endpoint for UI
 
 The connector supports S3-compatible object storage for artifact management and data transfer. You can choose **one** storage backend at a time:
 
-1. **MinIO** (self-hosted, S3-compatible)
+1. **S3 storage** (self-hosted, S3-compatible)
 2. **AWS S3** (Amazon S3 managed service)
 
 **Important:** Configure only **one** backend at a time. The connector uses the same configuration keys for both backends; the values differ.
 
-##### Option 1: MinIO configuration
+##### Option 1: S3 storage configuration
 
-Use this configuration when connecting to **MinIO**.
+Use this configuration when connecting to **S3 storage**.
 
 ```properties
-# MinIO Connection Settings
-s3.endpoint=<S3_ENDPOINT_URL>                      # REQUIRED: e.g., http://localhost:9000 or https://minio.example.com
+# S3 storage Connection Settings
+s3.endpoint=<S3_ENDPOINT_URL>                      # REQUIRED: e.g., http://localhost:9000 or https://s3storage.example.com
 s3.accessKey=<YOUR_ACCESS_KEY>
 s3.secretKey=<YOUR_SECRET_KEY>
 s3.region=<S3_REGION>                              # Can be any value (e.g., us-east-1)
@@ -207,9 +207,9 @@ s3.bucketName=<BUCKET_NAME>
 s3.externalPresignedEndpoint=<EXTERNAL_ENDPOINT>   # REQUIRED: External endpoint for presigned URL generation
 ```
 
-**MinIO note (Docker / browser access):**
+**S3 storage note (Docker / browser access):**
 
-> `s3.externalPresignedEndpoint` must be reachable by the browser. When running MinIO in Docker, this often means using your machine's LAN IP (e.g. `http://192.168.x.x:9000`) rather than an internal container hostname.
+> `s3.externalPresignedEndpoint` must be reachable by the browser. When running S3 storage in Docker, this often means using your machine's LAN IP (e.g. `http://192.168.x.x:9000`) rather than an internal container hostname.
 
 ##### Option 2: AWS S3 configuration
 
@@ -229,11 +229,11 @@ s3.externalPresignedEndpoint=          # MUST be empty for AWS S3
 
 ##### Configuration property matrix
 
-| Property | MinIO | AWS S3 | Description |
+| Property | S3 storage | AWS S3 | Description |
 |----------|-------|--------|-------------|
 | `s3.endpoint` | **Required** (e.g., `http://localhost:9000`) | **Empty** | S3 service endpoint URL |
-| `s3.accessKey` | MinIO access key | AWS access key ID | Access key |
-| `s3.secretKey` | MinIO secret key | AWS secret access key | Secret key |
+| `s3.accessKey` | S3 storage access key | AWS access key ID | Access key |
+| `s3.secretKey` | S3 storage secret key | AWS secret access key | Secret key |
 | `s3.region` | Any value (often `us-east-1`) | Bucket region | Region identifier |
 | `s3.bucketName` | Bucket name | Bucket name | Target bucket |
 | `s3.externalPresignedEndpoint` | **Required** | **Empty** | External endpoint for presigned URL generation |
@@ -248,7 +248,7 @@ s3.externalPresignedEndpoint=          # MUST be empty for AWS S3
 
 - **AWS region issues:** ensure `s3.region` matches the bucket region
 - **Access denied:** check IAM permissions and bucket policy
-- **Presigned URLs:** for AWS keep `s3.externalPresignedEndpoint` empty; for MinIO set it to an externally reachable URL
+- **Presigned URLs:** for AWS keep `s3.externalPresignedEndpoint` empty; for S3 storage set it to an externally reachable URL
 
 > The `CONNECTOR_A_BASE_URL` and `CONNECTOR_B_BASE_URL` should be root endpoint of BE which is publicly available 
 
@@ -281,19 +281,13 @@ s3.externalPresignedEndpoint=          # MUST be empty for AWS S3
 - MongoDB Data: `mongodb-data_b:/data/db`
 - MongoDB Config: `mongodb-configdb_b:/data/configdb`
 
-**MinIO Configuration:**
+**S3 storage Configuration:**
 
-- Data Storage: `minio_data:/data`
-
-> **SSL/TLS Configuration:** When SSL is enabled for connectors, uncomment the MinIO certificate volume mount in `docker-compose.yml`:
-> ```yaml
-> # - ./tc_cert/minio_certs:/root/.minio/certs:ro
-> ```
-> This mounts the custom SSL certificates to enable HTTPS communication with MinIO.
+- Data Storage: `s3storage_data:/data`
 
 **Important Note:**
 
-> Using a single MinIO S3 instance mimics AWS's architecture, where multiple users access separate buckets.
+> Using a single S3 storage instance mimics AWS's architecture, where multiple users access separate buckets.
 
 ### Getting Started
 
@@ -313,7 +307,7 @@ docker-compose ps
 - **Instance B UI**: http://localhost:4300
 - **Instance A API**: http://localhost:8080
 - **Instance B API**: http://localhost:8090
-- **Minio**: http://localhost:9001
+- **S3 storage**: http://localhost:9001
 
 **System Shutdown:**
 
