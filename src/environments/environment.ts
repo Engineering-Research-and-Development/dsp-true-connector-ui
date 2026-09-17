@@ -1,5 +1,5 @@
 export const environment = {
-  APP_VERSION: '0.7.2-dev',
+  APP_VERSION: '0.7.3',
   CUSTOM_LOGO_PRESENT: 'CUSTOM_LOGO_PRESENT_PLACEHOLDER',
   TC_ROOT_API_URL: 'TC_ROOT_API_URL_PLACEHOLDER',
   AUTH_API_URL: () => `${environment.TC_ROOT_API_URL}/auth`,
