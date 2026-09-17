@@ -1,5 +1,5 @@
 export const environment = {
-  APP_VERSION: '0.7.3',
+  APP_VERSION: '0.7.4-dev',
   CUSTOM_LOGO_PRESENT: 'false',
   TC_ROOT_API_URL: 'http://localhost:8090/api/v1',
   AUTH_API_URL: () => `${environment.TC_ROOT_API_URL}/auth`,
