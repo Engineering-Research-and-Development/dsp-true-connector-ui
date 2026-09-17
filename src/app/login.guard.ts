@@ -15,7 +15,7 @@ export class LoginGuard implements CanActivate {
   ): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
     // If already logged in, redirect to the default protected page
     if (this.authService.isAuthenticated) {
-      return this.router.createUrlTree(['/catalog-browser']);
+      return this.router.createUrlTree(['/dashboard']);
     }
     
     // Allow access to login page for unauthenticated users

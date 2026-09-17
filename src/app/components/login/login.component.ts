@@ -16,7 +16,7 @@ export class LoginComponent implements OnInit {
   isSubmitting = false;
   errorMessage: string | null = null;
   showPassword = false; // Track password visibility
-  private returnUrl: string = '/catalog-browser';
+  private returnUrl: string = '/dashboard';
 
   constructor(
     private fb: FormBuilder,
@@ -26,8 +26,8 @@ export class LoginComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Read the query parameter 'returnUrl' set by AuthGuard, default to '/catalog-browser'
-    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/catalog-browser';
+    // Read the query parameter 'returnUrl' set by AuthGuard, default to '/dashboard'
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
 
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -53,7 +53,7 @@ export class LoginComponent implements OnInit {
     this.authService.login(credentials).subscribe({
       next: () => {
         this.isSubmitting = false;
-        // Redirect to requested page or default catalog-browser page
+        // Redirect to requested page or default dashboard page
         this.router.navigateByUrl(this.returnUrl);
       },
       error: (error) => {

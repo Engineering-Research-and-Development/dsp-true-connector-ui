@@ -1,5 +1,5 @@
 export const environment = {
-  APP_VERSION: '0.7.0',
+  APP_VERSION: '0.7.2-dev',
   CUSTOM_LOGO_PRESENT: 'CUSTOM_LOGO_PRESENT_PLACEHOLDER',
   TC_ROOT_API_URL: 'TC_ROOT_API_URL_PLACEHOLDER',
   AUTH_API_URL: () => `${environment.TC_ROOT_API_URL}/auth`,
@@ -16,4 +16,5 @@ export const environment = {
   AUDIT_API_URL: () => `${environment.TC_ROOT_API_URL}/audit`,
   TENANT_API_URL: () => `${environment.TC_ROOT_API_URL}/tenants`,
   USER_API_URL: () => `${environment.TC_ROOT_API_URL}/users`,
+  DASHBOARD_API_URL: () => `${environment.TC_ROOT_API_URL}/dashboard`,
 };
