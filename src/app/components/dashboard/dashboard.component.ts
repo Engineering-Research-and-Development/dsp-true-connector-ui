@@ -35,10 +35,9 @@ import { AuditEventType } from '../../models/auditEventType';
 import { SnackbarService } from '../../services/snackbar/snackbar.service';
 import { DashboardFormatHelper } from '../../shared/utils/dashboard-format.utils';
 import { ChartColorHelper } from '../../shared/utils/chart-color.utils';
-import { UserService } from '../../services/user/user.service';
+import { AuthService } from '../../services/auth/auth.service';
 import { TenantService } from '../../services/tenant/tenant.service';
 import { Tenant } from '../../models/tenant';
-import { UserRole } from '../../models/enums/user-role.enum';
 import {
   FilterExpansionState,
   PaginationHelper,
@@ -207,27 +206,19 @@ export class DashboardComponent implements OnInit {
   constructor(
     private readonly dashboardService: DashboardService,
     private readonly snackbarService: SnackbarService,
-    private readonly userService: UserService,
+    private readonly authService: AuthService,
     private readonly tenantService: TenantService,
     private readonly auditService: AuditService
   ) {}
 
   ngOnInit(): void {
     this.loadEventTypes();
-    this.userService.getCurrentUser().subscribe({
-      next: (user) => {
-        this.isSuperAdmin = user.role === UserRole.SUPER_ADMIN;
-        if (this.isSuperAdmin) {
-          this.loadTenants();
-        } else {
-          this.loadSummary();
-        }
-      },
-      error: (error) => {
-        console.error('Error fetching current user:', error);
-        this.loadSummary();
-      },
-    });
+    this.isSuperAdmin = this.authService.isSuperAdmin;
+    if (this.isSuperAdmin) {
+      this.loadTenants();
+    } else {
+      this.loadSummary();
+    }
   }
 
   /**

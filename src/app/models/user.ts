@@ -5,6 +5,7 @@ export interface User {
   email: string;
   role: string;
   tenantId: string | null;
+  tenantName?: string | null;
   enabled: boolean;
   expired: boolean;
   locked: boolean;

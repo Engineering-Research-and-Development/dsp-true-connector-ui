@@ -3,16 +3,52 @@
     <button mat-icon-button (click)="toggleSidenav()">
       <mat-icon>menu</mat-icon>
     </button>
-    <h1 class="app-name">
-      <img
-        src="assets/img/tc_logo.png"
-        alt="True Connector Logo"
-        class="header-image"
-        [class.header-image--custom]="hasCustomLogo"
-      />
+    <h1 class="branding" *ngIf="showCompanyLogo || showProjectLogo || projectLabel">
+      <span
+        *ngIf="showCompanyLogo"
+        class="branding__logo"
+        [style.width.px]="logoTrims.company?.frameWidth"
+        [style.height.px]="logoTrims.company?.frameHeight"
+        [style.clip-path]="logoTrims.company?.frameClipPath"
+      >
+        <img
+          #companyLogo
+          src="assets/img/company_logo.png"
+          alt="Company logo"
+          class="branding__logo-image"
+          [class.branding__logo-image--trimmed]="!!logoTrims.company"
+          [style.height.px]="logoTrims.company?.imageHeight"
+          [style.left.px]="logoTrims.company?.imageLeft"
+          [style.top.px]="logoTrims.company?.imageTop"
+          (load)="trimLogo('company', companyLogo)"
+          (error)="hideLogo('company')"
+        />
+      </span>
+      <span
+        *ngIf="showProjectLogo"
+        class="branding__logo branding__logo--project"
+        [style.width.px]="logoTrims.project?.frameWidth"
+        [style.height.px]="logoTrims.project?.frameHeight"
+        [style.clip-path]="logoTrims.project?.frameClipPath"
+      >
+        <img
+          #projectLogo
+          src="assets/img/project_logo.png"
+          alt="Project logo"
+          class="branding__logo-image"
+          [class.branding__logo-image--trimmed]="!!logoTrims.project"
+          [style.height.px]="logoTrims.project?.imageHeight"
+          [style.left.px]="logoTrims.project?.imageLeft"
+          [style.top.px]="logoTrims.project?.imageTop"
+          (load)="trimLogo('project', projectLogo)"
+          (error)="hideLogo('project')"
+        />
+      </span>
+      <span *ngIf="projectLabel" class="branding__label">{{ projectLabel }}</span>
     </h1>
     <span class="spacer"></span>
 
+    <span *ngIf="greeting" class="greeting">{{ greeting }}</span>
     <button mat-icon-button [matMenuTriggerFor]="userMenu">
       <mat-icon>person</mat-icon>
     </button>

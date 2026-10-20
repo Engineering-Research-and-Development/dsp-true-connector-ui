@@ -36,15 +36,64 @@
   justify-content: center;
 }
 
-.header-image {
-  width: 170px;
-  height: 35px;
+/* Untrimmed, a logo is shown at the bundled company logo's 35px height. Once loaded, its
+   transparent padding is cropped away and it is sized by its lettering (see AppComponent.trimLogo):
+   the frame runs from the top of the visible artwork down to the lettering's baseline, the image
+   is scaled and shifted inside it, and artwork below the baseline hangs out under the frame.
+   All items sit on a common baseline (a logo frame has no text, so its baseline is its bottom
+   edge), so the logos' lettering lines up with the label's text. */
+.branding {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
   margin: 10px 20px 10px 42px;
+  min-width: 0;
 }
 
-.header-image--custom {
-  height: 30px;
-  margin: 25px 20px 10px 42px;
+.branding__logo {
+  flex: none;
+  position: relative;
+  display: block;
+  height: 35px;
+  clip-path: inset(0);
+}
+
+.branding__logo-image {
+  display: block;
+  height: 35px;
+  width: auto;
+}
+
+.branding__logo-image--trimmed {
+  position: absolute;
+  max-width: none;
+}
+
+/* The logos' lettering is sized to this font's 15px capital height (LOGO_TEXT_HEIGHT). */
+.branding__label {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 21px;
+  font-weight: 600;
+  color: #8b1e74;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.greeting {
+  font-size: 14px;
+  font-weight: 400;
+  margin-right: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 767px) {
+  .branding__label,
+  .greeting {
+    display: none;
+  }
 }
 
 .mat-expansion-panel:not([class*="mat-elevation-z"]) {
@@ -153,10 +202,5 @@ a.active-parent mat-list-item mat-icon {
 @media (max-width: 1200px) {
   .toolbar h1 {
     font-size: 1.2em;
-  }
-
-  .header-image {
-    width: 200px;
-    height: 40px;
   }
 }
