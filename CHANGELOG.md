@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-# [Unreleased]
+# [0.7.4] - 20-10-2026
 
 ### Added
 - Header branding row: company logo, optional project logo and optional project label (TRUE Connector purple), shown after the sidenav toggle with a shared 35px height and bottom alignment. Items that are not configured are not rendered, and a logo that fails to load is hidden instead of showing a broken image.
