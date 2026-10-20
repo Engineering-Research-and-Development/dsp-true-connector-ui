@@ -4,7 +4,7 @@ set -e  # Exit on error
 
 ENV_DIR="/usr/share/nginx/html/browser"
 CUSTOM_ASSETS_DIR="/custom-assets"
-TARGET_LOGO="${ENV_DIR}/assets/img/tc_logo.png"
+TARGET_IMG_DIR="${ENV_DIR}/assets/img"
 
 # Find all JavaScript files (main and chunks)
 JS_FILES=$(find "$ENV_DIR" -name '*.js' -type f)
@@ -20,9 +20,15 @@ echo "$JS_FILES" | while read -r file; do
 done
 echo
 
+# Escapes a value for use inside a JS string literal and as a sed replacement (| is the delimiter)
+escape_sed_replacement() {
+    printf '%s' "$1" | sed -e 's/[\\]/\\\\\\\\/g' -e "s/['\"]/\\\\\\\\&/g" -e 's/[|&]/\\&/g'
+}
+
 replace_placeholder() {
     local placeholder=$1
     local value=$2
+    local allow_empty=${3:-false}
     
     if [ -z "$placeholder" ]; then
         echo "Error: Empty placeholder parameter"
@@ -31,7 +37,7 @@ replace_placeholder() {
     
     local env_variable_name=${placeholder%_PLACEHOLDER}
     
-    if [ -z "$value" ]; then
+    if [ -z "$value" ] && [ "$allow_empty" != "true" ]; then
         echo "Warning: Environment variable for ${env_variable_name} is not set or is empty. Skipping insertion."
         return 0
     fi
@@ -58,7 +64,7 @@ replace_placeholder() {
             echo "  → Processing $(basename "$file")"
             
             # Create a backup and perform replacement
-            sed -i.bak "s|${placeholder}|${value}|g" "$file"
+            sed -i.bak "s|${placeholder}|$(escape_sed_replacement "$value")|g" "$file"
             
             # Verify replacement was successful
             if grep -q "${placeholder}" "$file"; then
@@ -81,21 +87,37 @@ echo "============================================================"
 # Replace placeholders with environment variables
 replace_placeholder 'TC_ROOT_API_URL_PLACEHOLDER' "$TC_ROOT_API_URL"
 
-custom_logo_present="false"
+# Applies an optional logo override supplied via the /custom-assets bind mount.
+# Prints "true" when a logo is available (custom or bundled), "false" otherwise.
+apply_logo() {
+    local file_name=$1
 
-# Apply custom logo override when provided via bind mount
-if [ -f "${CUSTOM_ASSETS_DIR}/tc_logo.png" ]; then
-    echo "Custom tc_logo.png detected, overriding default logo"
-    cp "${CUSTOM_ASSETS_DIR}/tc_logo.png" "${TARGET_LOGO}"
-    custom_logo_present="true"
-else
-    echo "No custom tc_logo.png supplied, keeping bundled logo"
-fi
+    if [ -f "${CUSTOM_ASSETS_DIR}/${file_name}" ]; then
+        echo "Custom ${file_name} detected, overriding bundled one" >&2
+        cp "${CUSTOM_ASSETS_DIR}/${file_name}" "${TARGET_IMG_DIR}/${file_name}"
+    else
+        echo "No custom ${file_name} supplied" >&2
+    fi
 
-replace_placeholder 'CUSTOM_LOGO_PRESENT_PLACEHOLDER' "$custom_logo_present"
+    if [ -f "${TARGET_IMG_DIR}/${file_name}" ]; then
+        echo "true"
+    else
+        echo "false"
+    fi
+}
+
+company_logo_present=$(apply_logo "company_logo.png")
+project_logo_present=$(apply_logo "project_logo.png")
+
+replace_placeholder 'COMPANY_LOGO_PRESENT_PLACEHOLDER' "$company_logo_present"
+replace_placeholder 'PROJECT_LOGO_PRESENT_PLACEHOLDER' "$project_logo_present"
+# Always replaced, so an unset label leaves an empty string instead of the placeholder text
+replace_placeholder 'PROJECT_LABEL_PLACEHOLDER' "$PROJECT_LABEL" true
 
 echo "============================================================"
 echo "Environment variables applied!"
-echo "Custom logo present: ${custom_logo_present}"
+echo "Company logo present: ${company_logo_present}"
+echo "Project logo present: ${project_logo_present}"
+echo "Project label: ${PROJECT_LABEL:-<none>}"
 
 exec "$@"

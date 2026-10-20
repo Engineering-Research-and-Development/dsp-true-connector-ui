@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+# [Unreleased]
+
+### Added
+- Header branding row: company logo, optional project logo and optional project label (TRUE Connector purple), shown after the sidenav toggle with a shared 35px height and bottom alignment. Items that are not configured are not rendered, and a logo that fails to load is hidden instead of showing a broken image.
+- `PROJECT_LABEL` runtime environment variable (`CONNECTOR_A_PROJECT_LABEL` / `CONNECTOR_B_PROJECT_LABEL` in docker `.env`) and optional `project_logo.png` custom asset, applied by `replace-env.sh`.
+- "Hello, <first name> <last name> (<tenant name>)" greeting next to the user menu button.
+
+### Changed
+- The bundled and custom header logo is renamed from `tc_logo.png` to `company_logo.png`; `CUSTOM_LOGO_PRESENT` is replaced by `COMPANY_LOGO_PRESENT` / `PROJECT_LOGO_PRESENT`.
+- `replace-env.sh` now escapes substituted values, so values containing `&`, `|`, quotes or backslashes are inserted correctly.
+- The current user (name, email, role, tenant) is now decoded from the access token's Keycloak-style claims (`sub`, `given_name`, `family_name`, `email`, `tenant_id`, `tenant_name`, and the role from `realm_access.roles`, where other roles such as `offline_access` are ignored) via `AuthService.currentUser$` / `currentUser` / `isSuperAdmin`; it updates automatically on login, refresh and logout.
+- `SuperAdminGuard`, the Statistics Dashboard and User Management read the current user from `AuthService`; `SuperAdminGuard` is now synchronous.
+
+### Removed
+- `UserService.getCurrentUser()`, `currentUser$`, `clearCurrentUser()` and the `/api/v1/users/me` call.
+
 # [0.7.2] - 14-09-2026
 
 ### Added
