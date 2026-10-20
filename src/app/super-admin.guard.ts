@@ -7,40 +7,33 @@ import {
   UrlTree,
   Router,
 } from '@angular/router';
-import { Observable, of } from 'rxjs';
-import { catchError, map, take } from 'rxjs/operators';
-import { UserRole } from './models/enums/user-role.enum';
-import { UserService } from './services/user/user.service';
+import { AuthService } from './services/auth/auth.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class SuperAdminGuard implements CanActivate, CanActivateChild {
-  constructor(private userService: UserService, private router: Router) {}
+  constructor(private authService: AuthService, private router: Router) {}
 
   canActivate(
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
-  ): Observable<boolean | UrlTree> {
+  ): boolean | UrlTree {
     return this.checkSuperAdmin();
   }
 
   canActivateChild(
     childRoute: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
-  ): Observable<boolean | UrlTree> {
+  ): boolean | UrlTree {
     return this.checkSuperAdmin();
   }
 
-  private checkSuperAdmin(): Observable<boolean | UrlTree> {
-    return this.userService.getCurrentUser().pipe(
-      take(1),
-      map((user) =>
-        user.role === UserRole.SUPER_ADMIN
-          ? true
-          : this.router.createUrlTree(['/dashboard'])
-      ),
-      catchError(() => of(this.router.createUrlTree(['/dashboard'])))
-    );
+  // The session is restored by the app initializer before routing, so the token-derived role is
+  // already available synchronously here.
+  private checkSuperAdmin(): boolean | UrlTree {
+    return this.authService.isSuperAdmin
+      ? true
+      : this.router.createUrlTree(['/dashboard']);
   }
 }

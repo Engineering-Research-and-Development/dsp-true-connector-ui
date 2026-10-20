@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { environment } from '../../../environments/environment';
 import { AuthService, LoginResponse } from './auth.service';
+import { User } from '../../models/user';
 
 /** Builds an unsigned JWT-shaped string with the given payload, sufficient for jwt-decode. */
 function buildToken(payload: Record<string, unknown>): string {
@@ -240,6 +241,86 @@ describe('AuthService', () => {
 
       const refreshReq = httpMock.expectOne(`${authApiUrl}/refresh`);
       refreshReq.flush(refreshedResponse);
+    });
+  });
+
+  describe('current user from token claims', () => {
+    const claims = {
+      exp: Math.floor(Date.now() / 1000) + 900,
+      sub: 'user-1',
+      given_name: 'John',
+      family_name: 'Doe',
+      email: 'john@example.com',
+      realm_access: { roles: ['default-roles-dsp', 'offline_access', 'ADMIN'] },
+      tenant_id: 'tenant-1',
+      tenant_name: 'ACME',
+    };
+
+    function loginWith(payload: Record<string, unknown>): void {
+      service.login({ email: 'john@example.com', password: 'secret' }).subscribe();
+      httpMock.expectOne(`${authApiUrl}/login`).flush({
+        access_token: buildToken(payload),
+        refresh_token: 'refresh-token-value',
+        expires_in: 900,
+      });
+    }
+
+    it('maps Keycloak-style claims to a user without calling /me', () => {
+      loginWith(claims);
+
+      expect(service.currentUser).toEqual({
+        id: 'user-1',
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john@example.com',
+        role: 'ADMIN',
+        tenantId: 'tenant-1',
+        tenantName: 'ACME',
+        enabled: true,
+        expired: false,
+        locked: false,
+      });
+      expect(service.isSuperAdmin).toBeFalse();
+    });
+
+    it('emits the user on login and null after logout', () => {
+      const emitted: (User | null)[] = [];
+      service.currentUser$.subscribe(user => emitted.push(user));
+
+      loginWith(claims);
+      service.logout().subscribe();
+      httpMock.expectOne(`${authApiUrl}/logout`).flush(null);
+
+      expect(emitted.map(user => user?.email ?? null)).toEqual([null, 'john@example.com', null]);
+    });
+
+    it('prefers SUPER_ADMIN and accepts a ROLE_ prefix', () => {
+      loginWith({ ...claims, realm_access: { roles: ['ROLE_ADMIN', 'ROLE_SUPER_ADMIN'] } });
+
+      expect(service.currentUser?.role).toBe('SUPER_ADMIN');
+      expect(service.isSuperAdmin).toBeTrue();
+    });
+
+    it('leaves the role empty when no application role is present', () => {
+      loginWith({ ...claims, realm_access: { roles: ['default-roles-dsp', 'offline_access'] } });
+
+      expect(service.currentUser?.role).toBe('');
+      expect(service.isSuperAdmin).toBeFalse();
+    });
+
+    it('leaves missing claims empty', () => {
+      loginWith({ exp: claims.exp });
+
+      const user = service.currentUser;
+      expect(user?.firstName).toBe('');
+      expect(user?.role).toBe('');
+      expect(user?.tenantId).toBeNull();
+      expect(user?.tenantName).toBeNull();
+    });
+
+    it('returns null for a missing or malformed token', () => {
+      expect(service.currentUser).toBeNull();
+      expect(service.decodeUser('not-a-jwt')).toBeNull();
     });
   });
 });

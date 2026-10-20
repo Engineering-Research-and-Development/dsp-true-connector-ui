@@ -44,6 +44,7 @@ services:
       - "4222:443"  # HTTPS
     environment:
       - TC_ROOT_API_URL=${CONNECTOR_A_TC_ROOT_API_URL}
+      - PROJECT_LABEL=${CONNECTOR_A_PROJECT_LABEL:-}
     depends_on:
       - connector-a
     volumes:
@@ -108,6 +109,7 @@ services:
       - "4333:443" # HTTPS
     environment:
       - TC_ROOT_API_URL=${CONNECTOR_B_TC_ROOT_API_URL}
+      - PROJECT_LABEL=${CONNECTOR_B_PROJECT_LABEL:-}
     depends_on:
       - connector-b
     volumes:
