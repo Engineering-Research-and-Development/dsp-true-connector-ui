@@ -1,5 +1,5 @@
 export const environment = {
-  APP_VERSION: '0.7.4-dev',
+  APP_VERSION: '0.7.4',
   COMPANY_LOGO_PRESENT: 'true',
   PROJECT_LOGO_PRESENT: 'false',
   PROJECT_LABEL: '',
