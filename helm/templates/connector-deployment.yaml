@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tc.fullname" . }}-connector
+  namespace: {{ .Values.global.namespace }}
+spec:
+  replicas: {{ .Values.connector.replicas }}
+  selector:
+    matchLabels: { app: {{ include "tc.fullname" . }}-connector }
+  template:
+    metadata:
+      labels: { app: {{ include "tc.fullname" . }}-connector }
+    spec:
+      containers:
+        - name: connector
+          image: {{ .Values.connector.image }}
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.connector.service.apiPort }}
+            - containerPort: {{ .Values.connector.service.ftpPort }}
+          env:
+          {{- range $k, $v := .Values.connector.env }}
+            - name: {{ $k }}
+              value: "{{ $v }}"
+          {{- end }}
+          volumeMounts:
+            - name: app-config
+              mountPath: /config/application.properties
+              subPath: application.properties
+            
+            - name: {{ include "tc.fullname" . }}-initial-data
+              mountPath: /config/initial_data.json
+              subPath: initial_data.json
+
+            {{- if .Values.connector.certsSecret.enabled }}
+            - name: certs
+              mountPath: /cert
+            {{- end }}
+            {{- if .Values.connector.persistence.ftp.enabled }}
+            - name: ftp
+              mountPath: /home/nobody/ftp
+            {{- end }}
+            {{- if .Values.connector.persistence.logs.enabled }}
+            - name: logs
+              mountPath: /var/log/tc
+            {{- end }}
+          resources:
+            requests: {{- toYaml .Values.connector.resources.requests | nindent 12 }}
+            limits:   {{- toYaml .Values.connector.resources.limits   | nindent 12 }}
+      volumes:
+        - name: app-config
+          configMap:
+            name: {{ tpl .Values.connector.config.name . }}
+            items:
+              - key: application.properties
+                path: application.properties
+          
+        - name: {{ include "tc.fullname" . }}-initial-data
+          configMap:
+            name: {{ include "tc.fullname" . }}-initial-data
+            items:
+              - key: initial_data.json
+                path: initial_data.json
+
+        {{- if .Values.connector.certsSecret.enabled }}
+        - name: certs
+          secret:
+            secretName: {{ default (printf "%s-certs" (include "tc.fullname" .)) .Values.connector.certsSecret.name }}
+        {{- end }}
+        {{- if .Values.connector.persistence.ftp.enabled }}
+        - name: ftp
+          persistentVolumeClaim:
+            claimName: {{ include "tc.fullname" . }}-connector-ftp
+        {{- end }}
+        {{- if .Values.connector.persistence.logs.enabled }}
+        - name: logs
+          persistentVolumeClaim:
+            claimName: {{ include "tc.fullname" . }}-connector-logs
+        {{- end }}
+

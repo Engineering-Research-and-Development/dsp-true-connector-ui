@@ -1,0 +1,46 @@
+{{- if .Values.mongo.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tc.fullname" . }}-mongodb
+  namespace: {{ .Values.global.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: {{ include "tc.fullname" . }}-mongodb }
+  template:
+    metadata:
+      labels: { app: {{ include "tc.fullname" . }}-mongodb }
+    spec:
+      containers:
+        - name: mongodb
+          image: {{ .Values.mongo.image }}
+          ports: [ { containerPort: {{ .Values.mongo.servicePort }} } ]
+          volumeMounts:
+            - name: data
+              mountPath: /data/db
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "tc.fullname" . }}-mongodb-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "tc.fullname" . }}-mongodb-pvc
+  namespace: {{ .Values.global.namespace }}
+spec:
+  accessModes: [ReadWriteOnce]
+  resources: { requests: { storage: {{ .Values.mongo.pvcSize }} } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "tc.fullname" . }}-mongodb
+  namespace: {{ .Values.global.namespace }}
+spec:
+  selector: { app: {{ include "tc.fullname" . }}-mongodb }
+  ports:
+    - port: {{ .Values.mongo.servicePort }}
+      targetPort: {{ .Values.mongo.servicePort }}
+{{- end }}

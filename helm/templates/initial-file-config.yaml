@@ -1,0 +1,246 @@
+{{- /* ====== VARIABILI (fuori dal blocco |) ====== */ -}}
+{{- $userAdminId := uuidv4 -}}
+{{- $userConnId  := uuidv4 -}}
+{{- $catalogId   := printf "%s" (uuidv4) -}}
+{{- $datasetId   := printf "%s" (uuidv4) -}}
+{{- $offerId     := printf "%s" (uuidv4) -}}
+{{- $distId      := printf "%s" (uuidv4) -}}
+{{- $svcId       := printf "%s" (uuidv4) -}}
+{{- $artifactId  := printf "%s" (uuidv4) -}}
+
+{{- $defEndpoint := printf "http://%s-connector:8080/" (include "tc.fullname" .) -}}
+{{- $rawEndpoint := default $defEndpoint .Values.initialData.dataService.endpointURL -}}
+{{- $endpointURL := tpl $rawEndpoint . -}}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "tc.fullname" . }}-initial-data
+data:
+  initial_data.json: |
+    {
+      "users": [
+        {
+          "_class": "it.eng.connector.model.User",
+          "_id": "{{ $userAdminId }}",
+          "firstName": "Admin",
+          "lastName": "Role",
+          "email": "admin@mail.com",
+          "password": "$2a$10$wQgl7stAxkVI1oxaynYU2uj.1IxzQ/ETygs32RoveH.rkgAfXAk5q",
+          "enabled": true,
+          "expired": false,
+          "locked": false,
+          "role": "ROLE_ADMIN"
+        },
+        {
+          "_class": "it.eng.connector.model.User",
+          "_id": "{{ $userConnId }}",
+          "firstName": "Connector",
+          "lastName": "Role",
+          "email": "connector@mail.com",
+          "password": "$2a$10$wQgl7stAxkVI1oxaynYU2uj.1IxzQ/ETygs32RoveH.rkgAfXAk5q",
+          "enabled": true,
+          "expired": false,
+          "locked": false,
+          "role": "ROLE_CONNECTOR"
+        }
+      ],
+      "catalogs": [
+        {
+          "_class": "it.eng.catalog.model.Catalog",
+          "_id": "{{ $catalogId }}",
+          "keyword": ["connector", "divine", "dsp"],
+          "theme": ["Data"],
+          "conformsTo": {{ quote (default "conformsToSomething" .Values.initialData.catalog.conformsTo) }},
+          "creator": {{ quote (default .Release.Name .Values.initialData.catalog.creator) }},
+          "description": [
+            {
+              "value": {{ quote (default (printf "DIVINE catalog with datasets offered by %s" (default .Release.Name .Values.initialData.catalog.providerDisplayName)) .Values.initialData.catalog.description) }},
+              "language": "en"
+            }
+          ],
+          "identifier": {{ quote (default (printf "Unique identifier for %s Catalog" .Release.Name) .Values.initialData.catalog.identifier) }},
+          "issued": "2024-04-23T16:26:00.000Z",
+          "modified": "2024-04-23T16:26:00.000Z",
+          "title": {{ quote (default (printf "Test catalog - %s" .Release.Name) .Values.initialData.catalog.title) }},
+          "distribution": [ { "$ref": "distributions", "$id": "{{ $distId }}" } ],
+          "dataset":      [ { "$ref": "datasets",      "$id": "{{ $datasetId }}" } ],
+          "service":      [ { "$ref": "dataservices",  "$id": "{{ $svcId }}" } ],
+          "participantId": {{ quote (default "urn:example:DataProvider" .Values.initialData.catalog.participantId) }},
+          "homepage": {{ quote (default "https://www.example.com" .Values.initialData.catalog.homepage) }},
+          "createdBy": "admin@mail.com",
+          "lastModifiedBy": "admin@mail.com",
+          "version": 0
+        }
+      ],
+      "datasets": [
+        {
+          "_class": "it.eng.catalog.model.Dataset",
+          "_id": "{{ $datasetId }}",
+          "keyword": {{ toJson (default (list "Personal information" "Employee" .Release.Name "REST") .Values.initialData.dataset.keywords) }},
+          "theme": ["Data"],
+          "description": [
+            {
+              "value": {{ quote (default (printf "Dataset offered by %s" .Release.Name) .Values.initialData.dataset.description) }},
+              "language": "en"
+            }
+          ],
+          "conformsTo": {{ quote (default "conformsToSomething" .Values.initialData.dataset.conformsTo) }},
+          "creator": {{ quote (default .Release.Name .Values.initialData.dataset.creator) }},
+          "identifier": {{ quote (default "Unique identifier for test Dataset" .Values.initialData.dataset.identifier) }},
+          "issued": "2024-04-23T16:26:00.000Z",
+          "modified": "2024-04-23T16:26:00.000Z",
+          "title": {{ quote (default (printf "%s dataset" .Release.Name) .Values.initialData.dataset.title) }},
+          "hasPolicy": [
+            {
+              "_id": "{{ $offerId }}",
+              "_class": "it.eng.catalog.model.Offer",
+              "permission": [
+                {
+                  "action": "USE",
+                  "constraint": [ { "leftOperand": "COUNT", "operator": "LTEQ", "rightOperand": "5" } ]
+                }
+              ]
+            }
+          ],
+          "distribution": [ { "$ref": "distributions", "$id": "{{ $distId }}" } ],
+          "artifact":     { "$ref": "artifacts",      "$id": "{{ $artifactId }}" },
+          "createdBy": "admin@mail.com",
+          "lastModifiedBy": "admin@mail.com",
+          "version": 0
+        }
+      ],
+      "dataservices": [
+        {
+          "_id": "{{ $svcId }}",
+          "_class": "it.eng.catalog.model.DataService",
+          "keyword": ["REST", "transfer"],
+          "theme": ["Data"],
+          "conformsTo": {{ quote (default "conformsToSomething" .Values.initialData.dataService.conformsTo) }},
+          "creator": {{ quote (default .Release.Name .Values.initialData.dataService.creator) }},
+          "description": [
+            {
+              "value": {{ quote (default (printf "%s service" .Release.Name) .Values.initialData.dataService.description) }},
+              "language": "en"
+            }
+          ],
+          "identifier": {{ quote (default (printf "%s Unique identifier for testing" .Release.Name) .Values.initialData.dataService.identifier) }},
+          "issued": "2024-04-23T16:26:00.000Z",
+          "modified": "2024-04-23T16:26:00.000Z",
+          "title": {{ quote (default .Release.Name .Values.initialData.dataService.title) }},
+          "endpointDescription": {{ quote (default "dspace:connector" .Values.initialData.dataService.endpointDescription) }},
+          "endpointURL": {{ quote $endpointURL }},
+          "createdBy": "admin@mail.com",
+          "lastModifiedBy": "admin@mail.com",
+          "version": 0
+        }
+      ],
+      "distributions": [
+        {
+          "_id": "{{ $distId }}",
+          "_class": "it.eng.catalog.model.Distribution",
+          "title": {{ quote (default "HTTP Data PULL" .Values.initialData.distribution.title) }},
+          "format": { "_id": {{ quote (default "HttpData-PULL" .Values.initialData.distribution.formatId) }} },
+          "accessService": [ { "$ref": "dataservices", "$id": "{{ $svcId }}" } ],
+          "createdBy": "admin@mail.com",
+          "lastModifiedBy": "admin@mail.com",
+          "issued": "2024-04-23T16:26:00.000Z",
+          "modified": "2024-04-23T16:26:00.000Z",
+          "version": 0
+        }
+      ],
+      "artifacts": [
+        {
+          "_id": "{{ $artifactId }}",
+          "artifactType": "FILE",
+          "filename": {{ quote (default "ENG-employee.json" .Values.initialData.artifact.filename) }},
+          "value": "{{ $datasetId }}",
+          "contentType": {{ quote (default "application/json" .Values.initialData.artifact.contentType) }},
+          "created": { "$date": "2024-12-10T16:04:59.358Z" },
+          "lastModifiedDate": { "$date": "2024-12-10T16:04:59.358Z" },
+          "createdBy": "admin@mail.com",
+          "lastModifiedBy": "admin@mail.com",
+          "version": { "$numberLong": "0" },
+          "_class": "it.eng.tools.model.Artifact"
+        }
+      ],
+      "application_properties": [
+        {
+          "_id": "application.daps.dapsJWKSUrl",
+          "value": {{ quote (default "https://daps.aisec.fraunhofer.de/.well-known/jwks.json" .Values.initialData.appProps.dapsJWKSUrl) }},
+          "label": "DAPS JWKS URL",
+          "group": "DAPS",
+          "tooltip": "The URL to the DAPS JWKS endpoint.",
+          "mandatory": false,
+          "issued": "2024-06-24T16:26:00.000Z",
+          "modified": "2024-06-24T16:26:00.000Z",
+          "version": 0
+        },
+        {
+          "_id": "application.daps.dapsUrl",
+          "value": {{ quote (default "https://daps.aisec.fraunhofer.de/v2/token" .Values.initialData.appProps.dapsUrl) }},
+          "label": "DAPS URL",
+          "group": "DAPS",
+          "tooltip": "The URL to the DAPS token endpoint.",
+          "mandatory": false,
+          "issued": "2024-06-24T16:26:00.000Z",
+          "modified": "2024-06-24T16:26:00.000Z",
+          "version": 0
+        },
+        {
+          "_id": "application.daps.enabledDapsInteraction",
+          "value": {{ quote (default "false" .Values.initialData.appProps.enabledDapsInteraction) }},
+          "label": "Enable DAPS Interaction",
+          "group": "DAPS",
+          "tooltip": "Enable interaction with DAPS for token validation.",
+          "mandatory": false,
+          "issued": "2024-06-24T16:26:00.000Z",
+          "modified": "2024-06-24T16:26:00.000Z",
+          "version": 0
+        },
+        {
+          "_id": "application.daps.extendedTokenValidation",
+          "value": {{ quote (default "false" .Values.initialData.appProps.extendedTokenValidation) }},
+          "label": "Extended Token Validation",
+          "group": "DAPS",
+          "tooltip": "Enable extended validation of tokens using DAPS. Performs additional checks on the token's validity like OCSP.",
+          "mandatory": false,
+          "issued": "2024-06-24T16:26:00.000Z",
+          "modified": "2024-06-24T16:26:00.000Z",
+          "version": 0
+        },
+        {
+          "_id": "application.daps.fetchTokenOnStartup",
+          "value": {{ quote (default "false" .Values.initialData.appProps.fetchTokenOnStartup) }},
+          "label": "Fetch Token on Startup",
+          "group": "DAPS",
+          "tooltip": "Fetch a DAPS token on application startup.",
+          "mandatory": false,
+          "issued": "2024-06-24T16:26:00.000Z",
+          "modified": "2024-06-24T16:26:00.000Z",
+          "version": 0
+        },
+        {
+          "_id": "application.daps.tokenCaching",
+          "value": {{ quote (default "false" .Values.initialData.appProps.tokenCaching) }},
+          "label": "Token Caching",
+          "group": "DAPS",
+          "tooltip": "Enable caching of DAPS tokens.",
+          "mandatory": false,
+          "issued": "2024-06-24T16:26:00.000Z",
+          "modified": "2024-06-24T16:26:00.000Z",
+          "version": 0
+        },
+        {
+          "_id": "application.protocol.authentication.enabled",
+          "value": {{ quote (default "true" .Values.initialData.appProps.protocolAuthEnabled) }},
+          "label": "Enable Authentication",
+          "group": "Security",
+          "tooltip": "Enable authentication for the application protocol.",
+          "mandatory": false,
+          "issued": "2024-06-24T16:26:00.000Z",
+          "modified": "2024-06-24T16:26:00.000Z",
+          "version": 0
+        }
+      ]
+    }
