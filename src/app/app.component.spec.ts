@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { BehaviorSubject, of } from 'rxjs';
+import { BehaviorSubject, of, Subject } from 'rxjs';
 import { provideRouter } from '@angular/router';
 import { AppComponent } from './app.component';
 import { AuthService } from './services/auth/auth.service';
@@ -26,6 +26,14 @@ describe('AppComponent', () => {
     expired: false,
     locked: false,
   });
+
+  const token = (sub: string, sid: string, issuedAt: number): string => {
+    const encode = (value: string) =>
+      btoa(value).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    return `${encode(JSON.stringify({ alg: 'none' }))}.${encode(
+      JSON.stringify({ sub, sid, iss: 'https://issuer.example', iat: issuedAt })
+    )}.signature`;
+  };
 
   beforeEach(async () => {
     accessTokenSubject = new BehaviorSubject<string | null>(null);
@@ -91,9 +99,60 @@ describe('AppComponent', () => {
     expect(compiled.textContent).not.toContain('User management');
   }));
 
-  it('should call clearCurrentUser on logout', () => {
-    authService.logout.and.returnValue(of(undefined));
+  it('clears cached user data before starting logout', () => {
+    authService.logout.and.callFake(() => {
+      expect(userService.clearCurrentUser).toHaveBeenCalled();
+      return of(undefined);
+    });
+
     component.logout();
+
     expect(userService.clearCurrentUser).toHaveBeenCalled();
+  });
+
+  it('clears cached user data when the session is cleared after refresh failure', () => {
+    userService.getCurrentUser.and.returnValue(of(mockUser(UserRole.ADMIN)));
+    accessTokenSubject.next(token('user-1', 'session-1', 1));
+    fixture.detectChanges();
+    expect(component.currentUser).toEqual(mockUser(UserRole.ADMIN));
+
+    accessTokenSubject.next(null);
+
+    expect(userService.clearCurrentUser).toHaveBeenCalled();
+    expect(component.currentUser).toBeNull();
+  });
+
+  it('clears cached user data when the authenticated session is replaced', () => {
+    userService.getCurrentUser.and.returnValue(of(mockUser(UserRole.ADMIN)));
+    accessTokenSubject.next(token('user-1', 'session-1', 1));
+    fixture.detectChanges();
+    userService.clearCurrentUser.calls.reset();
+
+    accessTokenSubject.next(token('user-2', 'session-2', 2));
+
+    expect(userService.clearCurrentUser).toHaveBeenCalled();
+  });
+
+  it('preserves cached user data when the access token rotates within the same session', () => {
+    userService.getCurrentUser.and.returnValue(of(mockUser(UserRole.ADMIN)));
+    accessTokenSubject.next(token('user-1', 'session-1', 1));
+    fixture.detectChanges();
+    userService.clearCurrentUser.calls.reset();
+
+    accessTokenSubject.next(token('user-1', 'session-1', 2));
+
+    expect(userService.clearCurrentUser).not.toHaveBeenCalled();
+  });
+
+  it('does not apply an obsolete /users/me response after the session is cleared', () => {
+    const pendingUserRequest = new Subject<User>();
+    userService.getCurrentUser.and.returnValue(pendingUserRequest);
+    accessTokenSubject.next(token('user-1', 'session-1', 1));
+    fixture.detectChanges();
+
+    accessTokenSubject.next(null);
+    pendingUserRequest.next(mockUser(UserRole.SUPER_ADMIN));
+
+    expect(component.currentUser).toBeNull();
   });
 });

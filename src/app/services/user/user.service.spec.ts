@@ -192,5 +192,35 @@ describe('UserService', () => {
         expect(cached).toBeNull();
       });
     });
+
+    it('does not repopulate currentUser when an in-flight response arrives after clearing the session', () => {
+      service.getCurrentUser().subscribe();
+      const staleRequest = httpMock.expectOne(`${apiUrl}/me`);
+
+      service.clearCurrentUser();
+      staleRequest.flush({
+        success: true,
+        message: 'OK',
+        data: mockUser,
+        timestamp: new Date().toISOString(),
+      });
+
+      let cachedUser: User | null | undefined;
+      service.currentUser$.subscribe((user) => {
+        cachedUser = user;
+      });
+      expect(cachedUser).toBeNull();
+
+      service.getCurrentUser().subscribe();
+      const freshRequest = httpMock.expectOne(`${apiUrl}/me`);
+      const freshUser = { ...mockUser, id: '2', email: 'new@example.com' };
+      freshRequest.flush({
+        success: true,
+        message: 'OK',
+        data: freshUser,
+        timestamp: new Date().toISOString(),
+      });
+      expect(cachedUser).toEqual(freshUser);
+    });
   });
 });

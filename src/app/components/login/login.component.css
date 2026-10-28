@@ -157,6 +157,49 @@
       }
     }
   }
+
+  &.keycloak-login {
+    .btn-primary,
+    .btn-secondary {
+      width: 100%;
+      padding: 0.75rem;
+      border: 0;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background-color: #2563eb;
+      color: #ffffff;
+
+      &:hover:not(:disabled) {
+        background-color: #1d4ed8;
+      }
+
+      &:disabled {
+        background-color: #93c5fd;
+        cursor: not-allowed;
+      }
+    }
+
+    .btn-secondary {
+      background-color: #e2e8f0;
+      color: #1e293b;
+
+      &:hover:not(:disabled) {
+        background-color: #cbd5e1;
+      }
+    }
+
+    [role='status'] {
+      margin: 0;
+      color: #475569;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+  }
 }
 
 /* Optional Loading Spinner */

@@ -18,6 +18,7 @@ export class UserService {
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   currentUser$ = this.currentUserSubject.asObservable();
   private currentUserRequest$: Observable<User> | null = null;
+  private currentUserGeneration = 0;
 
   httpOptions = {
     headers: new HttpHeaders({
@@ -112,6 +113,7 @@ export class UserService {
     }
 
     if (!this.currentUserRequest$) {
+      const requestGeneration = this.currentUserGeneration;
       this.currentUserRequest$ = this.http
         .get<GenericApiResponse<User>>(`${this.apiUrl}/me`, this.httpOptions)
         .pipe(
@@ -122,11 +124,17 @@ export class UserService {
               throw new Error(response.message);
             }
           }),
-          tap((user) => this.currentUserSubject.next(user)),
+          tap((user) => {
+            if (requestGeneration === this.currentUserGeneration) {
+              this.currentUserSubject.next(user);
+            }
+          }),
           catchError((error) => this.errorHandlerService.handleError(error)),
           shareReplay(1),
           finalize(() => {
-            this.currentUserRequest$ = null;
+            if (requestGeneration === this.currentUserGeneration) {
+              this.currentUserRequest$ = null;
+            }
           })
         );
     }
@@ -138,6 +146,7 @@ export class UserService {
    * Clear the cached current user. Call on logout to avoid stale data.
    */
   clearCurrentUser(): void {
+    this.currentUserGeneration++;
     this.currentUserSubject.next(null);
     this.currentUserRequest$ = null;
   }

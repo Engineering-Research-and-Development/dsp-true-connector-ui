@@ -15,7 +15,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { NavigationEnd, Router, RouterModule, RouterOutlet } from '@angular/router';
-import { filter, Subject, takeUntil } from 'rxjs';
+import { jwtDecode } from 'jwt-decode';
+import { catchError, filter, of, Subject, switchMap, takeUntil } from 'rxjs';
 import { environment } from '../environments/environment';
 import { AuthService } from './services/auth/auth.service';
 import { UserService } from './services/user/user.service';
@@ -77,6 +78,8 @@ export class AppComponent implements OnInit, OnDestroy {
   @ViewChild('dataTransfersPanel') dataTransfersPanel!: MatExpansionPanel;
 
   private destroy$ = new Subject<void>();
+  private currentSessionIdentity: string | null = null;
+  private hasSessionToken = false;
 
   constructor(
     private dialog: MatDialog,
@@ -91,15 +94,39 @@ export class AppComponent implements OnInit, OnDestroy {
 
     // Dynamically update login state and fetch/clear user info based on token state
     this.authService.accessToken$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((token) => {
-        this.isUserLoggedIn = !!token;
+      .pipe(
+        switchMap((token) => {
+          this.isUserLoggedIn = !!token;
 
-        if (token) {
-          this.fetchCurrentUser();
-        } else {
-          this.currentUser = null;
-        }
+          if (!token) {
+            this.currentSessionIdentity = null;
+            this.hasSessionToken = false;
+            this.currentUser = null;
+            this.userService.clearCurrentUser();
+            return of(null);
+          }
+
+          const sessionIdentity = getSessionIdentity(token);
+          if (
+            this.hasSessionToken &&
+            sessionIdentity !== this.currentSessionIdentity
+          ) {
+            this.userService.clearCurrentUser();
+          }
+          this.currentSessionIdentity = sessionIdentity;
+          this.hasSessionToken = true;
+
+          return this.userService.getCurrentUser().pipe(
+            catchError((error) => {
+              console.error('Error fetching current user:', error);
+              return of(null);
+            })
+          );
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((user) => {
+        this.currentUser = user;
       });
 
     // Track route changes to update active parent menu items
@@ -201,16 +228,15 @@ export class AppComponent implements OnInit, OnDestroy {
    * Logs out the user by clearing authentication tokens and navigating to the login page.
    */
   logout() {
+    this.currentUser = null;
+    this.userService.clearCurrentUser();
+
     this.authService.logout().subscribe({
       next: () => {
-        this.currentUser = null;
-        this.userService.clearCurrentUser();
         console.log('Logout successful');
         this.router.navigate(['/login']);
       },
       error: (error) => {
-        this.currentUser = null;
-        this.userService.clearCurrentUser();
         console.error('Logout failed', error);
         this.router.navigate(['/login']);
       }
@@ -243,18 +269,25 @@ export class AppComponent implements OnInit, OnDestroy {
     });
   }
 
-  fetchCurrentUser(): void {
-    this.userService
-      .getCurrentUser()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (user) => {
-          this.currentUser = user;
-        },
-        error: (error) => {
-          console.error('Error fetching current user:', error);
-          this.currentUser = null;
-        },
-      });
+}
+
+function getSessionIdentity(token: string): string | null {
+  try {
+    const claims = jwtDecode<Record<string, unknown>>(token);
+    if (typeof claims['sub'] !== 'string' || !claims['sub']) {
+      return null;
+    }
+
+    return JSON.stringify([
+      typeof claims['iss'] === 'string' ? claims['iss'] : '',
+      claims['sub'],
+      typeof claims['sid'] === 'string'
+        ? claims['sid']
+        : typeof claims['session_state'] === 'string'
+          ? claims['session_state']
+          : '',
+    ]);
+  } catch {
+    return null;
   }
 }

@@ -1,7 +1,13 @@
+import { publicTenantApiUrl } from './environment-urls';
+
 export const environment = {
   APP_VERSION: '0.7.4-dev',
   CUSTOM_LOGO_PRESENT: 'CUSTOM_LOGO_PRESENT_PLACEHOLDER',
   TC_ROOT_API_URL: 'TC_ROOT_API_URL_PLACEHOLDER',
+  AUTH_PROVIDER: 'AUTH_PROVIDER_PLACEHOLDER',
+  KEYCLOAK_URL: 'KEYCLOAK_URL_PLACEHOLDER',
+  KEYCLOAK_CLIENT_ID: 'KEYCLOAK_CLIENT_ID_PLACEHOLDER',
+  KEYCLOAK_ADMIN_REALM: 'KEYCLOAK_ADMIN_REALM_PLACEHOLDER',
   AUTH_API_URL: () => `${environment.TC_ROOT_API_URL}/auth`,
   CATALOG_API_URL: () => `${environment.TC_ROOT_API_URL}/catalogs`,
   DATASET_API_URL: () => `${environment.TC_ROOT_API_URL}/datasets`,
@@ -15,6 +21,7 @@ export const environment = {
   PROPERTIES_API_URL: () => `${environment.TC_ROOT_API_URL}/properties`,
   AUDIT_API_URL: () => `${environment.TC_ROOT_API_URL}/audit`,
   TENANT_API_URL: () => `${environment.TC_ROOT_API_URL}/tenants`,
+  PUBLIC_TENANT_API_URL: () => publicTenantApiUrl(environment.TC_ROOT_API_URL),
   USER_API_URL: () => `${environment.TC_ROOT_API_URL}/users`,
   DASHBOARD_API_URL: () => `${environment.TC_ROOT_API_URL}/dashboard`,
 };

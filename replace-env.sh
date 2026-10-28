@@ -2,8 +2,8 @@
 
 set -e  # Exit on error
 
-ENV_DIR="/usr/share/nginx/html/browser"
-CUSTOM_ASSETS_DIR="/custom-assets"
+ENV_DIR="${ENV_DIR:-/usr/share/nginx/html/browser}"
+CUSTOM_ASSETS_DIR="${CUSTOM_ASSETS_DIR:-/custom-assets}"
 TARGET_LOGO="${ENV_DIR}/assets/img/tc_logo.png"
 
 # Find all JavaScript files (main and chunks)
@@ -35,14 +35,37 @@ replace_placeholder() {
         echo "Warning: Environment variable for ${env_variable_name} is not set or is empty. Skipping insertion."
         return 0
     fi
+
+    local line_break carriage_return
+    line_break='
+'
+    carriage_return=$(printf '\r')
+    case "$value" in
+        *"$line_break"*|*"$carriage_return"*)
+            echo "Error: ${env_variable_name} must not contain line breaks"
+            return 1
+            ;;
+    esac
+
+    local escaped_value
+    escaped_value=$(printf '%s' "$value" |
+        sed -e 's/\\/\\\\/g' -e "s/'/\\\\'/g" |
+        sed -e 's/[\\&|]/\\&/g')
     
     # Print which variable is being replaced
     # If value contains 'secret', 'password', 'key', or 'token', mask it
-    if echo "$value" | grep -iqE 'secret|password|key|token'; then
-        echo "Applying ${env_variable_name}=********"
-    else
-        echo "Applying ${env_variable_name}=${value}"
-    fi
+    case "$env_variable_name" in
+        AUTH_PROVIDER|KEYCLOAK_*)
+            echo "Applying ${env_variable_name}=********"
+            ;;
+        *)
+            if echo "$value" | grep -iqE 'secret|password|key|token'; then
+                echo "Applying ${env_variable_name}=********"
+            else
+                echo "Applying ${env_variable_name}=${value}"
+            fi
+            ;;
+    esac
     
     local files_modified=0
     
@@ -58,7 +81,7 @@ replace_placeholder() {
             echo "  → Processing $(basename "$file")"
             
             # Create a backup and perform replacement
-            sed -i.bak "s|${placeholder}|${value}|g" "$file"
+            sed -i.bak "s|${placeholder}|${escaped_value}|g" "$file"
             
             # Verify replacement was successful
             if grep -q "${placeholder}" "$file"; then
@@ -78,8 +101,41 @@ replace_placeholder() {
 echo "Starting environment variable replacement in JavaScript files"
 echo "============================================================"
 
+# Keep existing deployments on INTERNAL unless they explicitly opt into KEYCLOAK.
+auth_provider=${AUTH_PROVIDER:-INTERNAL}
+case "$auth_provider" in
+    INTERNAL)
+        ;;
+    KEYCLOAK)
+        if [ -z "${TC_ROOT_API_URL:-}" ]; then
+            echo "Error: AUTH_PROVIDER=KEYCLOAK requires TC_ROOT_API_URL for public tenant discovery"
+            exit 1
+        fi
+        if [ -z "${KEYCLOAK_URL:-}" ]; then
+            echo "Error: AUTH_PROVIDER=KEYCLOAK requires KEYCLOAK_URL"
+            exit 1
+        fi
+        if [ -z "${KEYCLOAK_CLIENT_ID:-}" ]; then
+            echo "Error: AUTH_PROVIDER=KEYCLOAK requires KEYCLOAK_CLIENT_ID"
+            exit 1
+        fi
+        if [ -z "${KEYCLOAK_ADMIN_REALM:-}" ]; then
+            echo "Error: AUTH_PROVIDER=KEYCLOAK requires KEYCLOAK_ADMIN_REALM"
+            exit 1
+        fi
+        ;;
+    *)
+        echo "Error: AUTH_PROVIDER must be INTERNAL or KEYCLOAK"
+        exit 1
+        ;;
+esac
+
 # Replace placeholders with environment variables
 replace_placeholder 'TC_ROOT_API_URL_PLACEHOLDER' "$TC_ROOT_API_URL"
+replace_placeholder 'AUTH_PROVIDER_PLACEHOLDER' "$auth_provider"
+replace_placeholder 'KEYCLOAK_URL_PLACEHOLDER' "${KEYCLOAK_URL:-}"
+replace_placeholder 'KEYCLOAK_CLIENT_ID_PLACEHOLDER' "${KEYCLOAK_CLIENT_ID:-}"
+replace_placeholder 'KEYCLOAK_ADMIN_REALM_PLACEHOLDER' "${KEYCLOAK_ADMIN_REALM:-}"
 
 custom_logo_present="false"
 
