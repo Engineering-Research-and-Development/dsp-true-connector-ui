@@ -11,6 +11,7 @@ import {
   shareReplay,
   tap,
   throwError,
+  distinctUntilChanged,
 } from 'rxjs';
 import { jwtDecode } from 'jwt-decode';
 import { environment } from '../../../environments/environment';
@@ -19,6 +20,8 @@ import {
   KeycloakAuthService,
   KeycloakLoginSelection,
 } from './keycloak-auth.service';
+import { User } from '../../models/user';
+import { UserRole } from '../../models/enums/user-role.enum';
 // Interfaces matching backend models
 export interface LoginRequest {
   email: string;
@@ -40,9 +43,19 @@ export interface LogoutRequest {
   refresh_token: string;
 }
 
-/** Minimal shape of the claims we care about from a decoded JWT. */
+/**
+ * Minimal shape of the claims we care about from a decoded JWT: Keycloak's access token layout
+ * (OIDC-style names, roles under realm_access), which the backend's own tokens mirror.
+ */
 interface DecodedJwt {
   exp?: number;
+  sub?: string;
+  given_name?: string;
+  family_name?: string;
+  email?: string;
+  realm_access?: { roles?: string[] };
+  tenant_id?: string;
+  tenant_name?: string;
 }
 
 // Number of seconds of leeway subtracted from a token's expiry so we proactively refresh
@@ -64,6 +77,14 @@ export class AuthService {
   // Only INTERNAL refresh tokens are persisted; Keycloak keeps its token set in the adapter.
   private refreshTokenSubject: BehaviorSubject<string | null>;
   public refreshToken$: Observable<string | null>;
+
+  // Current user identity is derived from the access token claims (no /me call), so it stays
+  // in sync with login, refresh and logout without any separate cache to invalidate.
+  public currentUser$: Observable<User | null> = this.accessToken$.pipe(
+    distinctUntilChanged(),
+    map(token => this.decodeUser(token)),
+    shareReplay({ bufferSize: 1, refCount: false })
+  );
 
   // Shared in-flight refresh call so concurrent requests that all discover an expired access
   // token trigger a single HTTP refresh instead of one refresh call per request.
@@ -99,6 +120,55 @@ export class AuthService {
 
   public get isAuthenticated(): boolean {
     return !!this.accessToken;
+  }
+
+  public get currentUser(): User | null {
+    return this.decodeUser(this.accessToken);
+  }
+
+  public get isSuperAdmin(): boolean {
+    return this.currentUser?.role === UserRole.SUPER_ADMIN;
+  }
+
+  /**
+   * Maps the access token claims to a User. Returns null when there is no token or it can't be
+   * decoded. Account-state flags aren't carried in the token; a token is only issued to an active
+   * account, so they are filled with the active defaults.
+   */
+  decodeUser(token: string | null): User | null {
+    if (!token) {
+      return null;
+    }
+
+    let claims: DecodedJwt;
+    try {
+      claims = jwtDecode<DecodedJwt>(token);
+    } catch {
+      return null;
+    }
+
+    return {
+      id: claims.sub ?? '',
+      firstName: claims.given_name ?? '',
+      lastName: claims.family_name ?? '',
+      email: claims.email ?? '',
+      role: this.pickRole(claims.realm_access?.roles),
+      tenantId: claims.tenant_id ?? null,
+      tenantName: claims.tenant_name ?? null,
+      enabled: true,
+      expired: false,
+      locked: false,
+    };
+  }
+
+  /**
+   * Picks the application role from the realm roles, with or without a `ROLE_` prefix. Other
+   * roles in the list (e.g. Keycloak's `offline_access` or `default-roles-<realm>`) are ignored,
+   * and SUPER_ADMIN wins over ADMIN.
+   */
+  private pickRole(roles: string[] | undefined): string {
+    const names = (roles ?? []).map(r => r.replace(/^ROLE_/, ''));
+    return [UserRole.SUPER_ADMIN, UserRole.ADMIN].find(role => names.includes(role)) ?? '';
   }
 
   /**

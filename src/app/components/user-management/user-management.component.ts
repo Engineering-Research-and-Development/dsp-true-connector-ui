@@ -23,6 +23,7 @@ import { Tenant } from '../../models/tenant';
 import { User } from '../../models/user';
 import { UserRole } from '../../models/enums/user-role.enum';
 import { TenantService } from '../../services/tenant/tenant.service';
+import { AuthService } from '../../services/auth/auth.service';
 import { UserService } from '../../services/user/user.service';
 import {
   FilterExpansionState,
@@ -110,12 +111,13 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     private router: Router,
     public dialog: MatDialog,
     private userService: UserService,
-    private tenantService: TenantService
+    private tenantService: TenantService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
     this.fetchTenants();
-    this.fetchCurrentUser();
+    this.currentUser = this.authService.currentUser;
     this.fetchUsers();
   }
 
@@ -134,20 +136,6 @@ export class UserManagementComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error fetching tenants:', error);
-        },
-      });
-  }
-
-  fetchCurrentUser(): void {
-    this.userService
-      .getCurrentUser()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (user) => {
-          this.currentUser = user;
-        },
-        error: (error) => {
-          console.error('Error fetching current user:', error);
         },
       });
   }

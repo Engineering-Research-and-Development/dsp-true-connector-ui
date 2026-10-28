@@ -194,6 +194,9 @@ CONNECTOR_B_AUTH_PROVIDER=INTERNAL
 CONNECTOR_B_KEYCLOAK_URL=http://localhost:8180/
 CONNECTOR_B_KEYCLOAK_CLIENT_ID=keycloak-api
 CONNECTOR_B_KEYCLOAK_ADMIN_REALM=connector-admin
+
+CONNECTOR_A_PROJECT_LABEL=        # Optional project label shown in Instance A UI header
+CONNECTOR_B_PROJECT_LABEL=        # Optional project label shown in Instance B UI header
 ```
 
 `INTERNAL` preserves the email/password login. To use Keycloak, change the relevant instance's `*_AUTH_PROVIDER` to `KEYCLOAK`; provide a Keycloak URL reachable from the user's browser, the same public client ID in every tenant realm and the connector realm, and the trusted connector realm in `*_KEYCLOAK_ADMIN_REALM`. The local values above are examples and contain no client secret. Keep the connector API bases separate (for example `/connector-a/api/v1` and `/connector-b/api/v1`). These are UI container runtime settings only; they do not configure backend authentication or authorization.
@@ -266,7 +269,23 @@ s3.externalPresignedEndpoint=          # MUST be empty for AWS S3
 
 > The `CONNECTOR_A_BASE_URL` and `CONNECTOR_B_BASE_URL` should be root endpoint of BE which is publicly available 
 
-> If needed to customize the main logo on application, change existing `tc_logo.png` in `ui_a_resources/assets/img` and `ui_b_resources/assets/img` and keep same name. **After replacing the logo file, you must restart the containers for the changes to take effect, as the replacement happens in the `replace-env.sh` startup script.**
+#### Header branding (logos and project label)
+
+The application header shows, after the side navigation toggle and in this order: the **company logo**, an optional **project logo** and an optional **project label**. All three share the same height and are aligned on a common bottom line. Anything that is not configured is simply not shown (no placeholder or broken-image icon).
+
+| Item | How to configure | Default |
+|---|---|---|
+| Company logo | Place `company_logo.png` in `ui_a_resources/assets/img` / `ui_b_resources/assets/img` | Bundled TRUE Connector logo |
+| Project logo | Place `project_logo.png` in `ui_a_resources/assets/img` / `ui_b_resources/assets/img` | Not shown |
+| Project label | Set `CONNECTOR_A_PROJECT_LABEL` / `CONNECTOR_B_PROJECT_LABEL` in `.env` (passed to the UI container as `PROJECT_LABEL`) | Not shown |
+
+Logos are displayed at 35px height with their aspect ratio preserved (the project logo is capped at 200px width); the project label is rendered in the TRUE Connector purple (`#8B1E74`). On narrow screens (below 768px) the project label is hidden.
+
+> The previous `tc_logo.png` file name is no longer picked up; rename a custom logo to `company_logo.png`. **After adding or replacing a logo file or changing the label, you must restart the containers for the changes to take effect, as the replacement happens in the `replace-env.sh` startup script.**
+
+#### Logged-in user greeting
+
+Next to the user menu button the header shows `Hello, <first name> <last name> (<tenant name>)`. The tenant part is omitted for users without a tenant, and the greeting is hidden when the name is not available. The current user's identity (name, email, role, tenant) is read from the access token claims (`given_name`, `family_name`, `email`, `role`, `tenant_id`, `tenant_name`, `sub`); the UI no longer calls `/api/v1/users/me`.
 
 
 #### Volume Mounts
@@ -279,7 +298,7 @@ s3.externalPresignedEndpoint=          # MUST be empty for AWS S3
 - Application Logs: `tc_a_log:/var/log/tc`
 - UI Configuration: `./ui_a_resources/nginx.conf:/etc/nginx/nginx.conf`
 - UI SSL Certificates: `./tc_cert/ui-a-cert:/etc/nginx/ssl:ro`
-- UI Custom logo: `./ui_a_resources/assets/img:/custom-assets:ro`
+- UI Custom logos (`company_logo.png`, `project_logo.png`): `./ui_a_resources/assets/img:/custom-assets:ro`
 - MongoDB Data: `mongodb-data_a:/data/db`
 - MongoDB Config: `mongodb-configdb_a:/data/configdb`
 
@@ -291,7 +310,7 @@ s3.externalPresignedEndpoint=          # MUST be empty for AWS S3
 - Application Logs: `tc_b_log:/var/log/tc`
 - UI Configuration: `./ui_b_resources/nginx.conf:/etc/nginx/nginx.conf`
 - UI SSL Certificates: `./tc_cert/ui-b-cert:/etc/nginx/ssl:ro`
-- UI Custom logo: `./ui_b_resources/assets/img:/custom-assets:ro`
+- UI Custom logos (`company_logo.png`, `project_logo.png`): `./ui_b_resources/assets/img:/custom-assets:ro`
 - MongoDB Data: `mongodb-data_b:/data/db`
 - MongoDB Config: `mongodb-configdb_b:/data/configdb`
 

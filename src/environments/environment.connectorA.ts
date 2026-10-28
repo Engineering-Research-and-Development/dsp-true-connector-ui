@@ -1,8 +1,10 @@
 import { publicTenantApiUrl } from './environment-urls';
 
 export const environment = {
-  APP_VERSION: '0.7.4-dev',
-  CUSTOM_LOGO_PRESENT: 'false',
+  APP_VERSION: '0.7.5-dev',
+  COMPANY_LOGO_PRESENT: 'true',
+  PROJECT_LOGO_PRESENT: 'false',
+  PROJECT_LABEL: '',
   TC_ROOT_API_URL: 'http://localhost:8080/api/v1',
   AUTH_PROVIDER: 'KEYCLOAK',
   KEYCLOAK_URL: 'http://localhost:8180/',

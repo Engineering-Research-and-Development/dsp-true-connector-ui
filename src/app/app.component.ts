@@ -15,13 +15,33 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { NavigationEnd, Router, RouterModule, RouterOutlet } from '@angular/router';
-import { jwtDecode } from 'jwt-decode';
-import { catchError, filter, of, Subject, switchMap, takeUntil } from 'rxjs';
+import { filter, Subject, takeUntil } from 'rxjs';
 import { environment } from '../environments/environment';
 import { AuthService } from './services/auth/auth.service';
-import { UserService } from './services/user/user.service';
 import { User } from './models/user';
 import { UserRole } from './models/enums/user-role.enum';
+import { LogoTrimHelper } from './shared/utils/logo-trim.utils';
+
+/** Height a toolbar logo without distinct lettering is shown at, matching the bundled company logo. */
+const LOGO_HEIGHT = 35;
+/** Height a logo's lettering is shown at: the capital height of the toolbar label's 21px Arial. */
+const LOGO_TEXT_HEIGHT = 15;
+/** No logo is shown taller than this, so it stays inside the toolbar. */
+const MAX_LOGO_HEIGHT = 48;
+
+type Logo = 'company' | 'project';
+
+/** How a logo is cropped to its visible part, in CSS pixels. */
+interface LogoTrim {
+  frameWidth: number;
+  /** From the top of the visible part down to the lettering's baseline. */
+  frameHeight: number;
+  /** Lets the artwork below the baseline (the frame's bottom) show while clipping padding. */
+  frameClipPath: string;
+  imageHeight: number;
+  imageLeft: number;
+  imageTop: number;
+}
 
 @Component({
   selector: 'app-root',
@@ -49,7 +69,13 @@ export class AppComponent implements OnInit, OnDestroy {
   title = 'TRUE Connector UI';
   appVersion = environment.APP_VERSION;
   currentYear = new Date().getFullYear();
-  hasCustomLogo = environment.CUSTOM_LOGO_PRESENT === 'true';
+  showCompanyLogo = environment.COMPANY_LOGO_PRESENT === 'true';
+  showProjectLogo = environment.PROJECT_LOGO_PRESENT === 'true';
+  logoTrims: Partial<Record<Logo, LogoTrim>> = {};
+  // Ignore the literal placeholder in case the startup script didn't replace it
+  projectLabel = environment.PROJECT_LABEL.endsWith('_PLACEHOLDER')
+    ? ''
+    : environment.PROJECT_LABEL.trim();
   isExpanded = true;
   
   // Track login state dynamically
@@ -59,6 +85,23 @@ export class AppComponent implements OnInit, OnDestroy {
 
   isSuperAdmin(): boolean {
     return this.currentUser?.role === UserRole.SUPER_ADMIN;
+  }
+
+  /**
+   * Greeting shown next to the user menu, e.g. "Hello, John Doe (ACME)".
+   * The tenant part is dropped when there is none; empty when there are no names.
+   */
+  get greeting(): string {
+    const fullName = [this.currentUser?.firstName, this.currentUser?.lastName]
+      .filter((part) => !!part?.trim())
+      .join(' ');
+    if (!fullName) {
+      return '';
+    }
+    const tenantName = this.currentUser?.tenantName?.trim();
+    return tenantName
+      ? `Hello, ${fullName} (${tenantName})`
+      : `Hello, ${fullName}`;
   }
 
   selectedMultipartType = localStorage.getItem('multipartType') || 'form';
@@ -78,53 +121,25 @@ export class AppComponent implements OnInit, OnDestroy {
   @ViewChild('dataTransfersPanel') dataTransfersPanel!: MatExpansionPanel;
 
   private destroy$ = new Subject<void>();
-  private currentSessionIdentity: string | null = null;
-  private hasSessionToken = false;
 
   constructor(
     private dialog: MatDialog,
     private router: Router,
     public authService: AuthService,
-    private matIconReg: MatIconRegistry,
-    private userService: UserService,
+    private matIconReg: MatIconRegistry
   ) {}
 
   ngOnInit() {
     this.matIconReg.setDefaultFontSetClass('material-symbols-outlined');
 
-    // Dynamically update login state and fetch/clear user info based on token state
     this.authService.accessToken$
-      .pipe(
-        switchMap((token) => {
-          this.isUserLoggedIn = !!token;
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((token) => {
+        this.isUserLoggedIn = !!token;
+      });
 
-          if (!token) {
-            this.currentSessionIdentity = null;
-            this.hasSessionToken = false;
-            this.currentUser = null;
-            this.userService.clearCurrentUser();
-            return of(null);
-          }
-
-          const sessionIdentity = getSessionIdentity(token);
-          if (
-            this.hasSessionToken &&
-            sessionIdentity !== this.currentSessionIdentity
-          ) {
-            this.userService.clearCurrentUser();
-          }
-          this.currentSessionIdentity = sessionIdentity;
-          this.hasSessionToken = true;
-
-          return this.userService.getCurrentUser().pipe(
-            catchError((error) => {
-              console.error('Error fetching current user:', error);
-              return of(null);
-            })
-          );
-        }),
-        takeUntil(this.destroy$)
-      )
+    this.authService.currentUser$
+      .pipe(takeUntil(this.destroy$))
       .subscribe((user) => {
         this.currentUser = user;
       });
@@ -225,11 +240,50 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Crops a loaded logo's transparent padding on screen (the file is untouched) and sizes it by
+   * its lettering, so every logo's text has the label's capital height and sits on the label's
+   * baseline, whatever artwork sticks out around it. A logo without distinct lettering is shown
+   * at the common logo height, resting on the baseline. The logo stays untrimmed when it cannot
+   * be measured.
+   */
+  trimLogo(logo: Logo, image: HTMLImageElement) {
+    const measurement = LogoTrimHelper.measureLogo(image);
+    if (!measurement) {
+      return;
+    }
+    const { visible, text } = measurement;
+    const scale = Math.min(
+      text ? LOGO_TEXT_HEIGHT / text.height : LOGO_HEIGHT / visible.height,
+      MAX_LOGO_HEIGHT / visible.height
+    );
+    const visibleBottom = visible.top + visible.height;
+    const baseline = text ? text.top + text.height : visibleBottom;
+    this.logoTrims[logo] = {
+      frameWidth: visible.width * scale,
+      frameHeight: (baseline - visible.top) * scale,
+      frameClipPath: `inset(0 0 -${(visibleBottom - baseline) * scale}px 0)`,
+      imageHeight: image.naturalHeight * scale,
+      imageLeft: -visible.left * scale,
+      imageTop: -visible.top * scale,
+    };
+  }
+
+  /**
+   * Hides a logo that failed to load, so no broken-image icon is shown.
+   */
+  hideLogo(logo: Logo) {
+    if (logo === 'company') {
+      this.showCompanyLogo = false;
+    } else {
+      this.showProjectLogo = false;
+    }
+  }
+
+  /**
    * Logs out the user by clearing authentication tokens and navigating to the login page.
    */
   logout() {
     this.currentUser = null;
-    this.userService.clearCurrentUser();
 
     this.authService.logout().subscribe({
       next: () => {
@@ -267,27 +321,5 @@ export class AppComponent implements OnInit, OnDestroy {
     this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
       this.router.navigate([targetUrl], { state });
     });
-  }
-
-}
-
-function getSessionIdentity(token: string): string | null {
-  try {
-    const claims = jwtDecode<Record<string, unknown>>(token);
-    if (typeof claims['sub'] !== 'string' || !claims['sub']) {
-      return null;
-    }
-
-    return JSON.stringify([
-      typeof claims['iss'] === 'string' ? claims['iss'] : '',
-      claims['sub'],
-      typeof claims['sid'] === 'string'
-        ? claims['sid']
-        : typeof claims['session_state'] === 'string'
-          ? claims['session_state']
-          : '',
-    ]);
-  } catch {
-    return null;
   }
 }

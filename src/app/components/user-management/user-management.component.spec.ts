@@ -3,6 +3,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { Router } from '@angular/router';
 import { of } from 'rxjs';
 import { UserRole } from '../../models/enums/user-role.enum';
+import { AuthService } from '../../services/auth/auth.service';
 import { TenantService } from '../../services/tenant/tenant.service';
 import { UserService } from '../../services/user/user.service';
 import { UserManagementComponent } from './user-management.component';
@@ -20,7 +21,6 @@ describe('UserManagementComponent', () => {
   beforeEach(async () => {
     userServiceSpy = jasmine.createSpyObj('UserService', [
       'getUsers',
-      'getCurrentUser',
       'deleteUser',
     ]);
     tenantServiceSpy = jasmine.createSpyObj('TenantService', [
@@ -58,19 +58,6 @@ describe('UserManagementComponent', () => {
         },
       } as any)
     );
-    userServiceSpy.getCurrentUser.and.returnValue(
-      of({
-        id: 'me',
-        firstName: 'Me',
-        lastName: 'User',
-        email: 'me@example.com',
-        role: UserRole.SUPER_ADMIN,
-        tenantId: null,
-        enabled: true,
-        expired: false,
-        locked: false,
-      })
-    );
     tenantServiceSpy.getAllTenantsList.and.returnValue(of([]));
 
     await TestBed.configureTestingModule({
@@ -78,6 +65,22 @@ describe('UserManagementComponent', () => {
       providers: [
         { provide: UserService, useValue: userServiceSpy },
         { provide: TenantService, useValue: tenantServiceSpy },
+        {
+          provide: AuthService,
+          useValue: {
+            currentUser: {
+              id: 'me',
+              firstName: 'Me',
+              lastName: 'User',
+              email: 'me@example.com',
+              role: UserRole.SUPER_ADMIN,
+              tenantId: null,
+              enabled: true,
+              expired: false,
+              locked: false,
+            },
+          },
+        },
         { provide: Router, useClass: RouterMock },
       ],
     }).compileComponents();
@@ -94,6 +97,10 @@ describe('UserManagementComponent', () => {
   it('should load users on init', () => {
     expect(userServiceSpy.getUsers).toHaveBeenCalled();
     expect(component.users.length).toBe(1);
+  });
+
+  it('should take the current user from the access token', () => {
+    expect(component.currentUser?.email).toBe('me@example.com');
   });
 
   it('should navigate to details when adding a user', () => {

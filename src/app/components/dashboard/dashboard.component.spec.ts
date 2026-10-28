@@ -8,11 +8,9 @@ import { DashboardService } from '../../services/dashboard/dashboard.service';
 import { AuditService } from '../../services/audit/audit.service';
 import { AuditEventType } from '../../models/auditEventType';
 import { SnackbarService } from '../../services/snackbar/snackbar.service';
-import { UserService } from '../../services/user/user.service';
+import { AuthService } from '../../services/auth/auth.service';
 import { TenantService } from '../../services/tenant/tenant.service';
-import { User } from '../../models/user';
 import { Tenant } from '../../models/tenant';
-import { UserRole } from '../../models/enums/user-role.enum';
 import { DashboardComponent } from './dashboard.component';
 
 describe('DashboardComponent', () => {
@@ -20,29 +18,9 @@ describe('DashboardComponent', () => {
   let fixture: ComponentFixture<DashboardComponent>;
   let dashboardServiceSpy: jasmine.SpyObj<DashboardService>;
   let snackbarServiceSpy: jasmine.SpyObj<SnackbarService>;
-  let userServiceSpy: jasmine.SpyObj<UserService>;
+  let authServiceStub: { isSuperAdmin: boolean };
   let tenantServiceSpy: jasmine.SpyObj<TenantService>;
   let auditServiceSpy: jasmine.SpyObj<AuditService>;
-
-  const adminUser: User = {
-    id: 'u1',
-    firstName: 'Admin',
-    lastName: 'User',
-    email: 'admin@example.com',
-    role: UserRole.ADMIN,
-    tenantId: 'tenant-1',
-    enabled: true,
-    expired: false,
-    locked: false,
-  };
-
-  const superAdminUser: User = {
-    ...adminUser,
-    id: 'u2',
-    email: 'superadmin@example.com',
-    role: UserRole.SUPER_ADMIN,
-    tenantId: null,
-  };
 
   const mockEventTypes: AuditEventType[] = [
     { code: 'Protocol negotiation requested', description: 'Protocol negotiation requested' },
@@ -173,7 +151,7 @@ describe('DashboardComponent', () => {
     snackbarServiceSpy = jasmine.createSpyObj('SnackbarService', [
       'openSnackBar',
     ]);
-    userServiceSpy = jasmine.createSpyObj('UserService', ['getCurrentUser']);
+    authServiceStub = { isSuperAdmin: false };
     tenantServiceSpy = jasmine.createSpyObj('TenantService', [
       'getAllTenantsList',
     ]);
@@ -181,7 +159,6 @@ describe('DashboardComponent', () => {
       'getAuditEventTypes',
     ]);
     dashboardServiceSpy.getSummary.and.returnValue(of(mockSummary));
-    userServiceSpy.getCurrentUser.and.returnValue(of(adminUser));
     tenantServiceSpy.getAllTenantsList.and.returnValue(of(mockTenants));
     auditServiceSpy.getAuditEventTypes.and.returnValue(of(mockEventTypes));
 
@@ -191,7 +168,7 @@ describe('DashboardComponent', () => {
         provideCharts(withDefaultRegisterables()),
         { provide: DashboardService, useValue: dashboardServiceSpy },
         { provide: SnackbarService, useValue: snackbarServiceSpy },
-        { provide: UserService, useValue: userServiceSpy },
+        { provide: AuthService, useValue: authServiceStub },
         { provide: TenantService, useValue: tenantServiceSpy },
         { provide: AuditService, useValue: auditServiceSpy },
       ],
@@ -343,7 +320,7 @@ describe('DashboardComponent', () => {
   });
 
   it('should show a role-aware Advanced Filters description', () => {
-    userServiceSpy.getCurrentUser.and.returnValue(of(superAdminUser));
+    authServiceStub.isSuperAdmin = true;
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain(
       'Filter statistics by date range, bucket, and tenant'
@@ -351,7 +328,7 @@ describe('DashboardComponent', () => {
   });
 
   it('should hide tenant mention from the Advanced Filters description for non-SUPER_ADMIN users', () => {
-    userServiceSpy.getCurrentUser.and.returnValue(of(adminUser));
+    authServiceStub.isSuperAdmin = false;
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain(
       'Filter statistics by date range and bucket'
@@ -461,7 +438,7 @@ describe('DashboardComponent', () => {
   });
 
   it('should show the tenant selector and load tenants for SUPER_ADMIN users', () => {
-    userServiceSpy.getCurrentUser.and.returnValue(of(superAdminUser));
+    authServiceStub.isSuperAdmin = true;
 
     fixture.detectChanges();
 
@@ -472,7 +449,7 @@ describe('DashboardComponent', () => {
   });
 
   it('should persist and send the selected tenant when a SUPER_ADMIN changes it', () => {
-    userServiceSpy.getCurrentUser.and.returnValue(of(superAdminUser));
+    authServiceStub.isSuperAdmin = true;
     fixture.detectChanges();
     dashboardServiceSpy.getSummary.calls.reset();
 
@@ -489,7 +466,7 @@ describe('DashboardComponent', () => {
 
   it('should restore a previously persisted tenant selection on init', () => {
     localStorage.setItem('dashboardSelectedTenantId', 'tenant-2');
-    userServiceSpy.getCurrentUser.and.returnValue(of(superAdminUser));
+    authServiceStub.isSuperAdmin = true;
 
     fixture.detectChanges();
 

@@ -4,7 +4,7 @@ set -e  # Exit on error
 
 ENV_DIR="${ENV_DIR:-/usr/share/nginx/html/browser}"
 CUSTOM_ASSETS_DIR="${CUSTOM_ASSETS_DIR:-/custom-assets}"
-TARGET_LOGO="${ENV_DIR}/assets/img/tc_logo.png"
+TARGET_IMG_DIR="${ENV_DIR}/assets/img"
 
 # Find all JavaScript files (main and chunks)
 JS_FILES=$(find "$ENV_DIR" -name '*.js' -type f)
@@ -23,15 +23,16 @@ echo
 replace_placeholder() {
     local placeholder=$1
     local value=$2
-    
+    local allow_empty=${3:-false}
+
     if [ -z "$placeholder" ]; then
         echo "Error: Empty placeholder parameter"
         return 1
     fi
-    
+
     local env_variable_name=${placeholder%_PLACEHOLDER}
-    
-    if [ -z "$value" ]; then
+
+    if [ -z "$value" ] && [ "$allow_empty" != "true" ]; then
         echo "Warning: Environment variable for ${env_variable_name} is not set or is empty. Skipping insertion."
         return 0
     fi
@@ -51,7 +52,7 @@ replace_placeholder() {
     escaped_value=$(printf '%s' "$value" |
         sed -e 's/\\/\\\\/g' -e "s/'/\\\\'/g" |
         sed -e 's/[\\&|]/\\&/g')
-    
+
     # Print which variable is being replaced
     # If value contains 'secret', 'password', 'key', or 'token', mask it
     case "$env_variable_name" in
@@ -66,23 +67,23 @@ replace_placeholder() {
             fi
             ;;
     esac
-    
+
     local files_modified=0
-    
+
     # Process each JavaScript file using a for loop instead of pipe
     for file in $JS_FILES; do
         if [ ! -w "$file" ]; then
             echo "Warning: No write permission for $file, skipping"
             continue
         fi
-        
+
         # Check if placeholder exists in this file
         if grep -q "${placeholder}" "$file"; then
             echo "  → Processing $(basename "$file")"
-            
+
             # Create a backup and perform replacement
             sed -i.bak "s|${placeholder}|${escaped_value}|g" "$file"
-            
+
             # Verify replacement was successful
             if grep -q "${placeholder}" "$file"; then
                 echo "    Warning: Placeholder ${placeholder} still exists after replacement"
@@ -92,7 +93,7 @@ replace_placeholder() {
             fi
         fi
     done
-    
+
     if [ "$files_modified" -eq 0 ]; then
         echo "  Warning: Placeholder ${placeholder} not found in any JavaScript files"
     fi
@@ -137,21 +138,34 @@ replace_placeholder 'KEYCLOAK_URL_PLACEHOLDER' "${KEYCLOAK_URL:-}"
 replace_placeholder 'KEYCLOAK_CLIENT_ID_PLACEHOLDER' "${KEYCLOAK_CLIENT_ID:-}"
 replace_placeholder 'KEYCLOAK_ADMIN_REALM_PLACEHOLDER' "${KEYCLOAK_ADMIN_REALM:-}"
 
-custom_logo_present="false"
+apply_logo() {
+    local file_name=$1
 
-# Apply custom logo override when provided via bind mount
-if [ -f "${CUSTOM_ASSETS_DIR}/tc_logo.png" ]; then
-    echo "Custom tc_logo.png detected, overriding default logo"
-    cp "${CUSTOM_ASSETS_DIR}/tc_logo.png" "${TARGET_LOGO}"
-    custom_logo_present="true"
-else
-    echo "No custom tc_logo.png supplied, keeping bundled logo"
-fi
+    if [ -f "${CUSTOM_ASSETS_DIR}/${file_name}" ]; then
+        echo "Custom ${file_name} detected, overriding bundled one" >&2
+        cp "${CUSTOM_ASSETS_DIR}/${file_name}" "${TARGET_IMG_DIR}/${file_name}"
+    else
+        echo "No custom ${file_name} supplied" >&2
+    fi
 
-replace_placeholder 'CUSTOM_LOGO_PRESENT_PLACEHOLDER' "$custom_logo_present"
+    if [ -f "${TARGET_IMG_DIR}/${file_name}" ]; then
+        echo "true"
+    else
+        echo "false"
+    fi
+}
+
+company_logo_present=$(apply_logo "company_logo.png")
+project_logo_present=$(apply_logo "project_logo.png")
+
+replace_placeholder 'COMPANY_LOGO_PRESENT_PLACEHOLDER' "$company_logo_present"
+replace_placeholder 'PROJECT_LOGO_PRESENT_PLACEHOLDER' "$project_logo_present"
+replace_placeholder 'PROJECT_LABEL_PLACEHOLDER' "${PROJECT_LABEL:-}" true
 
 echo "============================================================"
 echo "Environment variables applied!"
-echo "Custom logo present: ${custom_logo_present}"
+echo "Company logo present: ${company_logo_present}"
+echo "Project logo present: ${project_logo_present}"
+echo "Project label: ${PROJECT_LABEL:-<none>}"
 
 exec "$@"
