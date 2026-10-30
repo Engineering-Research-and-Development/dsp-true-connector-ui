@@ -1,0 +1,14 @@
+<main class="auth-callback" aria-live="polite">
+  <p *ngIf="isProcessing" role="status">Completing sign-in…</p>
+
+  <section *ngIf="errorMessage" role="alert">
+    <p>{{ errorMessage }}</p>
+    <button
+      type="button"
+      data-testid="return-to-login"
+      (click)="returnToLogin()"
+    >
+      Return to login
+    </button>
+  </section>
+</main>

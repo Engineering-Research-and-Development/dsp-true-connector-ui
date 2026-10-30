@@ -15,6 +15,15 @@ export const routes: Routes = [
     title: 'Login',
   },
 
+  {
+    path: 'auth/callback',
+    loadComponent: () =>
+      import('./components/auth-callback/auth-callback.component').then(
+        (m) => m.AuthCallbackComponent
+      ),
+    title: 'Completing sign-in',
+  },
+
   // Protected Application Routes (Requires AuthGuard)
   {
     path: '',

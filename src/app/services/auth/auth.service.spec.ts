@@ -2,6 +2,8 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { environment } from '../../../environments/environment';
+import { AUTH_CONFIG, AuthConfig } from './auth-config';
+import { KeycloakAuthService } from './keycloak-auth.service';
 import { AuthService, LoginResponse } from './auth.service';
 import { User } from '../../models/user';
 
@@ -22,16 +24,42 @@ function buildTokenExpiringInSeconds(secondsFromNow: number): string {
 describe('AuthService', () => {
   let service: AuthService;
   let httpMock: HttpTestingController;
+  let keycloakAuth: jasmine.SpyObj<KeycloakAuthService>;
   const authApiUrl = environment.AUTH_API_URL();
+  const keycloakConfig: AuthConfig = {
+    provider: 'KEYCLOAK',
+    keycloakUrl: 'http://localhost:8180/',
+    clientId: 'keycloak-api',
+    adminRealm: 'connector-admin',
+    publicTenantApiUrl: 'http://localhost:8080/public/tenant',
+  };
 
   // AuthService reads localStorage.refresh_token once, at construction time (into a
   // BehaviorSubject) - setting localStorage afterwards has no effect on an already-injected
   // instance. Tests that need to seed a refresh token must build a fresh TestBed/service
   // *after* seeding localStorage, which is what this helper does.
-  function createFreshAuthService(): void {
+  function createFreshAuthService(authConfig?: AuthConfig): void {
     TestBed.resetTestingModule();
+    keycloakAuth = jasmine.createSpyObj<KeycloakAuthService>(
+      'KeycloakAuthService',
+      ['initialize', 'initSession', 'login', 'getValidAccessToken', 'logout']
+    );
+    keycloakAuth.initialize.and.resolveTo(null);
+    keycloakAuth.initSession.and.resolveTo(null);
+    keycloakAuth.login.and.resolveTo(null);
+    keycloakAuth.getValidAccessToken.and.resolveTo(null);
+    keycloakAuth.logout.and.resolveTo();
     TestBed.configureTestingModule({
-      providers: [AuthService, provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        AuthService,
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        {
+          provide: AUTH_CONFIG,
+          useValue: authConfig ?? { provider: 'INTERNAL' },
+        },
+        { provide: KeycloakAuthService, useValue: keycloakAuth },
+      ],
     });
     service = TestBed.inject(AuthService);
     httpMock = TestBed.inject(HttpTestingController);
@@ -163,6 +191,7 @@ describe('AuthService', () => {
         httpMock.expectNone(`${authApiUrl}/refresh`);
         done();
       });
+
     });
 
     it('returns null without an HTTP call when there is no refresh token', done => {
@@ -241,6 +270,77 @@ describe('AuthService', () => {
 
       const refreshReq = httpMock.expectOne(`${authApiUrl}/refresh`);
       refreshReq.flush(refreshedResponse);
+    });
+  });
+
+  describe('KEYCLOAK provider', () => {
+    it('initializes through the adapter and exposes its access token without using INTERNAL auth endpoints', done => {
+      localStorage.setItem('refresh_token', 'stale-internal-refresh-token');
+      createFreshAuthService(keycloakConfig);
+      keycloakAuth.initSession.and.resolveTo('keycloak-access-token');
+
+      service.initSession().subscribe(token => {
+        expect(token).toBe('keycloak-access-token');
+        expect(service.accessToken).toBe('keycloak-access-token');
+        expect(service.refreshToken).toBeNull();
+        expect(localStorage.getItem('refresh_token')).toBeNull();
+        expect(keycloakAuth.initSession).toHaveBeenCalled();
+        httpMock.expectNone(`${authApiUrl}/login`);
+        httpMock.expectNone(`${authApiUrl}/refresh`);
+        httpMock.expectNone(`${authApiUrl}/logout`);
+        done();
+      });
+    });
+
+    it('delegates access-token renewal to the adapter and never calls INTERNAL refresh', done => {
+      createFreshAuthService(keycloakConfig);
+      keycloakAuth.getValidAccessToken.and.resolveTo(
+        'refreshed-keycloak-access-token'
+      );
+
+      service.getValidAccessToken().subscribe(token => {
+        expect(token).toBe('refreshed-keycloak-access-token');
+        expect(service.accessToken).toBe('refreshed-keycloak-access-token');
+        expect(keycloakAuth.getValidAccessToken).toHaveBeenCalledWith(
+          jasmine.any(Number)
+        );
+        httpMock.expectNone(`${authApiUrl}/refresh`);
+        done();
+      });
+    });
+
+    it('delegates Keycloak login and logout without sending credentials to INTERNAL endpoints', async () => {
+      createFreshAuthService(keycloakConfig);
+      keycloakAuth.login.and.resolveTo('active-keycloak-access-token');
+
+      await service.loginWithKeycloak({ type: 'admin' });
+      expect(keycloakAuth.login).toHaveBeenCalledWith({ type: 'admin' });
+
+      keycloakAuth.logout.and.callFake(() => {
+        expect(service.accessToken).toBeNull();
+        expect(service.isAuthenticated).toBeFalse();
+        return Promise.resolve();
+      });
+      service.logout().subscribe();
+      expect(service.isAuthenticated).toBeFalse();
+      expect(keycloakAuth.logout).toHaveBeenCalled();
+      httpMock.expectNone(`${authApiUrl}/login`);
+      httpMock.expectNone(`${authApiUrl}/refresh`);
+      httpMock.expectNone(`${authApiUrl}/logout`);
+    });
+
+    it('forces a Keycloak adapter refresh after a rejected connector request', done => {
+      createFreshAuthService(keycloakConfig);
+      keycloakAuth.getValidAccessToken.and.resolveTo(
+        'refreshed-keycloak-access-token'
+      );
+
+      service.forceRefresh().subscribe(token => {
+        expect(token).toBe('refreshed-keycloak-access-token');
+        expect(keycloakAuth.getValidAccessToken).toHaveBeenCalledWith(-1);
+        httpMock.expectNone(`${authApiUrl}/refresh`);
+        done();
+      });
     });
   });
 

@@ -18,7 +18,10 @@ const AUTH_BYPASS_URLS = [
 const AUTH_SCHEME_PREFIX = 'Bearer' + ' ';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  if (AUTH_BYPASS_URLS.includes(req.url)) {
+  if (
+    AUTH_BYPASS_URLS.includes(req.url) ||
+    !isConnectorApiRequest(req.url)
+  ) {
     return next(req);
   }
 
@@ -42,7 +45,26 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
                   return throwError(() => error);
                 }
 
-                return next(addAuthHeader(req, retryToken));
+                return next(addAuthHeader(req, retryToken)).pipe(
+                  catchError((retryError: unknown) => {
+                    if (
+                      retryError instanceof HttpErrorResponse &&
+                      retryError.status === 401
+                    ) {
+                      authService.logout().subscribe({
+                        complete: () =>
+                          router.navigate(['/login'], {
+                            queryParams: { returnUrl: router.url },
+                          }),
+                        error: () =>
+                          router.navigate(['/login'], {
+                            queryParams: { returnUrl: router.url },
+                          }),
+                      });
+                    }
+                    return throwError(() => retryError);
+                  })
+                );
               })
             );
           }
@@ -53,6 +75,72 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     })
   );
 };
+
+function isConnectorApiRequest(url: string): boolean {
+  try {
+    const requestUrl = resolveUrl(url);
+    if (
+      matchesConfiguredPath(requestUrl, environment.PUBLIC_TENANT_API_URL()) ||
+      isKeycloakUrl(requestUrl)
+    ) {
+      return false;
+    }
+
+    const baseUrl = resolveUrl(environment.TC_ROOT_API_URL);
+
+    return (
+      requestUrl.origin === baseUrl.origin &&
+      isPathWithin(requestUrl.pathname, baseUrl.pathname)
+    );
+  } catch {
+    return false;
+  }
+}
+
+function isKeycloakUrl(requestUrl: URL): boolean {
+  try {
+    const keycloakUrl = resolveUrl(environment.KEYCLOAK_URL);
+    if (requestUrl.origin !== keycloakUrl.origin) {
+      return false;
+    }
+
+    if (keycloakUrl.pathname !== '/') {
+      return isPathWithin(requestUrl.pathname, keycloakUrl.pathname);
+    }
+
+    return /^\/(realms|resources|admin|protocol)(\/|$)/.test(
+      requestUrl.pathname
+    );
+  } catch {
+    return false;
+  }
+}
+
+function matchesConfiguredPath(requestUrl: URL, configuredUrl: string): boolean {
+  const configured = resolveUrl(configuredUrl);
+  return (
+    requestUrl.origin === configured.origin &&
+    requestUrl.pathname.replace(/\/+$/, '') ===
+      configured.pathname.replace(/\/+$/, '')
+  );
+}
+
+function isPathWithin(requestPath: string, basePath: string): boolean {
+  const normalizedBasePath = basePath.replace(/\/+$/, '') || '/';
+  return (
+    requestPath === normalizedBasePath ||
+    requestPath.startsWith(
+      normalizedBasePath === '/' ? '/' : `${normalizedBasePath}/`
+    )
+  );
+}
+
+function resolveUrl(url: string): URL {
+  return new URL(
+    url,
+    typeof document === 'undefined' ? 'http://localhost' : document.baseURI
+  );
+}
 
 function addAuthHeader(req: HttpRequest<unknown>, token: string): HttpRequest<unknown> {
   return req.clone({

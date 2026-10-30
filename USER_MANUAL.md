@@ -17,6 +17,7 @@ The DSP TRUE ('TRU'sted 'E'ngineering) Connector UI is a comprehensive frontend 
     - [Volume Mounts](#volume-mounts)
   - [Getting Started](#getting-started)
   - [System Monitoring](#system-monitoring)
+- [Authentication](#authentication)
 - [Application Features](#application-features)
 - [Statistics Dashboard](#statistics-dashboard)
 - [Catalog Management](#catalog-management)
@@ -183,9 +184,22 @@ CONNECTOR_B_BASE_URL=     # Instance B base URL
 # UI Communication Endpoints
 CONNECTOR_A_TC_ROOT_API_URL=      # Instance A API endpoint for UI
 CONNECTOR_B_TC_ROOT_API_URL=      # Instance B API endpoint for UI
+
+# UI authentication (public browser-client settings; configure per instance)
+CONNECTOR_A_AUTH_PROVIDER=INTERNAL
+CONNECTOR_A_KEYCLOAK_URL=http://localhost:8180/
+CONNECTOR_A_KEYCLOAK_CLIENT_ID=keycloak-api
+CONNECTOR_A_KEYCLOAK_ADMIN_REALM=connector-admin
+CONNECTOR_B_AUTH_PROVIDER=INTERNAL
+CONNECTOR_B_KEYCLOAK_URL=http://localhost:8180/
+CONNECTOR_B_KEYCLOAK_CLIENT_ID=keycloak-api
+CONNECTOR_B_KEYCLOAK_ADMIN_REALM=connector-admin
+
 CONNECTOR_A_PROJECT_LABEL=        # Optional project label shown in Instance A UI header
 CONNECTOR_B_PROJECT_LABEL=        # Optional project label shown in Instance B UI header
 ```
+
+`INTERNAL` preserves the email/password login. To use Keycloak, change the relevant instance's `*_AUTH_PROVIDER` to `KEYCLOAK`; provide a Keycloak URL reachable from the user's browser, the same public client ID in every tenant realm and the connector realm, and the trusted connector realm in `*_KEYCLOAK_ADMIN_REALM`. The local values above are examples and contain no client secret. Keep the connector API bases separate (for example `/connector-a/api/v1` and `/connector-b/api/v1`). These are UI container runtime settings only; they do not configure backend authentication or authorization.
 
 #### S3 Configuration
 
@@ -351,6 +365,20 @@ docker-compose down -v
 - Monitor container status: `docker-compose ps`
 - Resource utilization: `docker stats`
 - Network connectivity verification between instances
+
+---
+
+## Authentication
+
+The UI supports two explicit authentication modes. `INTERNAL` keeps the existing email/password flow and remains active unless an instance is explicitly configured with `AUTH_PROVIDER=KEYCLOAK`. Keycloak mode offers tenant sign-in and super-admin sign-in:
+
+- The login page loads tenant choices from the public, unauthenticated `GET {connector-origin}/public/tenant` endpoint and displays one button per returned enabled tenant. The response is an array of `{ "name": "...", "realm": "..." }` records. For local development, `http://localhost:8080/api/v1` maps to `http://localhost:8080/public/tenant`; Docker demo paths `/connector-a/public/tenant` and `/connector-b/public/tenant` proxy to the corresponding connector. The UI displays `name` and starts login only for a realm returned by this trusted discovery response. Discovery must be reachable before authentication.
+- Super-admin sign-in uses only the startup-configured `KEYCLOAK_ADMIN_REALM`; the selected login option is not an authorization grant.
+- Both flows use the shared public client ID and Authorization Code with PKCE S256. Register that same client in every tenant realm and the configured connector realm. Enable Standard Flow and PKCE S256; allow the UI origin and register the exact redirect URI `{UI_ORIGIN}/auth/callback`. For the local Docker ports these are `http://localhost:4200/auth/callback` and `http://localhost:4300/auth/callback`. Also allow `{UI_ORIGIN}/login` as the post-logout destination. Use the actual browser-facing origin in other deployments. Never add a client secret to UI configuration.
+
+After the callback, the UI decodes the user, tenant, and role from the access token claims; login intent does not grant `SUPER_ADMIN`. Only recognized application roles in `realm_access.roles` are used, and connector APIs remain responsible for validating tokens and enforcing authorization. Callback failures leave the user unauthenticated and provide a route back to login. Return destinations are restricted to local app routes and default to `/dashboard`. Keycloak refresh is handled by the adapter, and its tokens are not persisted in `localStorage`. Logout clears local auth state, ends the Keycloak session, and redirects to `/login`.
+
+The settings in the UI environment and Docker `.env` only configure the browser application. Backend discovery access, realm/client registration, token acceptance, and role mapping must be configured and verified separately by the connector/identity deployment.
 
 ---
 

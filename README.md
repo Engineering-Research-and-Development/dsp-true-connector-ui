@@ -52,6 +52,7 @@ For information on how to start connector with all modules, go to [user manual](
 - **Data Transfer**: Complete the entire data transfer process: request, start, download, complete, suspend, or terminate.
 - **Audit Trail**: Track and audit all system events with advanced search and filtering capabilities.
 - **Connector Configuration**: Manage connector application properties and settings via the UI.
+- **Authentication**: Keep `INTERNAL` email/password login or opt into Keycloak tenant and super-admin login using Authorization Code with PKCE S256.
 
 ## Prerequisites
 
@@ -190,6 +191,14 @@ Access the instances:
 - `docker-compose.yml`: Multi-container orchestration
 - `docker/ui_a_resources/` and `docker/ui_b_resources/`: Configuration files for each instance
 - `docker/connector_a_resources/` and `docker/connector_b_resources/`: Backend connector configurations
+
+### Authentication Configuration
+
+Each UI instance has its own runtime settings in `docker/.env`: `CONNECTOR_A_AUTH_PROVIDER`, `CONNECTOR_A_KEYCLOAK_URL`, `CONNECTOR_A_KEYCLOAK_CLIENT_ID`, and `CONNECTOR_A_KEYCLOAK_ADMIN_REALM`, with equivalent `CONNECTOR_B_*` settings. Both providers are explicit; `INTERNAL` remains the default. To enable Keycloak for an instance, set its provider to `KEYCLOAK` and configure the Keycloak URL, shared public client ID (`keycloak-api` in the local example), and connector realm. The URL must be reachable by the user's browser. Keep the existing API base URLs (`/connector-a/api/v1` and `/connector-b/api/v1`) unchanged.
+
+Keycloak tenant choices are loaded on the login page from the unauthenticated `GET {connector-origin}/public/tenant` endpoint. The URL is derived from `TC_ROOT_API_URL` by removing its `/api/v1` suffix; for example, `http://localhost:8080/api/v1` maps to `http://localhost:8080/public/tenant`. In the Docker demo, `/connector-a/public/tenant` and `/connector-b/public/tenant` are proxied to their respective connector roots. The endpoint must be available before login and return enabled tenant records with `name` and `realm` fields; `name` labels each login button and `realm` selects its identity realm. Super-admin login uses only the configured connector realm. Register the same public client ID in every tenant realm and the connector realm, enable Standard Flow and PKCE S256, allow each UI origin, and register its exact callback URI, `{UI_ORIGIN}/auth/callback` (for the local Docker ports: `http://localhost:4200/auth/callback` and `http://localhost:4300/auth/callback`). Also allow `{UI_ORIGIN}/login` as the post-logout destination. Do not configure a client secret in the UI or its runtime environment.
+
+After sign-in, the current user is decoded from the access token's Keycloak-style claims (`sub`, `given_name`, `family_name`, `email`, `tenant_id`, `tenant_name`, and application roles in `realm_access.roles`); choosing super-admin login does not grant super-admin access. Keycloak renews tokens through its adapter, and UI Keycloak tokens are not stored in `localStorage`. Callback failures return users to login with a recoverable error. Logout clears local state, ends the Keycloak session, and returns to `/login`. These UI settings do not configure backend identity providers, users, roles, or token validation.
 
 ### Troubleshooting
 
