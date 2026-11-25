@@ -132,7 +132,6 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.matIconReg.setDefaultFontSetClass('material-symbols-outlined');
 
-    // Login state and user info are both derived from the access token
     this.authService.accessToken$
       .pipe(takeUntil(this.destroy$))
       .subscribe((token) => {
@@ -284,6 +283,8 @@ export class AppComponent implements OnInit, OnDestroy {
    * Logs out the user by clearing authentication tokens and navigating to the login page.
    */
   logout() {
+    this.currentUser = null;
+
     this.authService.logout().subscribe({
       next: () => {
         console.log('Logout successful');

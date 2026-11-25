@@ -1,8 +1,25 @@
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, of, tap, catchError, map, shareReplay, finalize, distinctUntilChanged } from 'rxjs';
+import {
+  BehaviorSubject,
+  catchError,
+  finalize,
+  from,
+  map,
+  Observable,
+  of,
+  shareReplay,
+  tap,
+  throwError,
+  distinctUntilChanged,
+} from 'rxjs';
 import { jwtDecode } from 'jwt-decode';
 import { environment } from '../../../environments/environment';
+import { AUTH_CONFIG, AuthConfig } from './auth-config';
+import {
+  KeycloakAuthService,
+  KeycloakLoginSelection,
+} from './keycloak-auth.service';
 import { User } from '../../models/user';
 import { UserRole } from '../../models/enums/user-role.enum';
 // Interfaces matching backend models
@@ -57,6 +74,10 @@ export class AuthService {
   private accessTokenSubject = new BehaviorSubject<string | null>(null);
   public accessToken$ = this.accessTokenSubject.asObservable();
 
+  // Only INTERNAL refresh tokens are persisted; Keycloak keeps its token set in the adapter.
+  private refreshTokenSubject: BehaviorSubject<string | null>;
+  public refreshToken$: Observable<string | null>;
+
   // Current user identity is derived from the access token claims (no /me call), so it stays
   // in sync with login, refresh and logout without any separate cache to invalidate.
   public currentUser$: Observable<User | null> = this.accessToken$.pipe(
@@ -65,16 +86,26 @@ export class AuthService {
     shareReplay({ bufferSize: 1, refCount: false })
   );
 
-  // Refresh token is longer-lived and needed to survive page reloads/browser restarts, so it
-  // stays in localStorage.
-  private refreshTokenSubject = new BehaviorSubject<string | null>(localStorage.getItem('refresh_token'));
-  public refreshToken$ = this.refreshTokenSubject.asObservable();
-
   // Shared in-flight refresh call so concurrent requests that all discover an expired access
   // token trigger a single HTTP refresh instead of one refresh call per request.
   private refreshInFlight$: Observable<string | null> | null = null;
 
-  constructor(private http: HttpClient) {};
+  constructor(
+    private http: HttpClient,
+    private keycloakAuth: KeycloakAuthService,
+    @Inject(AUTH_CONFIG) private authConfig: AuthConfig
+  ) {
+    const refreshToken =
+      authConfig.provider === 'INTERNAL'
+        ? localStorage.getItem('refresh_token')
+        : null;
+    this.refreshTokenSubject = new BehaviorSubject<string | null>(refreshToken);
+    this.refreshToken$ = this.refreshTokenSubject.asObservable();
+
+    if (authConfig.provider === 'KEYCLOAK') {
+      localStorage.removeItem('refresh_token');
+    }
+  }
 
   /**
    * Helper getters for synchronous access to token values
@@ -144,15 +175,40 @@ export class AuthService {
    * Authenticates user credentials and updates token state
    */
   login(credentials: LoginRequest): Observable<LoginResponse> {
+    if (this.authConfig.provider !== 'INTERNAL') {
+      return throwError(
+        () => new Error('Keycloak login requires a trusted realm selection.')
+      );
+    }
+
     return this.http.post<LoginResponse>(`${this.apiUrl}/login`, credentials).pipe(
       tap(response => this.saveSession(response))
     );
+  }
+
+  loginWithKeycloak(selection: KeycloakLoginSelection): Promise<void> {
+    if (this.authConfig.provider !== 'KEYCLOAK') {
+      return Promise.reject(
+        new Error('Keycloak authentication is not enabled.')
+      );
+    }
+
+    this.clearSession();
+    return this.keycloakAuth.login(selection).then((accessToken) => {
+      this.accessTokenSubject.next(accessToken);
+    });
   }
 
   /**
    * Rotates access token using stored refresh token
    */
   refresh(): Observable<LoginResponse> {
+    if (this.authConfig.provider !== 'INTERNAL') {
+      return throwError(
+        () => new Error('Keycloak tokens must be refreshed by the adapter.')
+      );
+    }
+
     const currentRefreshToken = this.refreshToken;
     if (!currentRefreshToken) {
       throw new Error('No refresh token available to perform operation.');
@@ -169,6 +225,11 @@ export class AuthService {
    * Revokes refresh token on backend and clears local token state
    */
   logout(): Observable<void> {
+    if (this.authConfig.provider === 'KEYCLOAK') {
+      this.clearSession();
+      return from(this.keycloakAuth.logout());
+    }
+
     const currentRefreshToken = this.refreshToken;
     const payload: LogoutRequest = { refresh_token: currentRefreshToken || '' };
 
@@ -205,14 +266,15 @@ export class AuthService {
   }
 
   /**
-   * Resolves a usable (non-expired) access token for outgoing requests:
-   * - Returns the current access token immediately if it is present and not expired.
-   * - If it's missing/expired but a refresh token is available, performs a de-duplicated
-   *   refresh and returns the newly issued access token.
-   * - Returns null if there is no refresh token available or the refresh attempt fails (in
-   *   which case the local session is cleared).
+   * Resolves a usable access token through the selected provider. INTERNAL refresh requests are
+   * de-duplicated; Keycloak refreshes through the active adapter. Failed refreshes clear the
+   * local session and return null.
    */
   getValidAccessToken(): Observable<string | null> {
+    if (this.authConfig.provider === 'KEYCLOAK') {
+      return this.getKeycloakAccessToken(10);
+    }
+
     const currentAccessToken = this.accessToken;
     if (currentAccessToken && !this.isTokenExpired(currentAccessToken)) {
       return of(currentAccessToken);
@@ -226,12 +288,20 @@ export class AuthService {
   }
 
   /**
-   * Attempts a silent session restore on app bootstrap: if a refresh token is present in
-   * localStorage (from a previous visit/reload) but no access token is currently held in
-   * memory, performs a refresh so the user isn't forced to log in again on every reload.
-   * Always resolves (never throws) so it never blocks app startup.
+   * Restores the selected provider's session before route guards run. INTERNAL refresh errors
+   * and invalid Keycloak callbacks leave the user unauthenticated without blocking bootstrap.
    */
   initSession(): Observable<string | null> {
+    if (this.authConfig.provider === 'KEYCLOAK') {
+      return from(this.keycloakAuth.initSession()).pipe(
+        tap((token) => this.accessTokenSubject.next(token)),
+        catchError(() => {
+          this.clearSession();
+          return of(null);
+        })
+      );
+    }
+
     if (this.accessToken || !this.refreshToken) {
       return of(this.accessToken);
     }
@@ -240,14 +310,14 @@ export class AuthService {
   }
 
   /**
-   * Unconditionally attempts a (de-duplicated) refresh, regardless of whether the current
-   * in-memory access token looks expired client-side. Intended for the interceptor's reactive
-   * 401 fallback: a server-rejected token means the server disagrees with our local expiry
-   * check (e.g. clock skew or early revocation), so a plain expiry re-check would just hand
-   * back the same token again - a real refresh attempt is required to make progress.
-   * Returns null immediately (without an HTTP call) if there is no refresh token available.
+   * Unconditionally attempts refresh for the selected provider, regardless of whether the
+   * current token looks expired client-side. Used by the interceptor's reactive 401 fallback.
    */
   forceRefresh(): Observable<string | null> {
+    if (this.authConfig.provider === 'KEYCLOAK') {
+      return this.getKeycloakAccessToken(-1);
+    }
+
     if (!this.refreshToken) {
       return of(null);
     }
@@ -275,6 +345,20 @@ export class AuthService {
     }
 
     return this.refreshInFlight$;
+  }
+
+  private getKeycloakAccessToken(
+    minValiditySeconds: number
+  ): Observable<string | null> {
+    return from(
+      this.keycloakAuth.getValidAccessToken(minValiditySeconds)
+    ).pipe(
+      tap((token) => this.accessTokenSubject.next(token)),
+      catchError(() => {
+        this.clearSession();
+        return of(null);
+      })
+    );
   }
 
   private saveSession(response: LoginResponse): void {

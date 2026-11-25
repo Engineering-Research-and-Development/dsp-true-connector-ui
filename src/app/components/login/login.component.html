@@ -4,11 +4,17 @@
       <div class="logo">
         <h2>DSP TRUE Connector</h2>
       </div>
-      <p class="subtitle">Please sign in to access the system</p>
+      <p class="subtitle">
+        {{ isKeycloakMode ? 'Choose how you want to sign in' : 'Please sign in to access the system' }}
+      </p>
     </div>
 
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
-      <!-- Error Banner -->
+    <form
+      *ngIf="!isKeycloakMode"
+      [formGroup]="loginForm"
+      (ngSubmit)="onSubmit()"
+      class="login-form"
+    >
       <div *ngIf="errorMessage" class="alert alert-danger">
         {{ errorMessage }}
       </div>
@@ -72,5 +78,59 @@
         </button>
       </div>
     </form>
+
+    <section *ngIf="isKeycloakMode" class="login-form keycloak-login">
+      <div *ngIf="errorMessage" class="alert alert-danger">
+        {{ errorMessage }}
+      </div>
+
+      <p *ngIf="isLoadingTenants" data-testid="tenant-loading" role="status">
+        Loading tenants…
+      </p>
+      <div
+        *ngIf="tenantErrorMessage"
+        class="alert alert-danger"
+        data-testid="tenant-error"
+        role="alert"
+      >
+        {{ tenantErrorMessage }}
+      </div>
+      <button
+        *ngIf="tenantErrorMessage"
+        type="button"
+        class="btn-secondary"
+        data-testid="tenant-retry"
+        [disabled]="isLoadingTenants || isSubmitting"
+        (click)="loadTenantChoices()"
+      >
+        Retry tenant discovery
+      </button>
+      <p
+        *ngIf="!isLoadingTenants && !tenantErrorMessage && tenants.length === 0"
+        data-testid="tenant-empty"
+        role="status"
+      >
+        No tenant login options are available.
+      </p>
+      <button
+        *ngFor="let tenant of tenants"
+        type="button"
+        class="btn-primary"
+        [attr.data-testid]="'tenant-realm-' + tenant.realm"
+        [disabled]="isSubmitting"
+        (click)="loginAsTenant(tenant)"
+      >
+        {{ tenant.name }}
+      </button>
+      <button
+        type="button"
+        class="btn-secondary"
+        data-testid="admin-login"
+        [disabled]="isSubmitting"
+        (click)="loginAsAdmin()"
+      >
+        Sign in as super-admin
+      </button>
+    </section>
   </div>
 </div>

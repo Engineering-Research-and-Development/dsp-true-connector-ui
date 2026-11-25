@@ -9,6 +9,7 @@ import {
 } from '@angular/router';
 import { Observable } from 'rxjs';
 import { AuthService } from './services/auth/auth.service';
+import { safeLocalReturnUrl } from './services/auth/auth-navigation';
 
 @Injectable({
   providedIn: 'root'
@@ -37,7 +38,7 @@ export class AuthGuard implements CanActivate, CanActivateChild {
 
     // Redirect to /login page and keep returnUrl for navigation after login
     return this.router.createUrlTree(['/login'], {
-      queryParams: { returnUrl: url }
+      queryParams: { returnUrl: safeLocalReturnUrl(url) }
     });
   }
 }
