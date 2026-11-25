@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-# [Unreleased]
+# [0.7.5] - 25-11-2026.
 
 ### Added
 - Optional Keycloak tenant and super-admin sign-in using Authorization Code with PKCE S256, while preserving explicitly configured INTERNAL login.

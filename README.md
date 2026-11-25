@@ -23,6 +23,7 @@ For information on how to start connector with all modules, go to [user manual](
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Usage](#usage)
+  - [Authentication](#authentication)
   - [Statistics Dashboard](#statistics-dashboard)
   - [Catalog Browser](#catalog-browser)
   - [Catalog Management](#catalog-management)
@@ -91,6 +92,12 @@ For information on how to start connector with all modules, go to [user manual](
    The application will be available at `http://localhost:4200` for Connector A, and at `http://localhost:4300` for Connector B.
 
 ## Usage
+
+### Authentication
+
+The login screen follows the selected UI configuration: `INTERNAL` uses email and password, while `KEYCLOAK` offers tenant sign-in and super-admin sign-in through Authorization Code with PKCE S256. Tenant choices are discovered from the connector's public `/public/tenant` endpoint; the callback is `{UI_ORIGIN}/auth/callback`. Selecting super-admin login does not itself grant privileged access.
+
+For local `ng serve`, authentication settings come from the selected Angular environment file (`src/environments/environment.connectorA.ts` or `environment.connectorB.ts`), not Docker `.env`. For Docker, configure each instance using its `CONNECTOR_A_*` or `CONNECTOR_B_*` settings in `docker/.env`. See the [user manual authentication guide](USER_MANUAL.md#authentication) for the required Keycloak client, callback, and deployment configuration.
 
 ### Statistics Dashboard
 

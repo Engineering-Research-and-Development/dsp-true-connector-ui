@@ -6,7 +6,7 @@ export const environment = {
   PROJECT_LOGO_PRESENT: 'false',
   PROJECT_LABEL: '',
   TC_ROOT_API_URL: 'http://localhost:8080/api/v1',
-  AUTH_PROVIDER: 'KEYCLOAK',
+  AUTH_PROVIDER: 'INTERNAL',
   KEYCLOAK_URL: 'http://localhost:8180/',
   KEYCLOAK_CLIENT_ID: 'keycloak-api',
   KEYCLOAK_ADMIN_REALM: 'connector-admin',

@@ -380,6 +380,8 @@ After the callback, the UI decodes the user, tenant, and role from the access to
 
 The settings in the UI environment and Docker `.env` only configure the browser application. Backend discovery access, realm/client registration, token acceptance, and role mapping must be configured and verified separately by the connector/identity deployment.
 
+For local Angular CLI runs, the selected build configuration reads authentication settings from its environment file: `ng serve --configuration connectorA` uses `src/environments/environment.connectorA.ts`, and `connectorB` uses `src/environments/environment.connectorB.ts`. Set `AUTH_PROVIDER` and the Keycloak values in that file to choose the mode for the local instance; changes to Docker `.env` do not affect `ng serve`. Docker Compose passes the separate `CONNECTOR_A_*` and `CONNECTOR_B_*` settings into each UI container, with `INTERNAL` as the default. The checked-in local profiles currently select `KEYCLOAK` for Connector A and `INTERNAL` for Connector B.
+
 ---
 
 ## Application Features
